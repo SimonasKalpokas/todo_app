@@ -1,9 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/screens/add_task.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => Tasks()),
+    ],
+    child: const MyApp(),
+  ));
+}
+
+class Tasks with ChangeNotifier {
+  final List<BaseTask> _tasks = [
+    BaseTask("One", "One desc", TaskType.daily),
+    BaseTask("Two", "Two desc", TaskType.weekly),
+  ];
+
+  List<BaseTask> get tasks => _tasks;
+
+  void append(BaseTask task) {
+    _tasks.add(task);
+
+    notifyListeners();
+  }
+
+  void toggle(int index) {
+    _tasks[index].completed = !_tasks[index].completed;
+
+    notifyListeners();
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -31,10 +58,12 @@ class MyApp extends StatelessWidget {
           body: const ListOfTasks(),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddTask()),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => const AddTask()),
+              // );
+              context.read<Tasks>().append(BaseTask(
+                  "Extra", "Created via button press", TaskType.weekly));
             },
             tooltip: 'Add a task',
             child: const Icon(Icons.add),
@@ -45,34 +74,23 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ListOfTasks extends StatefulWidget {
+class ListOfTasks extends StatelessWidget {
   const ListOfTasks({Key? key}) : super(key: key);
 
   @override
-  State<ListOfTasks> createState() => _ListOfTasksState();
-}
-
-class _ListOfTasksState extends State<ListOfTasks> {
-  List<BaseTask> a = [
-    BaseTask("One", "One desc", TaskType.daily),
-    BaseTask("Two", "Two desc", TaskType.weekly),
-  ];
-
-  @override
   Widget build(BuildContext context) {
+    var tasks = context.watch<Tasks>().tasks;
     return ListView.builder(
-      itemCount: a.length,
+      itemCount: tasks.length,
       itemBuilder: (BuildContext context, int index) {
-        var task = a[index];
+        var task = tasks[index];
         return Card(
           child: CheckboxListTile(
             title: Text(task.name),
             subtitle: Text(task.description),
             onChanged: (bool? value) {
               if (value != null) {
-                setState(() {
-                  task.completed = value;
-                });
+                context.read<Tasks>().toggle(index);
               }
             },
             value: task.completed,
