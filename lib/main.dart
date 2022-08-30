@@ -18,9 +18,10 @@ class Tasks with ChangeNotifier {
     BaseTask("Two", "Two desc", TaskType.weekly),
   ];
 
+  // TODO: make returned list unmodifiable
   List<BaseTask> get tasks => _tasks;
 
-  void append(BaseTask task) {
+  void add(BaseTask task) {
     _tasks.add(task);
 
     notifyListeners();
@@ -58,12 +59,10 @@ class MyApp extends StatelessWidget {
           body: const ListOfTasks(),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const AddTask()),
-              // );
-              context.read<Tasks>().append(BaseTask(
-                  "Extra", "Created via button press", TaskType.weekly));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddTask()),
+              );
             },
             tooltip: 'Add a task',
             child: const Icon(Icons.add),
