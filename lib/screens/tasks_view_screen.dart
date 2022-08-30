@@ -55,6 +55,7 @@ class TasksListView extends StatelessWidget {
           return Container();
         }
         bool? value;
+        assert(Status.values.length == 2);
         switch (task.status) {
           case Status.done:
             value = true;
@@ -62,13 +63,12 @@ class TasksListView extends StatelessWidget {
           case Status.undone:
             value = false;
             break;
-          default:
-            assert(false, "Unreachable");
         }
         return Card(
           child: CheckboxListTile(
             title: Text(task.name),
             subtitle: Text(task.description),
+            secondary: Text(task.type.displayTitle),
             onChanged: (bool? value) {
               context.read<Tasks>().changeStatus(index, value);
             },
