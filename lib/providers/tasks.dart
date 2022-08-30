@@ -18,8 +18,15 @@ class Tasks with ChangeNotifier {
     notifyListeners();
   }
 
-  void toggle(int index) {
-    _tasks[index].completed = !_tasks[index].completed;
+  void changeStatus(int index, bool? status) {
+    if (status == null) {
+      throw UnimplementedError();
+    }
+    if (status == false) {
+      _tasks[index].status = Status.undone;
+    } else {
+      _tasks[index].status = Status.done;
+    }
 
     notifyListeners();
   }
