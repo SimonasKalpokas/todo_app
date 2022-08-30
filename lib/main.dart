@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/models/base_task.dart';
-import 'package:todo_app/screens/add_task.dart';
+import 'package:todo_app/providers/tasks.dart';
+import 'package:todo_app/screens/tasks_view_screen.dart';
 
 void main() {
   runApp(MultiProvider(
@@ -10,28 +10,6 @@ void main() {
     ],
     child: const MyApp(),
   ));
-}
-
-class Tasks with ChangeNotifier {
-  final List<BaseTask> _tasks = [
-    BaseTask("One", "One desc", TaskType.daily),
-    BaseTask("Two", "Two desc", TaskType.weekly),
-  ];
-
-  // TODO: make returned list unmodifiable
-  List<BaseTask> get tasks => _tasks;
-
-  void add(BaseTask task) {
-    _tasks.add(task);
-
-    notifyListeners();
-  }
-
-  void toggle(int index) {
-    _tasks[index].completed = !_tasks[index].completed;
-
-    notifyListeners();
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -55,49 +33,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: Builder(
-        builder: (context) => Scaffold(
-          body: const ListOfTasks(),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddTask()),
-              );
-            },
-            tooltip: 'Add a task',
-            child: const Icon(Icons.add),
-          ),
-        ),
+        builder: (context) => const TasksViewScreen(),
       ),
-    );
-  }
-}
-
-class ListOfTasks extends StatelessWidget {
-  const ListOfTasks({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    var tasks = context.watch<Tasks>().tasks;
-    return ListView.builder(
-      itemCount: tasks.length,
-      itemBuilder: (BuildContext context, int index) {
-        var task = tasks[index];
-        return Card(
-          child: CheckboxListTile(
-            title: Text(task.name),
-            subtitle: Text(task.description),
-            onChanged: (bool? value) {
-              if (value != null) {
-                context.read<Tasks>().toggle(index);
-              }
-            },
-            value: task.completed,
-            controlAffinity: ListTileControlAffinity.leading,
-            checkboxShape: const CircleBorder(),
-          ),
-        );
-      },
     );
   }
 }
