@@ -5,8 +5,8 @@ import '../models/base_task.dart';
 class Tasks with ChangeNotifier {
   // TODO: get tasks on initialisation from db
   final List<BaseTask> _tasks = [
-    BaseTask("One", "One desc", TaskType.daily),
-    BaseTask("Two", "Two desc", TaskType.weekly),
+    BaseTask("One", "One desc", Reoccurrence.daily),
+    BaseTask("Two", "Two desc", Reoccurrence.weekly),
   ];
 
   // TODO: make returned list unmodifiable

@@ -22,7 +22,6 @@ class AddTaskScreen extends StatelessWidget {
   }
 }
 
-// TODO: Add selections of task type aka weekly/daily
 class AddTaskForm extends StatefulWidget {
   const AddTaskForm({Key? key}) : super(key: key);
 
@@ -32,7 +31,7 @@ class AddTaskForm extends StatefulWidget {
 
 class _AddTaskFormState extends State<AddTaskForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final BaseTask _task = BaseTask("", "", TaskType.daily);
+  final BaseTask _task = BaseTask("", "", Reoccurrence.daily);
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +52,16 @@ class _AddTaskFormState extends State<AddTaskForm> {
           TextFormField(
             decoration: const InputDecoration(hintText: "Description"),
             onSaved: (value) => setState(() => _task.description = value!),
+          ),
+          DropdownButton<Reoccurrence>(
+            value: _task.type,
+            items: Reoccurrence.values
+                .map((type) => DropdownMenuItem<Reoccurrence>(
+                      value: type,
+                      child: Text(type.displayTitle),
+                    ))
+                .toList(),
+            onChanged: (value) => setState(() => _task.type = value!),
           ),
           ElevatedButton(
             child: const Text("Sumbit"),
