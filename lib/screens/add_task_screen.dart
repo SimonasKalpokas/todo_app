@@ -1,8 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
-
-import '../providers/tasks.dart';
 
 class AddTaskScreen extends StatelessWidget {
   const AddTaskScreen({Key? key}) : super(key: key);
@@ -40,7 +38,7 @@ class _AddTaskFormState extends State<AddTaskForm> {
       child: Column(
         children: [
           TextFormField(
-            decoration: const InputDecoration(hintText: "Name"),
+            decoration: const InputDecoration(labelText: "Name"),
             validator: (String? value) {
               if (value == null || value.isEmpty) {
                 return "Name cannot be empty";
@@ -50,7 +48,7 @@ class _AddTaskFormState extends State<AddTaskForm> {
             onSaved: (value) => setState(() => _task.name = value!),
           ),
           TextFormField(
-            decoration: const InputDecoration(hintText: "Description"),
+            decoration: const InputDecoration(labelText: "Description"),
             onSaved: (value) => setState(() => _task.description = value!),
           ),
           DropdownButton<Reoccurrence>(
@@ -69,7 +67,9 @@ class _AddTaskFormState extends State<AddTaskForm> {
               var form = _formKey.currentState!;
               if (form.validate()) {
                 form.save();
-                context.read<Tasks>().add(_task);
+                FirebaseFirestore.instance
+                    .collection('tasks')
+                    .add(_task.toMap());
               }
             },
           ),

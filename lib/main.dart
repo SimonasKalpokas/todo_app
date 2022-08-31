@@ -1,15 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:todo_app/providers/tasks.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 
-void main() {
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => Tasks()),
-    ],
-    child: const MyApp(),
-  ));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
