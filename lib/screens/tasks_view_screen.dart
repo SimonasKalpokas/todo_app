@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
@@ -16,11 +17,11 @@ class TasksViewScreen extends StatelessWidget {
         child: Column(
           children: [
             TasksListView(
-              condition: (task) => task.status == Status.undone,
+              condition: (task) => task.status() == Status.undone,
             ),
             const Text("Done"),
             TasksListView(
-              condition: (task) => task.status == Status.done,
+              condition: (task) => task.status() == Status.done,
             ),
           ],
         ),
@@ -65,7 +66,7 @@ class TasksListView extends StatelessWidget {
               }
               bool? value;
               assert(Status.values.length == 2);
-              switch (task.status) {
+              switch (task.status()) {
                 case Status.done:
                   value = true;
                   break;
@@ -79,12 +80,12 @@ class TasksListView extends StatelessWidget {
                   subtitle: Text(task.description),
                   secondary: Text(task.reoccurrence.displayTitle),
                   onChanged: (bool? value) {
-                    assert(Status.values.length == 2);
                     if (value == null) {
                       throw UnimplementedError();
                     }
                     firestoreService.updateTaskFields(task.id, {
-                      'status': value ? Status.done.index : Status.undone.index
+                      'lastCompleted':
+                          value ? clock.now().toIso8601String() : null
                     });
                   },
                   value: value,
