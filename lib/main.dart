@@ -1,10 +1,28 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyAUgahltvdx26ZtuRmJqlbfZpkKleQAf2U",
+        authDomain: "todoapp-69903.firebaseapp.com",
+        projectId: "todoapp-69903",
+        storageBucket: "todoapp-69903.appspot.com",
+        messagingSenderId: "256435746073",
+        appId: "1:256435746073:web:b292cfcd1e54ca86928188",
+        measurementId: "G-BHH0MLZ0SW",
+      ),
+    );
+  } else if (defaultTargetPlatform == TargetPlatform.android) {
+    await Firebase.initializeApp();
+  } else {
+    throw UnimplementedError("Platform not supported");
+  }
 
   runApp(const MyApp());
 }
