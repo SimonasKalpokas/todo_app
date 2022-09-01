@@ -76,7 +76,7 @@ class TasksListView extends StatelessWidget {
               child: CheckboxListTile(
                 title: Text(task.name),
                 subtitle: Text(task.description),
-                secondary: Text(task.type.displayTitle),
+                secondary: Text(task.reoccurrence.displayTitle),
                 onChanged: (bool? value) {
                   assert(Status.values.length == 2);
                   if (value == null) {

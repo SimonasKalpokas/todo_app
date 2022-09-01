@@ -52,14 +52,14 @@ class _AddTaskFormState extends State<AddTaskForm> {
             onSaved: (value) => setState(() => _task.description = value!),
           ),
           DropdownButton<Reoccurrence>(
-            value: _task.type,
+            value: _task.reoccurrence,
             items: Reoccurrence.values
                 .map((type) => DropdownMenuItem<Reoccurrence>(
                       value: type,
                       child: Text(type.displayTitle),
                     ))
                 .toList(),
-            onChanged: (value) => setState(() => _task.type = value!),
+            onChanged: (value) => setState(() => _task.reoccurrence = value!),
           ),
           ElevatedButton(
             child: const Text("Sumbit"),

@@ -3,23 +3,22 @@ class BaseTask {
   String name;
   String description;
   Status status = Status.undone;
-  // TODO: rename type to reoccurrence
-  Reoccurrence type;
+  Reoccurrence reoccurrence;
 
-  BaseTask(this.name, this.description, this.type);
+  BaseTask(this.name, this.description, this.reoccurrence);
 
   Map<String, dynamic> toMap() => {
         'name': name,
         'description': description,
         'status': status.index,
-        'reoccurrence': type.index,
+        'reoccurrence': reoccurrence.index,
       };
 
   BaseTask.fromMap(this.id, Map<String, dynamic> map)
       : name = map['name'],
         description = map['description'],
         status = Status.values[map['status']],
-        type = Reoccurrence.values[map['reoccurrence']];
+        reoccurrence = Reoccurrence.values[map['reoccurrence']];
 }
 
 enum Status {
