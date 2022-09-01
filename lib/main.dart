@@ -2,7 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
+import 'package:todo_app/services/firestore_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +26,10 @@ Future<void> main() async {
     throw UnimplementedError("Platform not supported");
   }
 
-  runApp(const MyApp());
+  runApp(MultiProvider(
+    providers: [Provider(create: (_) => FirestoreService())],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

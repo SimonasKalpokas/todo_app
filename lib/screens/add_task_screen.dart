@@ -1,6 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/services/firestore_service.dart';
 
 class AddTaskScreen extends StatelessWidget {
   const AddTaskScreen({Key? key}) : super(key: key);
@@ -33,6 +34,7 @@ class _AddTaskFormState extends State<AddTaskForm> {
 
   @override
   Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
     return Form(
       key: _formKey,
       child: Column(
@@ -67,9 +69,7 @@ class _AddTaskFormState extends State<AddTaskForm> {
               var form = _formKey.currentState!;
               if (form.validate()) {
                 form.save();
-                FirebaseFirestore.instance
-                    .collection('tasks')
-                    .add(_task.toMap());
+                firestoreService.addTask(_task);
               }
             },
           ),
