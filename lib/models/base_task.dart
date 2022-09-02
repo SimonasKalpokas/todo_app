@@ -53,7 +53,7 @@ class BaseTask {
         description = map['description'],
         lastCompletedOn = map['lastCompleted'] == null
             ? null
-            : DateTime.tryParse(map['lastCompleted']),
+            : DateTime.parse(map['lastCompleted']),
         reoccurrence = Reoccurrence.values[map['reoccurrence']];
 }
 

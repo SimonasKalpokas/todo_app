@@ -27,7 +27,6 @@ class MockFirestoreService extends Mock implements FirestoreService {
   }
 }
 
-// TODO: Write tests for various reoccurrences of tasks.
 void main() {
   testWidgets('Widget loading test', (WidgetTester tester) async {
     final mockFirestoreService = MockFirestoreService();

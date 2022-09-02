@@ -16,4 +16,8 @@ class FirestoreService {
   Future<void> updateTaskFields(String? taskId, Map<String, dynamic> fields) {
     return tasks.doc(taskId).update(fields);
   }
+
+  Future<void> deleteTask(String? taskId) {
+    return tasks.doc(taskId).delete();
+  }
 }

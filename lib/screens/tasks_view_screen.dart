@@ -75,22 +75,43 @@ class TasksListView extends StatelessWidget {
                   break;
               }
               return Card(
-                child: CheckboxListTile(
-                  title: Text(task.name),
-                  subtitle: Text(task.description),
-                  secondary: Text(task.reoccurrence.displayTitle),
-                  onChanged: (bool? value) {
-                    if (value == null) {
-                      throw UnimplementedError();
-                    }
-                    firestoreService.updateTaskFields(task.id, {
-                      'lastCompleted':
-                          value ? clock.now().toIso8601String() : null
-                    });
-                  },
-                  value: value,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  checkboxShape: const CircleBorder(),
+                child: Dismissible(
+                  key: ObjectKey(task),
+                  onDismissed: ((direction) {
+                    firestoreService.deleteTask(task.id);
+                  }),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                    child: const Icon(Icons.delete_sweep),
+                  ),
+                  child: ListTile(
+                    title: Text(task.name),
+                    subtitle: Text(task.description),
+                    trailing: Text(task.reoccurrence.displayTitle),
+                    // onTap: () {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //         builder: (context) => const AddTaskScreen()),
+                    //   );
+                    // },
+                    leading: Checkbox(
+                      onChanged: (bool? value) {
+                        if (value == null) {
+                          throw UnimplementedError();
+                        }
+                        firestoreService.updateTaskFields(task.id, {
+                          'lastCompleted':
+                              value ? clock.now().toIso8601String() : null
+                        });
+                      },
+                      value: value,
+                      shape: const CircleBorder(),
+                    ),
+                  ),
                 ),
               );
             },
