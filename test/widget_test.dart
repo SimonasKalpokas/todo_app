@@ -21,9 +21,9 @@ import 'package:todo_app/services/firestore_service.dart';
 // TODO: organise tests better
 class MockFirestoreService extends Mock implements FirestoreService {
   @override
-  Stream<Iterable<T>> getTasks<T extends BaseTask>(String collection,
+  Stream<Iterable<T>> getTasks<T extends BaseTask>(
       T Function(String?, Map<String, dynamic>) constructor) {
-    if (collection == 'timed') {
+    if (T == TimedTask) {
       return Stream.value([
         TimedTask('TimedOne', 'timedOne desc', Reoccurrence.notRepeating,
             const Duration(days: 1)) as T,

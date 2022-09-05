@@ -1,4 +1,6 @@
 import 'package:clock/clock.dart';
+import 'package:todo_app/models/checked_task.dart';
+import 'package:todo_app/models/timed_task.dart';
 
 abstract class BaseTask {
   String? id;
@@ -50,7 +52,17 @@ enum Reoccurrence {
 
 enum TaskType {
   checked,
-  timed,
+  timed;
+
+  static TaskType of<T extends BaseTask>() {
+    if (T == TimedTask) {
+      return TaskType.timed;
+    }
+    if (T == CheckedTask) {
+      return TaskType.checked;
+    }
+    throw Exception('Unexpected type');
+  }
 }
 
 extension ReoccurrenceExtension on Reoccurrence {

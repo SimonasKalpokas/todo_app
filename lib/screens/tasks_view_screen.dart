@@ -17,10 +17,10 @@ class TasksViewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     var checkedTasks = firestoreService
-        .getTasks('checked', CheckedTask.fromMap)
+        .getTasks<CheckedTask>(CheckedTask.fromMap)
         .asBroadcastStream();
     var timedTasks = firestoreService
-        .getTasks('timed', TimedTask.fromMap)
+        .getTasks<TimedTask>(TimedTask.fromMap)
         .asBroadcastStream();
     return Scaffold(
       appBar: AppBar(title: const Text("Tasks:")),
@@ -107,7 +107,7 @@ class TaskCard extends StatelessWidget {
       child: Dismissible(
         key: ObjectKey(task),
         onDismissed: ((direction) {
-          firestoreService.deleteTask(task.type.name, task.id);
+          firestoreService.deleteTask(task.type, task.id);
         }),
         direction: DismissDirection.endToStart,
         background: Container(
@@ -135,7 +135,7 @@ class TaskCard extends StatelessWidget {
                     if (value == null) {
                       throw UnimplementedError();
                     }
-                    firestoreService.updateTaskFields('checked', task.id, {
+                    firestoreService.updateTaskFields(task.type, task.id, {
                       'lastCompleted':
                           value ? clock.now().toIso8601String() : null
                     });
@@ -168,7 +168,8 @@ class _TimerWidgetState extends State<TimerWidget> {
       var remainingTime = widget.timedTask.remainingTime -
           clock.now().difference(widget.timedTask.lastExecution!);
       if (remainingTime <= Duration.zero) {
-        firestoreService!.updateTaskFields('timed', widget.timedTask.id, {
+        firestoreService!
+            .updateTaskFields(TaskType.timed, widget.timedTask.id, {
           'lastCompleted': clock.now().toString(),
           'remainingTime': Duration.zero.toString(),
           'executing': false,
@@ -186,7 +187,8 @@ class _TimerWidgetState extends State<TimerWidget> {
           widget.timedTask.remainingTime -= const Duration(seconds: 1);
         });
         if (widget.timedTask.remainingTime.inSeconds <= 0) {
-          firestoreService!.updateTaskFields('timed', widget.timedTask.id, {
+          firestoreService!
+              .updateTaskFields(TaskType.timed, widget.timedTask.id, {
             'lastCompleted': clock.now().toString(),
             'remainingTime': Duration.zero.toString(),
             'executing': false,
@@ -236,8 +238,8 @@ class _TimerWidgetState extends State<TimerWidget> {
               if (!task.executing) {
                 fields.addAll({'lastExecution': clock.now().toIso8601String()});
               }
-              firestoreService!
-                  .updateTaskFields('timed', widget.timedTask.id, fields);
+              firestoreService!.updateTaskFields(
+                  TaskType.timed, widget.timedTask.id, fields);
             },
             child: Text('$hours:$mins:$secs'),
           );

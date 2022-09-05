@@ -96,20 +96,20 @@ class _AddTaskFormState extends State<AddTaskForm> {
             onPressed: () {
               var form = _formKey.currentState!;
               if (form.validate()) {
+                BaseTask? task;
                 switch (type) {
                   case 'Checked':
-                    var task = CheckedTask(nameController.text,
+                    task = CheckedTask(nameController.text,
                         descriptionController.text, reoccurrence);
-                    firestoreService.addTask('checked', task);
                     break;
                   case 'Timed':
-                    TimedTask task = TimedTask(nameController.text,
+                    task = TimedTask(nameController.text,
                         descriptionController.text, reoccurrence, totalTime);
-                    firestoreService.addTask('timed', task);
                     break;
                   default:
                     throw UnimplementedError();
                 }
+                firestoreService.addTask(task);
               }
             },
           ),
