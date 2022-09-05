@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
-Future<void> main() async {
+Future<void> initialiseDb() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     await Firebase.initializeApp(
@@ -25,6 +25,10 @@ Future<void> main() async {
   } else {
     throw UnimplementedError("Platform not supported");
   }
+}
+
+Future<void> main() async {
+  await initialiseDb();
 
   runApp(MultiProvider(
     providers: [Provider(create: (_) => FirestoreService())],

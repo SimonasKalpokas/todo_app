@@ -1,50 +1,28 @@
 import 'package:clock/clock.dart';
 
-class BaseTask {
+abstract class BaseTask {
   String? id;
   String name;
   String description;
   DateTime? lastCompletedOn;
   Reoccurrence reoccurrence;
+  TaskType type;
 
-  BaseTask(this.name, this.description, this.reoccurrence);
+  BaseTask(this.type, this.name, this.description, this.reoccurrence);
 
   // TODO: for weekly (also maybe for daily) add choice of first week day (time)
-  // TODO: extract Reoccurrence to separate class
-  Status status() {
-    if (lastCompletedOn == null) {
-      return Status.undone;
-    }
-    final now = clock.now();
+  // TODO: change status and isDone to methods
+  Status get status =>
+      reoccurrence.isActiveNow(lastCompletedOn) ? Status.done : Status.undone;
 
-    if (now.isBefore(lastCompletedOn!)) {
-      throw Exception('Time of task completion is in the future.');
-    }
-
-    switch (reoccurrence) {
-      case Reoccurrence.daily:
-        if (now.difference(lastCompletedOn!).inDays > 1 ||
-            now.day != lastCompletedOn!.day) {
-          return Status.undone;
-        }
-        break;
-      case Reoccurrence.weekly:
-        if (now.difference(lastCompletedOn!).inDays > now.weekday ||
-            now.weekday < lastCompletedOn!.weekday) {
-          return Status.undone;
-        }
-        break;
-      case Reoccurrence.notRepeating:
-        break;
-    }
-    return Status.done;
-  }
+  bool get isDone => status == Status.done;
 
   Map<String, dynamic> toMap() => {
         'name': name,
         'description': description,
         'lastCompleted': lastCompletedOn?.toIso8601String(),
         'reoccurrence': reoccurrence.index,
+        'type': type.index,
       };
 
   // TODO: write tests for this function
@@ -54,18 +32,25 @@ class BaseTask {
         lastCompletedOn = map['lastCompleted'] == null
             ? null
             : DateTime.parse(map['lastCompleted']),
+        type = TaskType.values[map['type']],
         reoccurrence = Reoccurrence.values[map['reoccurrence']];
 }
 
 enum Status {
   undone,
   done,
+  started,
 }
 
 enum Reoccurrence {
   daily,
   weekly,
   notRepeating,
+}
+
+enum TaskType {
+  checked,
+  timed,
 }
 
 extension ReoccurrenceExtension on Reoccurrence {
@@ -79,5 +64,63 @@ extension ReoccurrenceExtension on Reoccurrence {
       case Reoccurrence.notRepeating:
         return 'Not repeating';
     }
+  }
+
+  bool wasActiveLastTimePeriod(DateTime? dateTime) {
+    if (dateTime == null) {
+      return false;
+    }
+    if (isActiveNow(dateTime)) {
+      return false;
+    }
+
+    final now = clock.now();
+    switch (this) {
+      case Reoccurrence.daily:
+        dateTime = dateTime.subtract(const Duration(days: 1));
+        if (now.difference(dateTime).inDays > 1 || now.day != dateTime.day) {
+          return false;
+        }
+        break;
+      case Reoccurrence.weekly:
+        dateTime = dateTime.subtract(const Duration(days: 7));
+        if (now.difference(dateTime).inDays > now.weekday ||
+            now.weekday < dateTime.weekday) {
+          return false;
+        }
+        break;
+      case Reoccurrence.notRepeating:
+        break;
+    }
+    return true;
+  }
+
+  bool isActiveNow(DateTime? dateTime) {
+    if (dateTime == null) {
+      return false;
+    }
+    final now = clock.now();
+
+    if (now.isBefore(dateTime)) {
+      // TODO: handle time in the future better
+      throw Exception('Time of task completion is in the future.');
+    }
+
+    switch (this) {
+      case Reoccurrence.daily:
+        if (now.difference(dateTime).inDays > 1 || now.day != dateTime.day) {
+          return false;
+        }
+        break;
+      case Reoccurrence.weekly:
+        if (now.difference(dateTime).inDays > now.weekday ||
+            now.weekday < dateTime.weekday) {
+          return false;
+        }
+        break;
+      case Reoccurrence.notRepeating:
+        break;
+    }
+    return true;
   }
 }

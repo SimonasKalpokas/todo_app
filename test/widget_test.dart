@@ -11,18 +11,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/checked_task.dart';
+import 'package:todo_app/models/timed_task.dart';
 
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
+// TODO: write tests for existing functionality
+// TODO: organise tests better
 class MockFirestoreService extends Mock implements FirestoreService {
   @override
-  Stream<Iterable<BaseTask>> getTasks() {
-    var one = BaseTask("One", "one desc", Reoccurrence.daily);
+  Stream<Iterable<T>> getTasks<T extends BaseTask>(String collection,
+      T Function(String?, Map<String, dynamic>) constructor) {
+    if (collection == 'timed') {
+      return Stream.value([
+        TimedTask('TimedOne', 'timedOne desc', Reoccurrence.notRepeating,
+            const Duration(days: 1)) as T,
+      ]);
+    }
+    var one = CheckedTask("One", "one desc", Reoccurrence.daily) as T;
     return Stream.value([
       one,
-      BaseTask("Two", "two desc", Reoccurrence.weekly),
-      BaseTask("Three", "three desc", Reoccurrence.notRepeating),
+      CheckedTask("Two", "two desc", Reoccurrence.weekly) as T,
+      CheckedTask("Three", "three desc", Reoccurrence.notRepeating) as T,
     ]);
   }
 }
@@ -39,7 +50,7 @@ void main() {
       ],
       child: const MaterialApp(home: TasksViewScreen()),
     ));
-    expect(find.byType(CircularProgressIndicator), findsNWidgets(2));
+    expect(find.byType(CircularProgressIndicator), findsNWidgets(4));
     expect(find.text("Done"), findsOneWidget);
 
     await tester.pump(Duration.zero);
@@ -47,57 +58,69 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
-  test('BaseTask.status() reoccurance notRepeating test', () {
-    var task = BaseTask("Test", "desc", Reoccurrence.notRepeating);
+  test('BaseTask.status reoccurance notRepeating test', () {
+    var task = CheckedTask("Test", "desc", Reoccurrence.notRepeating);
     withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
 
       task.lastCompletedOn = DateTime(2000, 1, 1);
-      expect(task.status(), Status.done);
+      expect(task.status, Status.done);
 
       task.lastCompletedOn = DateTime(2000, 1, 10, 20);
-      expect(task.status(), Status.done);
+      expect(task.status, Status.done);
 
       task.lastCompletedOn = DateTime(2000, 1, 11, 10);
-      expect(task.status(), Status.done);
+      expect(task.status, Status.done);
 
       task.lastCompletedOn = DateTime(2000, 1, 12, 10);
-      expect(() => task.status(), throwsException);
+      expect(() => task.status, throwsException);
     });
   });
 
-  test('BaseTask.status() daily test', () {
-    var task = BaseTask("Test", "desc", Reoccurrence.daily);
+  test('BaseTask.status daily test', () {
+    var task = CheckedTask("Test", "desc", Reoccurrence.daily);
     withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
 
       task.lastCompletedOn = DateTime(2000, 1, 1);
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
 
       task.lastCompletedOn = DateTime(2000, 1, 11, 10);
-      expect(task.status(), Status.done);
+      expect(task.status, Status.done);
 
       task.lastCompletedOn = DateTime(2000, 1, 10, 20);
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
     });
   });
-  test('BaseTask.status() weekly test', () {
-    var task = BaseTask("Test", "desc", Reoccurrence.weekly);
+  test('BaseTask.status weekly test', () {
+    var task = CheckedTask("Test", "desc", Reoccurrence.weekly);
     // 2000-01-11 is Tuesday
     withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
 
       task.lastCompletedOn = DateTime(2000, 1, 10, 20);
-      expect(task.status(), Status.done);
+      expect(task.status, Status.done);
 
       task.lastCompletedOn = DateTime(2000, 1, 9, 20);
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
       task.lastCompletedOn = DateTime(2000, 1, 4, 20);
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
       task.lastCompletedOn = DateTime(2000, 1, 3, 11);
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
       task.lastCompletedOn = DateTime(2000, 1, 3, 20);
-      expect(task.status(), Status.undone);
+      expect(task.status, Status.undone);
     });
+  });
+
+  test('Duration parse test', () {
+    const dur = Duration(
+      days: 2,
+      hours: 1,
+      minutes: 11,
+      milliseconds: 4,
+      microseconds: 3,
+      seconds: 11,
+    );
+    expect(DurationParse.tryParse(dur.toString()), dur);
   });
 }
