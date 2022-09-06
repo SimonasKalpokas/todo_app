@@ -22,7 +22,7 @@ abstract class BaseTask {
   Map<String, dynamic> toMap() => {
         'name': name,
         'description': description,
-        'lastCompleted': lastCompletedOn?.toIso8601String(),
+        'lastCompletedOn': lastCompletedOn?.toIso8601String(),
         'reoccurrence': reoccurrence.index,
         'type': type.index,
       };
@@ -31,9 +31,9 @@ abstract class BaseTask {
   BaseTask.fromMap(this.id, Map<String, dynamic> map)
       : name = map['name'],
         description = map['description'],
-        lastCompletedOn = map['lastCompleted'] == null
+        lastCompletedOn = map['lastCompletedOn'] == null
             ? null
-            : DateTime.parse(map['lastCompleted']),
+            : DateTime.parse(map['lastCompletedOn']),
         type = TaskType.values[map['type']],
         reoccurrence = Reoccurrence.values[map['reoccurrence']];
 }
@@ -41,6 +41,7 @@ abstract class BaseTask {
 enum Status {
   undone,
   done,
+  // TODO: think about if started is really neccessary
   started,
 }
 

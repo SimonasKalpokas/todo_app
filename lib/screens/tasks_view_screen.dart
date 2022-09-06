@@ -8,6 +8,7 @@ import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
 import '../models/checked_task.dart';
+import '../widgets/timer_widget.dart';
 import 'add_task_screen.dart';
 
 class TasksViewScreen extends StatelessWidget {
@@ -136,7 +137,7 @@ class TaskCard extends StatelessWidget {
                       throw UnimplementedError();
                     }
                     firestoreService.updateTaskFields(task.type, task.id, {
-                      'lastCompleted':
+                      'lastCompletedOn':
                           value ? clock.now().toIso8601String() : null
                     });
                   },
@@ -146,102 +147,5 @@ class TaskCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class TimerWidget extends StatefulWidget {
-  final TimedTask timedTask;
-  const TimerWidget({Key? key, required this.timedTask}) : super(key: key);
-
-  @override
-  State<TimerWidget> createState() => _TimerWidgetState();
-}
-
-class _TimerWidgetState extends State<TimerWidget> {
-  Timer? timer;
-  FirestoreService? firestoreService;
-
-  @override
-  void didChangeDependencies() {
-    firestoreService = Provider.of<FirestoreService>(context);
-    if (widget.timedTask.executing) {
-      var remainingTime = widget.timedTask.remainingTime -
-          clock.now().difference(widget.timedTask.lastExecution!);
-      if (remainingTime <= Duration.zero) {
-        firestoreService!
-            .updateTaskFields(TaskType.timed, widget.timedTask.id, {
-          'lastCompleted': clock.now().toString(),
-          'remainingTime': Duration.zero.toString(),
-          'executing': false,
-        });
-      } else {
-        setState(() {
-          widget.timedTask.remainingTime = remainingTime;
-        });
-      }
-    }
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (widget.timedTask.executing &&
-          widget.timedTask.remainingTime.inSeconds > 0) {
-        setState(() {
-          widget.timedTask.remainingTime -= const Duration(seconds: 1);
-        });
-        if (widget.timedTask.remainingTime.inSeconds <= 0) {
-          firestoreService!
-              .updateTaskFields(TaskType.timed, widget.timedTask.id, {
-            'lastCompleted': clock.now().toString(),
-            'remainingTime': Duration.zero.toString(),
-            'executing': false,
-          });
-          timer.cancel();
-        }
-      }
-    });
-    super.didChangeDependencies();
-  }
-
-  @override
-  void dispose() {
-    timer!.cancel();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant TimerWidget oldWidget) {
-    if (oldWidget.timedTask.executing && widget.timedTask.executing) {
-      setState(() {
-        widget.timedTask.remainingTime = oldWidget.timedTask.remainingTime;
-      });
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var task = widget.timedTask;
-    int hours = task.remainingTime.inHours;
-    int mins = task.remainingTime.inMinutes - hours * 60;
-    int secs = task.remainingTime.inSeconds - hours * 3600 - mins * 60;
-    return task.status == Status.done
-        ? Checkbox(value: true, onChanged: (_) {})
-        : TextButton(
-            onPressed: () {
-              Map<String, dynamic> fields = {
-                'executing': !task.executing,
-                'remainingTime': task.remainingTime.toString(),
-              };
-              if (!task.reoccurrence.isActiveNow(task.startOfExecution)) {
-                fields.addAll({
-                  'startOfExecution': clock.now().toIso8601String(),
-                });
-              }
-              if (!task.executing) {
-                fields.addAll({'lastExecution': clock.now().toIso8601String()});
-              }
-              firestoreService!.updateTaskFields(
-                  TaskType.timed, widget.timedTask.id, fields);
-            },
-            child: Text('$hours:$mins:$secs'),
-          );
   }
 }

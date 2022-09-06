@@ -1,12 +1,13 @@
+import 'package:clock/clock.dart';
 import 'package:todo_app/models/base_task.dart';
 
 // TODO: handle isActive change when task is executing (for example on a new day)
+// TODO: add constrait that totalTime < reoccurence time period
 class TimedTask extends BaseTask {
   Duration totalTime;
   Duration _remainingTime;
   bool executing = false;
   DateTime? startOfExecution;
-  DateTime? lastExecution;
 
   TimedTask(String name, String description, Reoccurrence reoccurrence,
       this.totalTime)
@@ -15,30 +16,44 @@ class TimedTask extends BaseTask {
 
   @override
   Status get status {
-    if (super.status == Status.done) {
-      return Status.done;
-    }
-    if (executing || reoccurrence.isActiveNow(startOfExecution)) {
+    if (reoccurrence.isActiveNow(startOfExecution)) {
+      if (remainingTime <= Duration.zero) {
+        return Status.done;
+      }
       return Status.started;
     }
     return Status.undone;
   }
 
-  Duration get remainingTime {
-    switch (status) {
-      case Status.undone:
-        _remainingTime = totalTime;
-        break;
-      case Status.done:
-        break;
-      case Status.started:
-        break;
+  void startExecution() {
+    if (executing || isDone) {
+      return;
     }
-    return _remainingTime;
+    startOfExecution = clock.now();
+    executing = true;
   }
 
-  set remainingTime(Duration time) {
-    _remainingTime = time;
+  void stopExecution() {
+    if (!executing) {
+      return;
+    }
+    var dur = remainingTime;
+    if (dur == Duration.zero) {
+      lastCompletedOn = startOfExecution!.add(_remainingTime);
+    }
+    _remainingTime = dur;
+    executing = false;
+  }
+
+  Duration get remainingTime {
+    if (executing) {
+      var ret = _remainingTime - clock.now().difference(startOfExecution!);
+      if (ret <= Duration.zero) {
+        return Duration.zero;
+      }
+      return ret;
+    }
+    return _remainingTime;
   }
 
   @override
@@ -46,10 +61,9 @@ class TimedTask extends BaseTask {
     var map = super.toMap();
     map.addAll({
       'totalTime': totalTime.toString(),
-      'remainingTime': remainingTime.toString(),
+      'remainingTime': _remainingTime.toString(),
       'startOfExecution': startOfExecution?.toIso8601String(),
       'executing': executing,
-      'lastExecution': lastExecution?.toIso8601String(),
     });
     return map;
   }
@@ -61,9 +75,6 @@ class TimedTask extends BaseTask {
         startOfExecution = map['startOfExecution'] == null
             ? null
             : DateTime.parse(map['startOfExecution']),
-        lastExecution = map['lastExecution'] == null
-            ? null
-            : DateTime.parse(map['lastExecution']),
         executing = map['executing'],
         super.fromMap();
 }

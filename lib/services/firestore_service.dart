@@ -23,4 +23,8 @@ class FirestoreService {
   Future<void> deleteTask(TaskType type, String? taskId) {
     return tasks.collection(type.name).doc(taskId).delete();
   }
+
+  Future<void> updateTask(BaseTask task) async {
+    return tasks.collection(task.type.name).doc(task.id).set(task.toMap());
+  }
 }
