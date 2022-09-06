@@ -9,7 +9,7 @@ import 'package:todo_app/services/firestore_service.dart';
 
 import '../models/checked_task.dart';
 import '../widgets/timer_widget.dart';
-import 'add_task_screen.dart';
+import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatelessWidget {
   const TasksViewScreen({Key? key}) : super(key: key);
@@ -52,7 +52,7 @@ class TasksViewScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddTaskScreen()),
+            MaterialPageRoute(builder: (context) => const TaskFormScreen()),
           );
         },
         tooltip: 'Add a task',
@@ -121,14 +121,13 @@ class TaskCard extends StatelessWidget {
           title: Text(task.name),
           subtitle: Text(task.description),
           trailing: Text(task.reoccurrence.displayTitle),
-          // TODO: add editing onTap
-          // onTap: () {
-          //   Navigator.push(
-          //     context,
-          //     MaterialPageRoute(
-          //         builder: (context) => const AddTaskScreen()),
-          //   );
-          // },
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => TaskFormScreen(task: task)),
+            );
+          },
           leading: task.type == TaskType.timed
               ? TimerWidget(timedTask: task as TimedTask)
               : Checkbox(

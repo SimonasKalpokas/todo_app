@@ -6,8 +6,9 @@ import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
-class AddTaskScreen extends StatelessWidget {
-  const AddTaskScreen({Key? key}) : super(key: key);
+class TaskFormScreen extends StatelessWidget {
+  final BaseTask? task;
+  const TaskFormScreen({Key? key, this.task}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,26 +20,41 @@ class AddTaskScreen extends StatelessWidget {
         ),
         title: const Text("Add new Task"),
       ),
-      body: const AddTaskForm(),
+      body: TaskForm(task: task),
     );
   }
 }
 
-class AddTaskForm extends StatefulWidget {
-  const AddTaskForm({Key? key}) : super(key: key);
+class TaskForm extends StatefulWidget {
+  final BaseTask? task;
+  const TaskForm({Key? key, this.task}) : super(key: key);
 
   @override
-  State<AddTaskForm> createState() => _AddTaskFormState();
+  State<TaskForm> createState() => _TaskFormState();
 }
 
-class _AddTaskFormState extends State<AddTaskForm> {
+class _TaskFormState extends State<TaskForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
   var reoccurrence = Reoccurrence.notRepeating;
-  var type = "Checked";
+  var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
+
+  @override
+  void initState() {
+    if (widget.task != null) {
+      nameController.text = widget.task!.name;
+      descriptionController.text = widget.task!.description;
+      reoccurrence = widget.task!.reoccurrence;
+      type = widget.task!.type;
+      if (type == TaskType.timed) {
+        totalTime = (widget.task! as TimedTask).totalTime;
+      }
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,16 +87,20 @@ class _AddTaskFormState extends State<AddTaskForm> {
                 .toList(),
             onChanged: (value) => setState(() => reoccurrence = value!),
           ),
-          DropdownButton<String>(
-            value: type,
-            items: const [
-              DropdownMenuItem(value: "Checked", child: Text("Checked")),
-              DropdownMenuItem(value: "Timed", child: Text("Timed"))
-            ],
-            onChanged: (value) => setState(() => type = value!),
-          ),
+          widget.task != null
+              ? Text(widget.task!.type.displayTitle)
+              : DropdownButton<TaskType>(
+                  value: type,
+                  items: TaskType.values
+                      .map((type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(type.displayTitle),
+                          ))
+                      .toList(),
+                  onChanged: (value) => setState(() => type = value!),
+                ),
           Visibility(
-            visible: type == "Timed",
+            visible: type == TaskType.timed,
             child: CupertinoTimerPicker(
               onTimerDurationChanged: (duration) {
                 setState(() {
@@ -92,24 +112,33 @@ class _AddTaskFormState extends State<AddTaskForm> {
             ),
           ),
           ElevatedButton(
-            child: const Text("Sumbit"),
+            child: const Text("Submit"),
             onPressed: () {
               var form = _formKey.currentState!;
               if (form.validate()) {
-                BaseTask? task;
-                switch (type) {
-                  case 'Checked':
-                    task = CheckedTask(nameController.text,
-                        descriptionController.text, reoccurrence);
-                    break;
-                  case 'Timed':
-                    task = TimedTask(nameController.text,
-                        descriptionController.text, reoccurrence, totalTime);
-                    break;
-                  default:
-                    throw UnimplementedError();
+                if (widget.task != null) {
+                  widget.task!.name = nameController.text;
+                  widget.task!.description = descriptionController.text;
+                  widget.task!.reoccurrence = reoccurrence;
+                  widget.task!.type = type;
+                  if (type == TaskType.timed) {
+                    (widget.task! as TimedTask).totalTime = totalTime;
+                  }
+                  firestoreService.updateTask(widget.task!);
+                } else {
+                  BaseTask? task;
+                  switch (type) {
+                    case TaskType.checked:
+                      task = CheckedTask(nameController.text,
+                          descriptionController.text, reoccurrence);
+                      break;
+                    case TaskType.timed:
+                      task = TimedTask(nameController.text,
+                          descriptionController.text, reoccurrence, totalTime);
+                      break;
+                  }
+                  firestoreService.addTask(task);
                 }
-                firestoreService.addTask(task);
               }
             },
           ),

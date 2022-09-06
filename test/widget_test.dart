@@ -17,7 +17,6 @@ import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
 // TODO: write tests for existing functionality
-// TODO: organise tests better
 class MockFirestoreService extends Mock implements FirestoreService {
   @override
   Stream<Iterable<T>> getTasks<T extends BaseTask>(

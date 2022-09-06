@@ -1,7 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:todo_app/models/base_task.dart';
 
-// TODO: handle isActive change when task is executing (for example on a new day)
 // TODO: add constrait that totalTime < reoccurence time period
 class TimedTask extends BaseTask {
   Duration totalTime;

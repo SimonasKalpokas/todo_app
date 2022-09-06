@@ -13,7 +13,6 @@ abstract class BaseTask {
   BaseTask(this.type, this.name, this.description, this.reoccurrence);
 
   // TODO: for weekly (also maybe for daily) add choice of first week day (time)
-  // TODO: change status and isDone to methods
   Status get status =>
       reoccurrence.isActiveNow(lastCompletedOn) ? Status.done : Status.undone;
 
@@ -27,7 +26,6 @@ abstract class BaseTask {
         'type': type.index,
       };
 
-  // TODO: write tests for this function
   BaseTask.fromMap(this.id, Map<String, dynamic> map)
       : name = map['name'],
         description = map['description'],
@@ -63,6 +61,15 @@ enum TaskType {
       return TaskType.checked;
     }
     throw Exception('Unexpected type');
+  }
+
+  String get displayTitle {
+    switch (this) {
+      case TaskType.checked:
+        return 'Checked';
+      case TaskType.timed:
+        return 'Timed';
+    }
   }
 }
 
