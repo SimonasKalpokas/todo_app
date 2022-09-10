@@ -21,7 +21,7 @@ class _TimerWidgetState extends State<TimerWidget> {
 
   @override
   void initState() {
-    timeLeft = widget.timedTask.remainingTime;
+    timeLeft = widget.timedTask.calculateCurrentRemainingTime();
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (widget.timedTask.executing) {
         setState(() {
@@ -30,8 +30,8 @@ class _TimerWidgetState extends State<TimerWidget> {
         // TODO: decide who is responsible for updating firestoreService
         if (timeLeft <= Duration.zero) {
           timer.cancel();
-          widget.timedTask.stopExecution();
-          firestoreService.updateTask(widget.timedTask);
+          widget.timedTask.updateState();
+          // firestoreService.updateTask(widget.timedTask);
         }
       }
     });
@@ -42,6 +42,17 @@ class _TimerWidgetState extends State<TimerWidget> {
   void didChangeDependencies() {
     firestoreService = Provider.of<FirestoreService>(context);
     super.didChangeDependencies();
+  }
+
+  @override
+  void didUpdateWidget(covariant TimerWidget oldWidget) {
+    var remainingTime = widget.timedTask.calculateCurrentRemainingTime();
+    if (remainingTime != timeLeft) {
+      setState(() {
+        timeLeft = remainingTime;
+      });
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -64,7 +75,7 @@ class _TimerWidgetState extends State<TimerWidget> {
               } else {
                 widget.timedTask.stopExecution();
               }
-              firestoreService.updateTask(widget.timedTask);
+              // firestoreService.updateTask(widget.timedTask);
             },
             child: Text('$hours:$mins:$secs'),
           );

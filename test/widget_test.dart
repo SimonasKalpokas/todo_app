@@ -19,19 +19,14 @@ import 'package:todo_app/services/firestore_service.dart';
 // TODO: write tests for existing functionality
 class MockFirestoreService extends Mock implements FirestoreService {
   @override
-  Stream<Iterable<T>> getTasks<T extends BaseTask>(
-      T Function(String?, Map<String, dynamic>) constructor) {
-    if (T == TimedTask) {
-      return Stream.value([
-        TimedTask('TimedOne', 'timedOne desc', Reoccurrence.notRepeating,
-            const Duration(days: 1)) as T,
-      ]);
-    }
-    var one = CheckedTask("One", "one desc", Reoccurrence.daily) as T;
+  Stream<Iterable<BaseTaskNotifier>> getTasks() {
+    var one = CheckedTaskNotifier("One", "one desc", Reoccurrence.daily);
     return Stream.value([
+      TimedTaskNotifier('TimedOne', 'timedOne desc', Reoccurrence.notRepeating,
+          const Duration(days: 1)),
       one,
-      CheckedTask("Two", "two desc", Reoccurrence.weekly) as T,
-      CheckedTask("Three", "three desc", Reoccurrence.notRepeating) as T,
+      CheckedTaskNotifier("Two", "two desc", Reoccurrence.weekly),
+      CheckedTaskNotifier("Three", "three desc", Reoccurrence.notRepeating),
     ]);
   }
 }
@@ -48,7 +43,7 @@ void main() {
       ],
       child: const MaterialApp(home: TasksViewScreen()),
     ));
-    expect(find.byType(CircularProgressIndicator), findsNWidgets(4));
+    expect(find.byType(CircularProgressIndicator), findsNWidgets(2));
     expect(find.text("Done"), findsOneWidget);
 
     await tester.pump(Duration.zero);

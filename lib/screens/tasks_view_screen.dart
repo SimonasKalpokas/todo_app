@@ -7,7 +7,6 @@ import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
-import '../models/checked_task.dart';
 import '../widgets/timer_widget.dart';
 import 'task_form_screen.dart';
 
@@ -17,12 +16,7 @@ class TasksViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    var checkedTasks = firestoreService
-        .getTasks<CheckedTask>(CheckedTask.fromMap)
-        .asBroadcastStream();
-    var timedTasks = firestoreService
-        .getTasks<TimedTask>(TimedTask.fromMap)
-        .asBroadcastStream();
+    var tasks = firestoreService.getTasks().asBroadcastStream();
     return Scaffold(
       appBar: AppBar(title: const Text("Tasks:")),
       body: SingleChildScrollView(
@@ -30,20 +24,12 @@ class TasksViewScreen extends StatelessWidget {
           children: [
             TasksListView(
               condition: (task) => !task.isDone,
-              tasks: checkedTasks,
-            ),
-            TasksListView(
-              condition: (task) => !task.isDone,
-              tasks: timedTasks,
+              tasks: tasks,
             ),
             const Text("Done"),
             TasksListView(
               condition: (task) => task.isDone,
-              tasks: checkedTasks,
-            ),
-            TasksListView(
-              condition: (task) => task.isDone,
-              tasks: timedTasks,
+              tasks: tasks,
             ),
           ],
         ),
@@ -108,7 +94,7 @@ class TaskCard extends StatelessWidget {
       child: Dismissible(
         key: ObjectKey(task),
         onDismissed: ((direction) {
-          firestoreService.deleteTask(task.type, task.id);
+          firestoreService.deleteTask(task.id);
         }),
         direction: DismissDirection.endToStart,
         background: Container(
@@ -135,7 +121,7 @@ class TaskCard extends StatelessWidget {
                     if (value == null) {
                       throw UnimplementedError();
                     }
-                    firestoreService.updateTaskFields(task.type, task.id, {
+                    firestoreService.updateTaskFields(task.id, {
                       'lastCompletedOn':
                           value ? clock.now().toIso8601String() : null
                     });

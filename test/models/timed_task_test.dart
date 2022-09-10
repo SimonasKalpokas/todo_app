@@ -7,6 +7,60 @@ import '../datetime_wrapper.dart';
 
 void main() {
   group('TimedTask', () {
+    test('execution, stop execution and completion', () {
+      var timedTask = TimedTask(
+          'a', 'description', Reoccurrence.daily, const Duration(seconds: 10));
+      var dateTime = DateTimeWrapper(DateTime(2015, 5, 2, 13, 20));
+      withClock(Clock(() => dateTime.dateTime), () {
+        expect(timedTask.isCurrentlyExecuting(), false);
+        expect(timedTask.calculateCurrentLastCompletedOn(), null);
+        expect(timedTask.startOfExecution, null);
+        expect(timedTask.calculateCurrentRemainingTime(),
+            const Duration(seconds: 10));
+        expect(timedTask.totalTime, const Duration(seconds: 10));
+        expect(timedTask.calculateCurrentStatus(), Status.undone);
+
+        timedTask.startExecution();
+        expect(timedTask.isCurrentlyExecuting(), true);
+        expect(timedTask.calculateCurrentLastCompletedOn(), null);
+        expect(timedTask.startOfExecution, DateTime(2015, 5, 2, 13, 20));
+        expect(timedTask.calculateCurrentRemainingTime(),
+            const Duration(seconds: 10));
+        expect(timedTask.totalTime, const Duration(seconds: 10));
+        expect(timedTask.calculateCurrentStatus(), Status.started);
+
+        dateTime.add(const Duration(seconds: 5));
+        expect(timedTask.calculateCurrentRemainingTime(),
+            const Duration(seconds: 5));
+
+        timedTask.stopExecution();
+        expect(timedTask.isCurrentlyExecuting(), false);
+        expect(timedTask.calculateCurrentLastCompletedOn(), null);
+        expect(timedTask.calculateCurrentRemainingTime(),
+            const Duration(seconds: 5));
+        expect(timedTask.totalTime, const Duration(seconds: 10));
+        expect(timedTask.calculateCurrentStatus(), Status.started);
+
+        dateTime.add(const Duration(seconds: 3));
+
+        timedTask.stopExecution();
+        expect(timedTask.isCurrentlyExecuting(), false);
+        expect(timedTask.calculateCurrentLastCompletedOn(), null);
+        expect(timedTask.calculateCurrentRemainingTime(),
+            const Duration(seconds: 5));
+        expect(timedTask.totalTime, const Duration(seconds: 10));
+        expect(timedTask.calculateCurrentStatus(), Status.started);
+
+        timedTask.startExecution();
+        dateTime.add(const Duration(seconds: 7));
+        expect(timedTask.isCurrentlyExecuting(), false);
+        expect(timedTask.calculateCurrentLastCompletedOn(),
+            DateTime(2015, 5, 2, 13, 20, 13));
+        expect(timedTask.calculateCurrentRemainingTime(), Duration.zero);
+        expect(timedTask.totalTime, const Duration(seconds: 10));
+        expect(timedTask.calculateCurrentStatus(), Status.done);
+      });
+    });
     test('remainingTime test', () {
       var timedTask = TimedTask(
           'test one', '', Reoccurrence.daily, const Duration(hours: 2));
@@ -23,7 +77,7 @@ void main() {
 
         dateTimeWrapper.add(const Duration(minutes: 25, seconds: 23));
         timedTask.stopExecution();
-        expect(timedTask.remainingTime,
+        expect(timedTask.calculateCurrentRemainingTime(),
             const Duration(hours: 1, minutes: 4, seconds: 37));
 
         dateTimeWrapper.add(const Duration(minutes: 44, seconds: 37));
@@ -34,14 +88,37 @@ void main() {
         dateTimeWrapper.add(const Duration(minutes: 50));
         expect(
             timedTask.remainingTime, const Duration(minutes: 14, seconds: 37));
-
         dateTimeWrapper.add(const Duration(days: 1, hours: 1, minutes: 5));
-        expect(timedTask.remainingTime, Duration.zero);
-        expect(timedTask.status, Status.undone);
+        expect(timedTask.remainingTime, const Duration(hours: 2));
+        expect(timedTask.calculateCurrentStatus(), Status.undone);
         timedTask.stopExecution();
-        expect(timedTask.remainingTime, Duration.zero);
-        expect(timedTask.status, Status.undone);
-        expect(timedTask.lastCompletedOn, DateTime(2000, 2, 3, 3, 54, 37));
+        expect(timedTask.remainingTime, const Duration(hours: 2));
+        expect(timedTask.calculateCurrentStatus(), Status.undone);
+        expect(timedTask.calculateCurrentLastCompletedOn(),
+            DateTime(2000, 2, 3, 3, 54, 37));
+      });
+    });
+    test('Complete previous task on this reoccurrence period', () {
+      var timedTask = TimedTask(
+          'test', 'wawa', Reoccurrence.daily, const Duration(hours: 1));
+      var dateTime = DateTimeWrapper(DateTime(2015, 1, 1, 20, 5));
+      withClock(Clock(() => dateTime.dateTime), () {
+        timedTask.startExecution();
+        dateTime.add(const Duration(minutes: 50));
+        timedTask.stopExecution();
+        expect(timedTask.remainingTime, const Duration(minutes: 10));
+        expect(timedTask.lastCompletedOn, null);
+        expect(timedTask.startOfExecution, DateTime(2015, 1, 1, 20, 5));
+        expect(timedTask.calculateCurrentStatus(), Status.started);
+        dateTime.add(const Duration(hours: 3));
+
+        timedTask.startExecution();
+        dateTime.add(const Duration(minutes: 15));
+        timedTask.stopExecution();
+        expect(timedTask.remainingTime, const Duration(hours: 1));
+        expect(timedTask.startOfExecution, DateTime(2015, 1, 1, 23, 55));
+        expect(timedTask.lastCompletedOn, DateTime(2015, 1, 2, 0, 5));
+        expect(timedTask.calculateCurrentStatus(), Status.undone);
       });
     });
   });

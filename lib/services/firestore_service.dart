@@ -3,28 +3,36 @@ import 'package:todo_app/models/base_task.dart';
 
 // TODO: decide whether providing TaskType or <T extends BaseTask> is cleaner
 class FirestoreService {
-  final tasks = FirebaseFirestore.instance.collection('tasks').doc('tasks');
+  final tasks = FirebaseFirestore.instance
+      .collection('tasks')
+      .doc('tasks')
+      .collection('tasks');
 
   Future<DocumentReference<Map<String, dynamic>>> addTask(BaseTask task) {
-    return tasks.collection(task.type.name).add(task.toMap());
+    return tasks.add(task.toMap());
   }
 
-  Stream<Iterable<T>> getTasks<T extends BaseTask>(
-      T Function(String?, Map<String, dynamic>) constructor) {
-    return tasks.collection(TaskType.of<T>().name).snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => constructor(doc.id, doc.data())));
+  Stream<Iterable<BaseTask>> getTasks() {
+    return tasks.snapshots().map((snapshot) => snapshot.docs.map((doc) {
+          var taskNotifier =
+              BaseTaskNotifier.createTaskNotifier(doc.id, doc.data());
+          taskNotifier.addListener(() {
+            tasks.doc(doc.id).set(taskNotifier.toMap());
+          });
+          taskNotifier.refreshState();
+          return taskNotifier;
+        }));
   }
 
-  Future<void> updateTaskFields(
-      TaskType type, String? taskId, Map<String, dynamic> fields) {
-    return tasks.collection(type.name).doc(taskId).update(fields);
+  Future<void> updateTaskFields(String? taskId, Map<String, dynamic> fields) {
+    return tasks.doc(taskId).update(fields);
   }
 
-  Future<void> deleteTask(TaskType type, String? taskId) {
-    return tasks.collection(type.name).doc(taskId).delete();
+  Future<void> deleteTask(String? taskId) {
+    return tasks.doc(taskId).delete();
   }
 
-  Future<void> updateTask(BaseTask task) async {
-    return tasks.collection(task.type.name).doc(task.id).set(task.toMap());
+  Future<void> updateTask(BaseTask task) {
+    return tasks.doc(task.id).set(task.toMap());
   }
 }

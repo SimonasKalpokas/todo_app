@@ -1,22 +1,47 @@
 import 'package:clock/clock.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
+
+abstract class BaseTaskNotifier implements ChangeNotifier, BaseTask {
+  void refreshState();
+
+  factory BaseTaskNotifier.createTaskNotifier(
+      String? id, Map<String, dynamic> map) {
+    switch (TaskType.values[map['type']]) {
+      case TaskType.checked:
+        return CheckedTaskNotifier.fromMap(id, map);
+      case TaskType.timed:
+        return TimedTaskNotifier.fromMap(id, map);
+    }
+  }
+}
 
 abstract class BaseTask {
   String? id;
   String name;
   String description;
+  // TODO: rename to lastDoneOn
   DateTime? lastCompletedOn;
   Reoccurrence reoccurrence;
   TaskType type;
 
   BaseTask(this.type, this.name, this.description, this.reoccurrence);
 
+  factory BaseTask.createTask(String? id, Map<String, dynamic> map) {
+    switch (TaskType.values[map['type']]) {
+      case TaskType.checked:
+        return CheckedTask.fromMap(id, map);
+      case TaskType.timed:
+        return TimedTask.fromMap(id, map);
+    }
+  }
+
   // TODO: for weekly (also maybe for daily) add choice of first week day (time)
-  Status get status =>
+  Status calculateCurrentStatus() =>
       reoccurrence.isActiveNow(lastCompletedOn) ? Status.done : Status.undone;
 
-  bool get isDone => status == Status.done;
+  bool get isDone => calculateCurrentStatus() == Status.done;
 
   Map<String, dynamic> toMap() => {
         'name': name,
