@@ -5,6 +5,7 @@ import 'package:todo_app/models/timed_task.dart';
 
 import '../datetime_wrapper.dart';
 
+// TODO: group tests better (maybe by function aka startExection, stopExecution)
 void main() {
   group('TimedTask', () {
     test('execution, stop execution and completion', () {

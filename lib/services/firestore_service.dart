@@ -13,13 +13,13 @@ class FirestoreService {
 
   Stream<Iterable<BaseTask>> getTasks() {
     return tasks.snapshots().map((snapshot) => snapshot.docs.map((doc) {
-          var taskNotifier =
-              BaseTaskListenable.createTaskNotifier(doc.id, doc.data());
-          taskNotifier.addListener(() {
-            tasks.doc(doc.id).set(taskNotifier.toMap());
+          var taskListenable =
+              BaseTaskListenable.createTaskListenable(doc.id, doc.data());
+          taskListenable.addListener(() {
+            tasks.doc(doc.id).set(taskListenable.toMap());
           });
-          taskNotifier.refreshState();
-          return taskNotifier;
+          taskListenable.refreshState();
+          return taskListenable;
         }));
   }
 

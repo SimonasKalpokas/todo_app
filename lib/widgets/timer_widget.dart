@@ -14,13 +14,14 @@ class TimerWidget extends StatefulWidget {
   State<TimerWidget> createState() => _TimerWidgetState();
 }
 
-class _TimerWidgetState extends State<TimerWidget> {
+class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
   late Timer timer;
   late FirestoreService firestoreService;
   late Duration timeLeft;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     timeLeft = widget.timedTask.calculateCurrentRemainingTime();
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (widget.timedTask.executing) {
@@ -34,6 +35,18 @@ class _TimerWidgetState extends State<TimerWidget> {
       }
     });
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      var remainingTime = widget.timedTask.calculateCurrentRemainingTime();
+      if (remainingTime != timeLeft) {
+        setState(() {
+          timeLeft = remainingTime;
+        });
+      }
+    }
   }
 
   @override
@@ -55,6 +68,7 @@ class _TimerWidgetState extends State<TimerWidget> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     timer.cancel();
     super.dispose();
   }

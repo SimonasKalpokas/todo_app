@@ -17,6 +17,15 @@ class TimedTaskListenable extends TimedTask
   }
 
   @override
+  bool updateState() {
+    if (super.updateState()) {
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  @override
   bool startExecution() {
     if (super.startExecution()) {
       notifyListeners();

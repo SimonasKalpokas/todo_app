@@ -6,7 +6,7 @@ import 'package:todo_app/models/timed_task.dart';
 abstract class BaseTaskListenable implements Listenable, BaseTask {
   void refreshState();
 
-  factory BaseTaskListenable.createTaskNotifier(
+  factory BaseTaskListenable.createTaskListenable(
       String? id, Map<String, dynamic> map) {
     switch (TaskType.values[map['type']]) {
       case TaskType.checked:
