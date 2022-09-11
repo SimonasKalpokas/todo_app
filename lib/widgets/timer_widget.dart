@@ -27,11 +27,9 @@ class _TimerWidgetState extends State<TimerWidget> {
         setState(() {
           timeLeft -= const Duration(seconds: 1);
         });
-        // TODO: decide who is responsible for updating firestoreService
         if (timeLeft <= Duration.zero) {
           timer.cancel();
           widget.timedTask.updateState();
-          // firestoreService.updateTask(widget.timedTask);
         }
       }
     });

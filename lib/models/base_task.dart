@@ -21,8 +21,7 @@ abstract class BaseTask {
   String? id;
   String name;
   String description;
-  // TODO: rename to lastDoneOn
-  DateTime? lastCompletedOn;
+  DateTime? lastDoneOn;
   Reoccurrence reoccurrence;
   TaskType type;
 
@@ -39,14 +38,14 @@ abstract class BaseTask {
 
   // TODO: for weekly (also maybe for daily) add choice of first week day (time)
   Status calculateCurrentStatus() =>
-      reoccurrence.isActiveNow(lastCompletedOn) ? Status.done : Status.undone;
+      reoccurrence.isActiveNow(lastDoneOn) ? Status.done : Status.undone;
 
   bool get isDone => calculateCurrentStatus() == Status.done;
 
   Map<String, dynamic> toMap() => {
         'name': name,
         'description': description,
-        'lastCompletedOn': lastCompletedOn?.toIso8601String(),
+        'lastDoneOn': lastDoneOn?.toIso8601String(),
         'reoccurrence': reoccurrence.index,
         'type': type.index,
       };
@@ -54,9 +53,9 @@ abstract class BaseTask {
   BaseTask.fromMap(this.id, Map<String, dynamic> map)
       : name = map['name'],
         description = map['description'],
-        lastCompletedOn = map['lastCompletedOn'] == null
+        lastDoneOn = map['lastDoneOn'] == null
             ? null
-            : DateTime.parse(map['lastCompletedOn']),
+            : DateTime.parse(map['lastDoneOn']),
         type = TaskType.values[map['type']],
         reoccurrence = Reoccurrence.values[map['reoccurrence']];
 }

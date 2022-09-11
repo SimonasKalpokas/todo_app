@@ -9,16 +9,16 @@ void main() {
     withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
       expect(task.calculateCurrentStatus(), Status.undone);
 
-      task.lastCompletedOn = DateTime(2000, 1, 1);
+      task.lastDoneOn = DateTime(2000, 1, 1);
       expect(task.calculateCurrentStatus(), Status.done);
 
-      task.lastCompletedOn = DateTime(2000, 1, 10, 20);
+      task.lastDoneOn = DateTime(2000, 1, 10, 20);
       expect(task.calculateCurrentStatus(), Status.done);
 
-      task.lastCompletedOn = DateTime(2000, 1, 11, 10);
+      task.lastDoneOn = DateTime(2000, 1, 11, 10);
       expect(task.calculateCurrentStatus(), Status.done);
 
-      task.lastCompletedOn = DateTime(2000, 1, 12, 10);
+      task.lastDoneOn = DateTime(2000, 1, 12, 10);
       expect(() => task.calculateCurrentStatus(), throwsException);
     });
   });
@@ -28,13 +28,13 @@ void main() {
     withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
       expect(task.calculateCurrentStatus(), Status.undone);
 
-      task.lastCompletedOn = DateTime(2000, 1, 1);
+      task.lastDoneOn = DateTime(2000, 1, 1);
       expect(task.calculateCurrentStatus(), Status.undone);
 
-      task.lastCompletedOn = DateTime(2000, 1, 11, 10);
+      task.lastDoneOn = DateTime(2000, 1, 11, 10);
       expect(task.calculateCurrentStatus(), Status.done);
 
-      task.lastCompletedOn = DateTime(2000, 1, 10, 20);
+      task.lastDoneOn = DateTime(2000, 1, 10, 20);
       expect(task.calculateCurrentStatus(), Status.undone);
     });
   });
@@ -44,16 +44,16 @@ void main() {
     withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
       expect(task.calculateCurrentStatus(), Status.undone);
 
-      task.lastCompletedOn = DateTime(2000, 1, 10, 20);
+      task.lastDoneOn = DateTime(2000, 1, 10, 20);
       expect(task.calculateCurrentStatus(), Status.done);
 
-      task.lastCompletedOn = DateTime(2000, 1, 9, 20);
+      task.lastDoneOn = DateTime(2000, 1, 9, 20);
       expect(task.calculateCurrentStatus(), Status.undone);
-      task.lastCompletedOn = DateTime(2000, 1, 4, 20);
+      task.lastDoneOn = DateTime(2000, 1, 4, 20);
       expect(task.calculateCurrentStatus(), Status.undone);
-      task.lastCompletedOn = DateTime(2000, 1, 3, 11);
+      task.lastDoneOn = DateTime(2000, 1, 3, 11);
       expect(task.calculateCurrentStatus(), Status.undone);
-      task.lastCompletedOn = DateTime(2000, 1, 3, 20);
+      task.lastDoneOn = DateTime(2000, 1, 3, 20);
       expect(task.calculateCurrentStatus(), Status.undone);
     });
   });

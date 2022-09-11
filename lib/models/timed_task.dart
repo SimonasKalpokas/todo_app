@@ -36,42 +36,32 @@ class TimedTaskNotifier extends TimedTask
 }
 
 // TODO: add constrait that totalTime < reoccurence time period
-// TODO: rethink logic and responsibilities of this class
 class TimedTask extends BaseTask {
   Duration totalTime;
-  Duration _remainingTime;
+  Duration remainingTime;
   bool executing = false;
   DateTime? startOfExecution;
 
   TimedTask(String name, String description, Reoccurrence reoccurrence,
       this.totalTime)
       : assert(name.isNotEmpty),
-        _remainingTime = totalTime,
+        remainingTime = totalTime,
         super(TaskType.timed, name, description, reoccurrence);
 
-  // @override
-  // DateTime? get lastCompletedOn  {
-  //   if (executing &&
-  //       _remainingTime - clock.now().difference(_startOfExecution!) <=
-  //           Duration.zero) {
-  //     return _startOfExecution!.add(_remainingTime);
-  //   }
-  //   return super.lastCompletedOn;
-  // }
   bool isCurrentlyExecuting() {
     return (executing &&
-        !reoccurrence.isActiveNow(lastCompletedOn) &&
-        (_remainingTime - clock.now().difference(startOfExecution!) >
+        !reoccurrence.isActiveNow(lastDoneOn) &&
+        (remainingTime - clock.now().difference(startOfExecution!) >
             Duration.zero));
   }
 
   Duration calculateCurrentRemainingTime() {
     if (reoccurrence.isActiveNow(startOfExecution) &&
-        reoccurrence.isActiveNow(lastCompletedOn)) {
+        reoccurrence.isActiveNow(lastDoneOn)) {
       return Duration.zero;
     }
     if (executing) {
-      var dur = _remainingTime - clock.now().difference(startOfExecution!);
+      var dur = remainingTime - clock.now().difference(startOfExecution!);
       if (dur <= Duration.zero) {
         if (reoccurrence.isActiveNow(startOfExecution)) {
           return Duration.zero;
@@ -81,7 +71,7 @@ class TimedTask extends BaseTask {
       return dur;
     }
     if (reoccurrence.isActiveNow(startOfExecution)) {
-      return _remainingTime;
+      return remainingTime;
     }
     return totalTime;
   }
@@ -89,11 +79,11 @@ class TimedTask extends BaseTask {
   @override
   Status calculateCurrentStatus() {
     if (reoccurrence.isActiveNow(startOfExecution) &&
-        reoccurrence.isActiveNow(lastCompletedOn)) {
+        reoccurrence.isActiveNow(lastDoneOn)) {
       return Status.done;
     }
     if (executing) {
-      var dur = _remainingTime - clock.now().difference(startOfExecution!);
+      var dur = remainingTime - clock.now().difference(startOfExecution!);
       if (dur <= Duration.zero) {
         if (reoccurrence.isActiveNow(startOfExecution)) {
           return Status.done;
@@ -108,23 +98,21 @@ class TimedTask extends BaseTask {
     return Status.undone;
   }
 
-  DateTime? calculateCurrentLastCompletedOn() {
+  DateTime? calculateCurrentLastDoneOn() {
     if (executing) {
       if (reoccurrence.isActiveNow(startOfExecution)) {
-        if (lastCompletedOn != null &&
-            lastCompletedOn!.isAfter(startOfExecution!)) {
-          return lastCompletedOn;
+        if (lastDoneOn != null && lastDoneOn!.isAfter(startOfExecution!)) {
+          return lastDoneOn;
         }
       }
-      var dur = _remainingTime - clock.now().difference(startOfExecution!);
+      var dur = remainingTime - clock.now().difference(startOfExecution!);
       if (dur <= Duration.zero) {
-        return startOfExecution!.add(_remainingTime);
+        return startOfExecution!.add(remainingTime);
       }
     }
-    return lastCompletedOn;
+    return lastDoneOn;
   }
 
-  // TODO: think about separating methods like status (of the state) and calculateCurrentStatus (with regard to the current time)
   /// Updates state based on current DateTime.
   /// Returns whether a change has happenned
   bool updateState() {
@@ -132,32 +120,18 @@ class TimedTask extends BaseTask {
     var newRemainingTime = calculateCurrentRemainingTime();
 
     if (executing && newStatus != Status.started) {
-      var newLastCompletedOn = calculateCurrentLastCompletedOn();
-      lastCompletedOn = newLastCompletedOn;
+      var newLastDoneOn = calculateCurrentLastDoneOn();
+      lastDoneOn = newLastDoneOn;
       executing = false;
-      _remainingTime = newRemainingTime;
+      remainingTime = newRemainingTime;
       return true;
     }
-    if (newStatus == Status.undone && _remainingTime != newRemainingTime) {
-      _remainingTime = newRemainingTime;
+    if (newStatus == Status.undone && remainingTime != newRemainingTime) {
+      remainingTime = newRemainingTime;
       return true;
     }
     return false;
   }
-
-  // Status get status {
-  //   if (reoccurrence.isActiveNow(startOfExecution)) {
-  //     if ((lastCompletedOn != null &&
-  //             lastCompletedOn!.isAfter(startOfExecution!)) ||
-  //         (executing &&
-  //             _remainingTime - clock.now().difference(startOfExecution!) <=
-  //                 Duration.zero)) {
-  //       return Status.done;
-  //     }
-  //     return Status.started;
-  //   }
-  //   return Status.undone;
-  // }
 
   /// Returns whether any change has happenned.
   bool startExecution() {
@@ -176,23 +150,9 @@ class TimedTask extends BaseTask {
     if (!executing) {
       return ret;
     }
-    _remainingTime = calculateCurrentRemainingTime();
+    remainingTime = calculateCurrentRemainingTime();
     executing = false;
     return true;
-  }
-
-  Duration get remainingTime {
-    if (executing) {
-      if (reoccurrence.isActiveNow(startOfExecution)) {
-        var ret = _remainingTime - clock.now().difference(startOfExecution!);
-        if (ret <= Duration.zero) {
-          return Duration.zero;
-        }
-        return ret;
-      }
-      return totalTime;
-    }
-    return _remainingTime;
   }
 
   @override
@@ -200,7 +160,7 @@ class TimedTask extends BaseTask {
     var map = super.toMap();
     map.addAll({
       'totalTime': totalTime.toString(),
-      'remainingTime': _remainingTime.toString(),
+      'remainingTime': remainingTime.toString(),
       'startOfExecution': startOfExecution?.toIso8601String(),
       'executing': executing,
     });
@@ -210,7 +170,7 @@ class TimedTask extends BaseTask {
   @override
   TimedTask.fromMap(super.id, super.map)
       : totalTime = DurationParse.tryParse(map['totalTime'])!,
-        _remainingTime = DurationParse.tryParse(map['remainingTime'])!,
+        remainingTime = DurationParse.tryParse(map['remainingTime'])!,
         startOfExecution = map['startOfExecution'] == null
             ? null
             : DateTime.parse(map['startOfExecution']),

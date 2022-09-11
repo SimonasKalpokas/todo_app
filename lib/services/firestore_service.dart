@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo_app/models/base_task.dart';
 
-// TODO: decide whether providing TaskType or <T extends BaseTask> is cleaner
 class FirestoreService {
   final tasks = FirebaseFirestore.instance
       .collection('tasks')

@@ -122,8 +122,7 @@ class TaskCard extends StatelessWidget {
                       throw UnimplementedError();
                     }
                     firestoreService.updateTaskFields(task.id, {
-                      'lastCompletedOn':
-                          value ? clock.now().toIso8601String() : null
+                      'lastDoneOn': value ? clock.now().toIso8601String() : null
                     });
                   },
                   value: task.isDone,
