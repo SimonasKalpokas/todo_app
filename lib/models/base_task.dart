@@ -3,16 +3,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 
-abstract class BaseTaskNotifier implements ChangeNotifier, BaseTask {
+abstract class BaseTaskListenable implements Listenable, BaseTask {
   void refreshState();
 
-  factory BaseTaskNotifier.createTaskNotifier(
+  factory BaseTaskListenable.createTaskNotifier(
       String? id, Map<String, dynamic> map) {
     switch (TaskType.values[map['type']]) {
       case TaskType.checked:
-        return CheckedTaskNotifier.fromMap(id, map);
+        return CheckedTaskListenable.fromMap(id, map);
       case TaskType.timed:
-        return TimedTaskNotifier.fromMap(id, map);
+        return TimedTaskListenable.fromMap(id, map);
     }
   }
 }

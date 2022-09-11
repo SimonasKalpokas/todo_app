@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app/models/base_task.dart';
 
-class CheckedTaskNotifier extends CheckedTask
-    with BaseTaskNotifier, ChangeNotifier {
-  CheckedTaskNotifier(super.name, super.description, super.reoccurrence);
-  CheckedTaskNotifier.fromMap(super.id, super.map) : super.fromMap();
+class CheckedTaskListenable extends CheckedTask
+    with BaseTaskListenable, ChangeNotifier {
+  CheckedTaskListenable(super.name, super.description, super.reoccurrence);
+  CheckedTaskListenable.fromMap(super.id, super.map) : super.fromMap();
 
   @override
   void refreshState() {}

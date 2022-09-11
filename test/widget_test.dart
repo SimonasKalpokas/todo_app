@@ -19,14 +19,14 @@ import 'package:todo_app/services/firestore_service.dart';
 // TODO: write tests for existing functionality
 class MockFirestoreService extends Mock implements FirestoreService {
   @override
-  Stream<Iterable<BaseTaskNotifier>> getTasks() {
-    var one = CheckedTaskNotifier("One", "one desc", Reoccurrence.daily);
+  Stream<Iterable<BaseTaskListenable>> getTasks() {
+    var one = CheckedTaskListenable("One", "one desc", Reoccurrence.daily);
     return Stream.value([
-      TimedTaskNotifier('TimedOne', 'timedOne desc', Reoccurrence.notRepeating,
-          const Duration(days: 1)),
+      TimedTaskListenable('TimedOne', 'timedOne desc',
+          Reoccurrence.notRepeating, const Duration(days: 1)),
       one,
-      CheckedTaskNotifier("Two", "two desc", Reoccurrence.weekly),
-      CheckedTaskNotifier("Three", "three desc", Reoccurrence.notRepeating),
+      CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly),
+      CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating),
     ]);
   }
 }

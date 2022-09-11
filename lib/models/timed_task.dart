@@ -2,12 +2,12 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_app/models/base_task.dart';
 
-class TimedTaskNotifier extends TimedTask
-    with BaseTaskNotifier, ChangeNotifier {
-  TimedTaskNotifier(
+class TimedTaskListenable extends TimedTask
+    with BaseTaskListenable, ChangeNotifier {
+  TimedTaskListenable(
       super.name, super.description, super.reoccurrence, super.totalTime);
 
-  TimedTaskNotifier.fromMap(super.id, super.map) : super.fromMap();
+  TimedTaskListenable.fromMap(super.id, super.map) : super.fromMap();
 
   @override
   void refreshState() {

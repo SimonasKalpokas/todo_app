@@ -13,7 +13,7 @@ import 'package:todo_app/widgets/timer_widget.dart';
 import '../datetime_wrapper.dart';
 
 class MockFirestoreService extends Mock implements FirestoreService {
-  TimedTaskNotifier task = TimedTaskNotifier(
+  TimedTaskListenable task = TimedTaskListenable(
       'one', 'description', Reoccurrence.daily, const Duration(seconds: 20));
   StreamController streamController = StreamController();
 
