@@ -68,6 +68,7 @@ class TasksListView extends StatelessWidget {
         return ListView(
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.map(
             (task) {
               if (condition != null && !condition!(task)) {
