@@ -1,5 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 
@@ -9,10 +10,12 @@ import '../datetime_wrapper.dart';
 void main() {
   group('TimedTask', () {
     test('execution, stop execution and completion', () {
+      Reoccurrence reoccurrence = Reoccurrence.daily;
       var timedTask = TimedTask(
-          'a', 'description', Reoccurrence.daily, const Duration(seconds: 10));
+          'a', 'description', reoccurrence, const Duration(seconds: 10));
       var dateTime = DateTimeWrapper(DateTime(2015, 5, 2, 13, 20));
       withClock(Clock(() => dateTime.dateTime), () {
+        // when(reoccurrence.isActiveNow(clock.now())).thenReturn(true);
         expect(timedTask.isCurrentlyExecuting(), false);
         expect(timedTask.calculateCurrentLastDoneOn(), null);
         expect(timedTask.startOfExecution, null);
