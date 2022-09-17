@@ -91,7 +91,11 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     minimumSize: const Size.fromHeight(43)),
                 child: const Text(
                   "Save",
-                  style: TextStyle(color: Colors.black, fontSize: 20),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
                   var form = _formKey.currentState!;
@@ -181,7 +185,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     labelColor: Colors.black,
                     unselectedLabelColor: const Color(0xFF737373),
                     labelStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.bold),
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Nunito'),
                     onTap: (index) {
                       setState(() {
                         isReoccurring = index == 1;
@@ -239,7 +245,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                               labelColor: Colors.black,
                               unselectedLabelColor: const Color(0xFF737373),
                               labelStyle: const TextStyle(
-                                  fontSize: 11, fontWeight: FontWeight.bold),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Nunito'),
                               tabs: const [
                                 Tab(child: Text('Daily')),
                                 Tab(child: Text('Weekly')),
@@ -264,7 +272,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                               labelColor: Colors.black,
                               unselectedLabelColor: const Color(0xFF737373),
                               labelStyle: const TextStyle(
-                                  fontSize: 11, fontWeight: FontWeight.bold),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Nunito'),
                               tabs: const [
                                 Tab(child: Text('Today')),
                                 Tab(child: Text('Next week')),
@@ -279,7 +289,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                         style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFFAAAAAA),
-                            fontWeight: FontWeight.bold),
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Nunito'),
                         child: Row(children: [
                           const Text("Repeats "),
                           Text(
@@ -291,7 +302,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             '8th of August, 2023',
                             style: TextStyle(color: Color(0xFF666666)),
                           ),
-                          const Text('(random date for now)'),
                           const Spacer(),
                           TextButton(
                               onPressed: () {
@@ -337,7 +347,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     labelColor: Colors.black,
                     unselectedLabelColor: const Color(0xFF737373),
                     labelStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.bold),
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Nunito'),
                     tabs: const [
                       Tab(child: Text('Checklist')),
                       Tab(child: Text('Timed')),
@@ -378,7 +390,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                         style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFFAAAAAA),
-                            fontWeight: FontWeight.bold),
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Nunito'),
                         child: Row(children: [
                           Text(
                               '${hoursController.text} hours ${minutesController.text} minutes',

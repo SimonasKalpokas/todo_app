@@ -52,6 +52,7 @@ class MyApp extends StatelessWidget {
             color: Colors.black,
             fontSize: 28,
             fontWeight: FontWeight.bold,
+            fontFamily: 'Nunito',
           ),
           toolbarHeight: 76,
           titleSpacing: 16,
