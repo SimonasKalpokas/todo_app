@@ -2,10 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo_app/models/base_task.dart';
 
 class FirestoreService {
+  // TODO: use regular tasks once amountedTasks are in master
   final tasks = FirebaseFirestore.instance
       .collection('tasks')
       .doc('tasks')
-      .collection('tasks');
+      .collection('withAmountedTasks');
 
   Future<DocumentReference<Map<String, dynamic>>> addTask(BaseTask task) {
     return tasks.add(task.toMap());

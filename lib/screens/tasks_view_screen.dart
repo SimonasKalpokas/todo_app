@@ -7,6 +7,7 @@ import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
+import '../models/amounted_task.dart';
 import '../widgets/timer_widget.dart';
 import 'task_form_screen.dart';
 
@@ -117,18 +118,27 @@ class TaskCard extends StatelessWidget {
           },
           leading: task.type == TaskType.timed
               ? TimerWidget(timedTask: task as TimedTask)
-              : Checkbox(
-                  onChanged: (bool? value) {
-                    if (value == null) {
-                      throw UnimplementedError();
-                    }
-                    firestoreService.updateTaskFields(task.id, {
-                      'lastDoneOn': value ? clock.now().toIso8601String() : null
-                    });
-                  },
-                  value: task.isDone,
-                  shape: const CircleBorder(),
-                ),
+              : task.type == TaskType.amounted
+                  ? TextButton(
+                      onPressed: () {
+                        (task as AmountedTask).addAmount(1);
+                      },
+                      child: Text(
+                          '${(task as AmountedTask).totalAmount - (task as AmountedTask).remainingAmount}/${(task as AmountedTask).totalAmount} ${(task as AmountedTask).units}'),
+                    )
+                  : Checkbox(
+                      onChanged: (bool? value) {
+                        if (value == null) {
+                          throw UnimplementedError();
+                        }
+                        firestoreService.updateTaskFields(task.id, {
+                          'lastDoneOn':
+                              value ? clock.now().toIso8601String() : null
+                        });
+                      },
+                      value: task.isDone,
+                      shape: const CircleBorder(),
+                    ),
         ),
       ),
     );

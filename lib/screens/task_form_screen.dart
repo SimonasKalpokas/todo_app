@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/models/amounted_task.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
@@ -38,6 +39,8 @@ class _TaskFormState extends State<TaskForm> {
 
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
+  final amountController = TextEditingController();
+  final unitsController = TextEditingController();
   var reoccurrence = Reoccurrence.notRepeating;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
@@ -51,6 +54,11 @@ class _TaskFormState extends State<TaskForm> {
       type = widget.task!.type;
       if (type == TaskType.timed) {
         totalTime = (widget.task! as TimedTask).totalTime;
+      }
+      if (type == TaskType.amounted) {
+        amountController.text =
+            (widget.task! as AmountedTask).totalAmount.toString();
+        unitsController.text = (widget.task! as AmountedTask).units;
       }
     }
     super.initState();
@@ -111,6 +119,31 @@ class _TaskFormState extends State<TaskForm> {
               initialTimerDuration: totalTime,
             ),
           ),
+          Visibility(
+            visible: type == TaskType.amounted,
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Amount"),
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "Amount cannot be empty";
+                    }
+                    if (int.parse(value) <= 0) {
+                      return "Amount has to be a positive number";
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: unitsController,
+                  decoration: const InputDecoration(labelText: "Units"),
+                ),
+              ],
+            ),
+          ),
           ElevatedButton(
             child: const Text("Submit"),
             onPressed: () {
@@ -124,6 +157,11 @@ class _TaskFormState extends State<TaskForm> {
                   if (type == TaskType.timed) {
                     (widget.task! as TimedTask).totalTime = totalTime;
                   }
+                  if (type == TaskType.amounted) {
+                    (widget.task! as AmountedTask).totalAmount =
+                        int.parse(amountController.text);
+                    (widget.task! as AmountedTask).units = unitsController.text;
+                  }
                   firestoreService.updateTask(widget.task!);
                 } else {
                   BaseTask? task;
@@ -135,6 +173,14 @@ class _TaskFormState extends State<TaskForm> {
                     case TaskType.timed:
                       task = TimedTask(nameController.text,
                           descriptionController.text, reoccurrence, totalTime);
+                      break;
+                    case TaskType.amounted:
+                      task = AmountedTask(
+                          nameController.text,
+                          descriptionController.text,
+                          reoccurrence,
+                          int.parse(amountController.text),
+                          unitsController.text);
                       break;
                   }
                   firestoreService.addTask(task);
