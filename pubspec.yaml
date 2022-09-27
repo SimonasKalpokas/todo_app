@@ -61,6 +61,9 @@ flutter:
       fonts:
         - asset: fonts/Nunito-Bold.ttf
           weight: 700
+    - family: Icons
+      fonts:
+        - asset: assets/icons/sublist.ttf
         # - asset: fonts/Nunito-VariableFont_wght.ttf
         # - asset: fonts/Nunito-Italic-VariableFont_wght.ttf
         #   style: italic

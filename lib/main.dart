@@ -66,11 +66,22 @@ class MyApp extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: Color(0xFFFFD699)),
                 borderRadius: BorderRadius.circular(10)),
-            contentPadding: const EdgeInsets.only(left: 8.0)),
+            contentPadding:
+                const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
         scaffoldBackgroundColor: const Color(0xFFFFF9F1),
         textTheme: const TextTheme(
           bodyMedium: TextStyle(fontWeight: FontWeight.bold),
           labelLarge: TextStyle(fontWeight: FontWeight.bold),
+          labelMedium: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        tabBarTheme: const TabBarTheme(
+          indicator: BoxDecoration(color: Color(0xFFFFC36A)),
+          labelColor: Colors.black,
+          unselectedLabelColor: Color(0xFF737373),
+          labelStyle: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
+          unselectedLabelStyle: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
         ),
         fontFamily: 'Nunito',
       ),

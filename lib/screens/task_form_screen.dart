@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/custom_icons.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
@@ -156,7 +157,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
         child: Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
           child: ListView(
-            //crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const FormLabel(text: "Task"),
               TextFormField(
@@ -169,7 +169,12 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 },
               ),
               const FormLabel(text: "Description"),
-              TextFormField(controller: descriptionController),
+              TextFormField(
+                controller: descriptionController,
+                keyboardType: TextInputType.multiline,
+                maxLines: 4,
+                minLines: 3,
+              ),
               Padding(
                 padding: const EdgeInsets.only(top: 12.0),
                 child: Container(
@@ -181,13 +186,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   ),
                   child: TabBar(
                     controller: isReoccurringTabController,
-                    indicator: const BoxDecoration(color: Color(0xFFFFC36A)),
-                    labelColor: Colors.black,
-                    unselectedLabelColor: const Color(0xFF737373),
-                    labelStyle: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Nunito'),
                     onTap: (index) {
                       setState(() {
                         isReoccurring = index == 1;
@@ -240,14 +238,14 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                                 }
                               },
                               controller: reoccurrencePeriodTabController,
-                              indicator:
-                                  const BoxDecoration(color: Color(0xFFFFE1B5)),
-                              labelColor: Colors.black,
-                              unselectedLabelColor: const Color(0xFF737373),
-                              labelStyle: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Nunito'),
+                              labelStyle: Theme.of(context)
+                                  .tabBarTheme
+                                  .labelStyle
+                                  ?.copyWith(fontSize: 11),
+                              unselectedLabelStyle: Theme.of(context)
+                                  .tabBarTheme
+                                  .unselectedLabelStyle
+                                  ?.copyWith(fontSize: 11),
                               tabs: const [
                                 Tab(child: Text('Daily')),
                                 Tab(child: Text('Weekly')),
@@ -267,14 +265,14 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             ),
                             child: TabBar(
                               controller: startingTabController,
-                              indicator:
-                                  const BoxDecoration(color: Color(0xFFFFE1B5)),
-                              labelColor: Colors.black,
-                              unselectedLabelColor: const Color(0xFF737373),
-                              labelStyle: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Nunito'),
+                              labelStyle: Theme.of(context)
+                                  .tabBarTheme
+                                  .labelStyle
+                                  ?.copyWith(fontSize: 11),
+                              unselectedLabelStyle: Theme.of(context)
+                                  .tabBarTheme
+                                  .unselectedLabelStyle
+                                  ?.copyWith(fontSize: 11),
                               tabs: const [
                                 Tab(child: Text('Today')),
                                 Tab(child: Text('Next week')),
@@ -343,13 +341,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       }
                     },
                     controller: typeTabController,
-                    indicator: const BoxDecoration(color: Color(0xFFFFC36A)),
-                    labelColor: Colors.black,
-                    unselectedLabelColor: const Color(0xFF737373),
-                    labelStyle: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Nunito'),
                     tabs: const [
                       Tab(child: Text('Checklist')),
                       Tab(child: Text('Timed')),
@@ -418,94 +409,47 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                         ]),
                       ),
               ),
-              // DropdownButton<Reoccurrence>(
-              //   value: reoccurrence,
-              //   items: Reoccurrence.values
-              //       .map((type) => DropdownMenuItem<Reoccurrence>(
-              //             value: type,
-              //             child: Text(type.displayTitle),
-              //           ))
-              //       .toList(),
-              //   onChanged: (value) => setState(() => reoccurrence = value!),
-              // ),
-              // widget.task != null
-              //     ? Text(widget.task!.type.displayTitle)
-              //     : DropdownButton<TaskType>(
-              //         value: type,
-              //         items: TaskType.values
-              //             .map((type) => DropdownMenuItem(
-              //                   value: type,
-              //                   child: Text(type.displayTitle),
-              //                 ))
-              //             .toList(),
-              //         onChanged: (value) => setState(() => type = value!),
-              //       ),
-              // Visibility(
-              //   visible: type == TaskType.timed,
-              //   child: CupertinoTimerPicker(
-              //     onTimerDurationChanged: (duration) {
-              //       setState(() {
-              //         totalTime = duration;
-              //       });
-              //     },
-              //     mode: CupertinoTimerPickerMode.hms,
-              //     initialTimerDuration: totalTime,
-              //   ),
-              // ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: TextButton(
-                  onPressed: () {
-                    notImplementedAlert(context);
-                  },
-                  child: Row(
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.only(right: 4.0),
-                        child: Icon(
-                          Icons.notifications_active,
-                          color: Color(0xFF666666),
-                          size: 16,
-                        ),
-                      ),
-                      Text(
-                        "Set reminder",
-                        style:
-                            TextStyle(color: Color(0xFF666666), fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
+              const AddIconTextButton(
+                iconData: Icons.notifications_active,
+                label: "Set reminder",
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: TextButton(
-                  onPressed: () {
-                    notImplementedAlert(context);
-                  },
-                  child: Row(
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.only(right: 4.0),
-                        child: Icon(
-                          Icons.add,
-                          color: Color(0xFF666666),
-                          size: 16,
-                        ),
-                      ),
-                      Text(
-                        "Assign a category",
-                        style:
-                            TextStyle(color: Color(0xFF666666), fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
+              const AddIconTextButton(
+                iconData: Icons.add,
+                label: "Assign a category",
               ),
-              //const Spacer(),
+              const AddIconTextButton(
+                iconData: CustomIcons.sublist,
+                label: "Assign to parent task",
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class AddIconTextButton extends StatelessWidget {
+  final IconData iconData;
+  final String label;
+  const AddIconTextButton(
+      {super.key, required this.iconData, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0),
+      child: TextButton.icon(
+        onPressed: () {
+          notImplementedAlert(context);
+        },
+        style: const ButtonStyle(alignment: Alignment.centerLeft),
+        icon: Padding(
+          padding: const EdgeInsets.only(right: 4.0),
+          child: Icon(iconData, color: const Color(0xFF666666), size: 16),
+        ),
+        label: Text(label,
+            style: const TextStyle(color: Color(0xFF666666), fontSize: 13)),
       ),
     );
   }
