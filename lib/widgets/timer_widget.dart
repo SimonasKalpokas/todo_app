@@ -104,17 +104,17 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
               style: const TextStyle(fontSize: 16),
             ),
             Container(
-                height: 3,
+                height: 5,
                 width: 65,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
                     color: Colors.white,
                     border:
-                        Border.all(color: const Color(0xFFFFBE5C), width: 0.5)),
+                        Border.all(color: const Color(0xFFFFBE5C), width: 1)),
                 child: Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      height: 3,
+                      height: 5,
                       width: (1 -
                               timeLeft.inSeconds /
                                   widget.timedTask.totalTime.inSeconds) *

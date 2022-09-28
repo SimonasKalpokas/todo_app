@@ -16,7 +16,8 @@ class TasksViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    var tasks = firestoreService.getTasks().asBroadcastStream();
+    var tasks = firestoreService.getTasks();
+    var tasks1 = firestoreService.getTasks();
     return Scaffold(
       appBar: AppBar(title: const Text("Tasks:")),
       body: SingleChildScrollView(
@@ -26,11 +27,7 @@ class TasksViewScreen extends StatelessWidget {
               condition: (task) => !task.isDone,
               tasks: tasks,
             ),
-            const Text("Done"),
-            TasksListView(
-              condition: (task) => task.isDone,
-              tasks: tasks,
-            ),
+            DoneTasksListView(tasks: tasks1),
           ],
         ),
       ),
@@ -44,6 +41,57 @@ class TasksViewScreen extends StatelessWidget {
         tooltip: 'Add a task',
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+class DoneTasksListView extends StatefulWidget {
+  final Stream<Iterable<BaseTask>> tasks;
+  const DoneTasksListView({super.key, required this.tasks});
+
+  @override
+  State<DoneTasksListView> createState() => DoneTasksListViewState();
+}
+
+class DoneTasksListViewState extends State<DoneTasksListView> {
+  bool showDone = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                showDone = !showDone;
+              });
+            },
+            child: Row(
+              children: [
+                const Text(
+                  "Completed",
+                  style: TextStyle(fontSize: 18, color: Color(0xFF787878)),
+                ),
+                showDone
+                    ? const Icon(Icons.keyboard_arrow_up,
+                        color: Color(0xFF787878))
+                    : const Icon(Icons.keyboard_arrow_down,
+                        color: Color(0xFF787878))
+              ],
+            ),
+          ),
+        ),
+        showDone
+            ? TasksListView(
+                condition: (task) => task.isDone,
+                tasks: widget.tasks,
+              )
+            : Container(
+                height: 20,
+              ),
+      ],
     );
   }
 }
@@ -95,9 +143,9 @@ class TaskCard extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: const BorderSide(color: Color(0xFFFFD699)),
+        side: BorderSide(color: Color(task.isDone ? 0xFFD7D7D7 : 0xFFFFD699)),
       ),
-      color: Colors.white,
+      color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
       child: Dismissible(
         key: ObjectKey(task),
         onDismissed: ((direction) {
@@ -116,7 +164,9 @@ class TaskCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               task.name,
-              style: const TextStyle(fontSize: 18),
+              style: TextStyle(
+                  fontSize: 18,
+                  color: task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
             ),
           ),
           onTap: () {
@@ -130,7 +180,9 @@ class TaskCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               task.type == TaskType.timed
-                  ? TimerWidget(timedTask: task as TimedTask)
+                  ? task.isDone
+                      ? const Icon(Icons.repeat, color: Color(0xFF5F5F5F))
+                      : TimerWidget(timedTask: task as TimedTask)
                   : Container(),
               Padding(
                 padding: const EdgeInsets.all(15.0),
@@ -151,6 +203,7 @@ class TaskCard extends StatelessWidget {
                     side: const BorderSide(color: Color(0xFFFFD699)),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5)),
+                    activeColor: const Color(0xFFD9D9D9),
                   ),
                 ),
               ),
