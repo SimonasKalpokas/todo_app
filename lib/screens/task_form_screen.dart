@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/checked_task.dart';
+import 'package:todo_app/models/parent_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -136,6 +137,9 @@ class _TaskFormState extends State<TaskForm> {
                       task = TimedTask(nameController.text,
                           descriptionController.text, reoccurrence, totalTime);
                       break;
+                    case TaskType.parent:
+                      task = ParentTask(nameController.text,
+                          descriptionController.text, reoccurrence, []);
                   }
                   firestoreService.addTask(task);
                 }

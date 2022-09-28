@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:todo_app/models/checked_task.dart';
+import 'package:todo_app/models/parent_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 
 abstract class BaseTaskListenable implements Listenable, BaseTask {
@@ -13,6 +14,8 @@ abstract class BaseTaskListenable implements Listenable, BaseTask {
         return CheckedTaskListenable.fromMap(id, map);
       case TaskType.timed:
         return TimedTaskListenable.fromMap(id, map);
+      case TaskType.parent:
+        return ParentTaskListenable.fromMap(id, map);
     }
   }
 }
@@ -33,6 +36,8 @@ abstract class BaseTask {
         return CheckedTask.fromMap(id, map);
       case TaskType.timed:
         return TimedTask.fromMap(id, map);
+      case TaskType.parent:
+        return ParentTask.fromMap(id, map);
     }
   }
 
@@ -75,7 +80,8 @@ enum Reoccurrence {
 
 enum TaskType {
   checked,
-  timed;
+  timed,
+  parent;
 
   static TaskType of<T extends BaseTask>() {
     if (T == TimedTask) {
@@ -93,6 +99,8 @@ enum TaskType {
         return 'Checked';
       case TaskType.timed:
         return 'Timed';
+      case TaskType.parent:
+        return 'Parent'; // TODO: Consider changing to list or smth
     }
   }
 }
