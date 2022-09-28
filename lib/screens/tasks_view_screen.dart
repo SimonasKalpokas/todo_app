@@ -92,6 +92,12 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
     return Card(
+      margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xFFFFD699)),
+      ),
+      color: Colors.white,
       child: Dismissible(
         key: ObjectKey(task),
         onDismissed: ((direction) {
@@ -105,9 +111,14 @@ class TaskCard extends StatelessWidget {
           child: const Icon(Icons.delete_sweep),
         ),
         child: ListTile(
-          title: Text(task.name),
-          subtitle: Text(task.description),
-          trailing: Text(task.reoccurrence.displayTitle),
+          contentPadding: const EdgeInsets.only(left: 20),
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              task.name,
+              style: const TextStyle(fontSize: 18),
+            ),
+          ),
           onTap: () {
             Navigator.push(
               context,
@@ -115,20 +126,36 @@ class TaskCard extends StatelessWidget {
                   builder: (context) => TaskFormScreen(task: task)),
             );
           },
-          leading: task.type == TaskType.timed
-              ? TimerWidget(timedTask: task as TimedTask)
-              : Checkbox(
-                  onChanged: (bool? value) {
-                    if (value == null) {
-                      throw UnimplementedError();
-                    }
-                    firestoreService.updateTaskFields(task.id, {
-                      'lastDoneOn': value ? clock.now().toIso8601String() : null
-                    });
-                  },
-                  value: task.isDone,
-                  shape: const CircleBorder(),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              task.type == TaskType.timed
+                  ? TimerWidget(timedTask: task as TimedTask)
+                  : Container(),
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: Checkbox(
+                    onChanged: (bool? value) {
+                      if (value == null) {
+                        throw UnimplementedError();
+                      }
+                      firestoreService.updateTaskFields(task.id, {
+                        'lastDoneOn':
+                            value ? clock.now().toIso8601String() : null
+                      });
+                    },
+                    value: task.isDone,
+                    side: const BorderSide(color: Color(0xFFFFD699)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5)),
+                  ),
                 ),
+              ),
+            ],
+          ),
         ),
       ),
     );

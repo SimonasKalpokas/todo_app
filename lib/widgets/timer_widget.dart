@@ -78,18 +78,57 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
     int hours = timeLeft.inHours;
     int mins = timeLeft.inMinutes - hours * 60;
     int secs = timeLeft.inSeconds - hours * 3600 - mins * 60;
-    return timeLeft == Duration.zero
-        ? Checkbox(value: true, onChanged: (_) {})
-        : TextButton(
-            onPressed: () {
-              if (!widget.timedTask.executing) {
-                widget.timedTask.startExecution();
-              } else {
-                widget.timedTask.stopExecution();
-              }
-              // firestoreService.updateTask(widget.timedTask);
-            },
-            child: Text('$hours:$mins:$secs'),
-          );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        widget.timedTask.executing
+            ? IconButton(
+                icon: const Icon(Icons.pause),
+                color: const Color(0xFFFFBE5C),
+                onPressed: () {
+                  widget.timedTask.stopExecution();
+                },
+              )
+            : IconButton(
+                icon: const Icon(Icons.play_arrow),
+                color: const Color(0xFFFFBE5C),
+                onPressed: () {
+                  widget.timedTask.startExecution();
+                },
+              ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            Container(
+                height: 3,
+                width: 65,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5.0),
+                    color: Colors.white,
+                    border:
+                        Border.all(color: const Color(0xFFFFBE5C), width: 0.5)),
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      height: 3,
+                      width: (1 -
+                              timeLeft.inSeconds /
+                                  widget.timedTask.totalTime.inSeconds) *
+                          65,
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(5.0),
+                            bottomLeft: Radius.circular(5.0)),
+                        color: Color(0xFFFFBE5C),
+                      ),
+                    ))),
+          ],
+        ),
+      ],
+    );
   }
 }
