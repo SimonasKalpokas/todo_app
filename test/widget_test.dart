@@ -22,35 +22,37 @@ import 'package:todo_app/services/firestore_service.dart';
 class MockFirestoreService extends Mock implements FirestoreService {
   StreamController<Iterable<BaseTaskListenable>> streamController =
       StreamController();
-  var one = CheckedTaskListenable("One", "one desc", Reoccurrence.daily);
+  var one = CheckedTaskListenable(null, "One", "one desc", Reoccurrence.daily);
 
   MockFirestoreService() {
     one.id = "abc";
     streamController.add([
-      TimedTaskListenable('TimedOne', 'timedOne desc',
+      TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
           Reoccurrence.notRepeating, const Duration(days: 1)),
       one,
-      CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly),
-      CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating),
+      CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly),
+      CheckedTaskListenable(
+          null, "Three", "three desc", Reoccurrence.notRepeating),
     ]);
   }
 
   @override
-  Stream<Iterable<BaseTaskListenable>> getTasks() {
+  Stream<Iterable<BaseTaskListenable>> getTasks(String? parentId) {
     return streamController.stream;
   }
 
   @override
   Future<void> updateTaskFields(
-      String? taskId, Map<String, dynamic> fields) async {
+      String? parentId, String? taskId, Map<String, dynamic> fields) async {
     if (taskId == "abc" && fields.length == 1 && fields["lastDoneOn"] != null) {
       one.lastDoneOn = DateTime.parse(fields["lastDoneOn"]);
       streamController.add([
-        TimedTaskListenable('TimedOne', 'timedOne desc',
+        TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
             Reoccurrence.notRepeating, const Duration(days: 1)),
         one,
-        CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly),
-        CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating),
+        CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly),
+        CheckedTaskListenable(
+            null, "Three", "three desc", Reoccurrence.notRepeating),
       ]);
     } else {
       throw Exception("Only task with id 'abc' was expected");
@@ -68,7 +70,10 @@ void main() {
           create: (_) => mockFirestoreService,
         ),
       ],
-      child: const MaterialApp(home: TasksViewScreen()),
+      child: const MaterialApp(
+          home: TasksViewScreen(
+        parentTask: null,
+      )),
     ));
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     var completed = find.text("Completed");

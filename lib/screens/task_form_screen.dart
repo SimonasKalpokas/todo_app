@@ -8,8 +8,10 @@ import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
 class TaskFormScreen extends StatelessWidget {
+  final String? parentId;
   final BaseTask? task;
-  const TaskFormScreen({Key? key, this.task}) : super(key: key);
+  const TaskFormScreen({Key? key, required this.parentId, this.task})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +20,16 @@ class TaskFormScreen extends StatelessWidget {
         title: const Text("New task"),
         automaticallyImplyLeading: false,
       ),
-      body: TaskForm(task: task),
+      body: TaskForm(parentId: parentId, task: task),
     );
   }
 }
 
 class TaskForm extends StatefulWidget {
+  final String? parentId;
   final BaseTask? task;
-  const TaskForm({Key? key, this.task}) : super(key: key);
+  const TaskForm({Key? key, required this.parentId, this.task})
+      : super(key: key);
 
   @override
   State<TaskForm> createState() => _TaskFormState();
@@ -118,22 +122,36 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       firestoreService.updateTask(widget.task!);
                     } else {
                       BaseTask? task;
-                      switch (isTimed ? TaskType.timed : TaskType.checked) {
+                      switch (isParent
+                          ? TaskType.parent
+                          : isTimed
+                              ? TaskType.timed
+                              : TaskType.checked) {
                         case TaskType.checked:
-                          task = CheckedTask(nameController.text,
-                              descriptionController.text, reoccurrence);
+                          task = CheckedTask(
+                            widget.parentId,
+                            nameController.text,
+                            descriptionController.text,
+                            reoccurrence,
+                          );
                           break;
                         case TaskType.timed:
                           task = TimedTask(
-                              nameController.text,
-                              descriptionController.text,
-                              reoccurrence,
-                              totalTime);
+                            widget.parentId,
+                            nameController.text,
+                            descriptionController.text,
+                            reoccurrence,
+                            totalTime,
+                          );
                           break;
                         case TaskType.parent:
-                          assert(false, "Unreachable");
-                          task = ParentTask(nameController.text,
-                              descriptionController.text, reoccurrence, []);
+                          task = ParentTask(
+                            widget.parentId,
+                            nameController.text,
+                            descriptionController.text,
+                            reoccurrence,
+                            [],
+                          );
                           break;
                       }
                       firestoreService.addTask(task);

@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/parent_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -11,14 +12,25 @@ import '../widgets/timer_widget.dart';
 import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatelessWidget {
-  const TasksViewScreen({Key? key}) : super(key: key);
+  final BaseTask? parentTask;
+  const TasksViewScreen({Key? key, required this.parentTask}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    var tasks = firestoreService.getTasks().asBroadcastStream();
+    var tasks = firestoreService.getTasks(parentTask?.id).asBroadcastStream();
     return Scaffold(
-      appBar: AppBar(title: const Text("Tasks:")),
+      appBar: AppBar(
+        title: Text("${parentTask?.name ?? "Tasks"}:"),
+        leading: parentTask == null
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.keyboard_arrow_left),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -34,7 +46,8 @@ class TasksViewScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const TaskFormScreen()),
+            MaterialPageRoute(
+                builder: (context) => TaskFormScreen(parentId: parentTask?.id)),
           );
         },
         tooltip: 'Add a task',
@@ -150,7 +163,7 @@ class TaskCard extends StatelessWidget {
       child: Dismissible(
         key: ObjectKey(task),
         onDismissed: ((direction) {
-          firestoreService.deleteTask(task.id);
+          firestoreService.deleteTask(task.parentId, task.id);
         }),
         direction: DismissDirection.endToStart,
         background: Container(
@@ -174,7 +187,9 @@ class TaskCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => TaskFormScreen(task: task)),
+                  builder: (context) => task.type == TaskType.parent
+                      ? TasksViewScreen(parentTask: task)
+                      : TaskFormScreen(parentId: task.parentId, task: task)),
             );
           },
           trailing: Row(
@@ -184,26 +199,41 @@ class TaskCard extends StatelessWidget {
                 const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
               if (task.type == TaskType.timed && !task.isDone)
                 TimerWidget(timedTask: task as TimedTask),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: Checkbox(
-                    onChanged: (bool? value) {
-                      if (value == null) {
-                        throw UnimplementedError();
-                      }
-                      firestoreService.updateTaskFields(task.id, {
-                        'lastDoneOn':
-                            value ? clock.now().toIso8601String() : null
-                      });
-                    },
-                    value: task.isDone,
-                    activeColor: const Color(0xFFD9D9D9),
-                  ),
-                ),
-              ),
+              task is ParentTask
+                  ? Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon:
+                            const Icon(Icons.folder, color: Color(0xFF666666)),
+                        onPressed: () {
+                          notImplementedAlert(context);
+                        },
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: Checkbox(
+                          onChanged: (bool? value) {
+                            if (value == null) {
+                              throw UnimplementedError();
+                            }
+                            firestoreService.updateTaskFields(
+                              task.parentId,
+                              task.id,
+                              {
+                                'lastDoneOn':
+                                    value ? clock.now().toIso8601String() : null
+                              },
+                            );
+                          },
+                          value: task.isDone,
+                          activeColor: const Color(0xFFD9D9D9),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),

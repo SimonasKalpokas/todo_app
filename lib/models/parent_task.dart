@@ -3,8 +3,8 @@ import 'package:todo_app/models/base_task.dart';
 
 class ParentTaskListenable extends ParentTask
     with BaseTaskListenable, ChangeNotifier {
-  ParentTaskListenable(
-      super.name, super.description, super.reoccurrence, super.subtasks);
+  ParentTaskListenable(super.parentId, super.name, super.description,
+      super.reoccurrence, super.subtasks);
   ParentTaskListenable.fromMap(super.id, super.map) : super.fromMap();
 
   @override
@@ -20,10 +20,11 @@ class ParentTask extends BaseTask {
       : subtasks = List.empty(),
         super.fromMap();
 
-  ParentTask(
-      String name, String description, Reoccurrence reoccurrence, this.subtasks)
-      : super(TaskType.parent, name, description, reoccurrence);
+  ParentTask(String? parentId, String name, String description,
+      Reoccurrence reoccurrence, this.subtasks)
+      : super(TaskType.parent, parentId, name, description, reoccurrence);
 
+  // TODO: think about how to calculate status correctly based on subtasks
   @override
   Status calculateCurrentStatus() {
     if (!completable) {

@@ -95,7 +95,9 @@ class MyApp extends StatelessWidget {
       //   listTileTheme: const ListTileThemeData(tileColor: Colors.green),
       // ),
       home: Builder(
-        builder: (context) => const TasksViewScreen(),
+        builder: (context) => const TasksViewScreen(
+          parentTask: null,
+        ),
       ),
     );
   }

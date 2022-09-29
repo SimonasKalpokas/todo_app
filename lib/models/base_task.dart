@@ -22,13 +22,15 @@ abstract class BaseTaskListenable implements Listenable, BaseTask {
 
 abstract class BaseTask {
   String? id;
+  String? parentId;
   String name;
   String description;
   DateTime? lastDoneOn;
   Reoccurrence reoccurrence;
   TaskType type;
 
-  BaseTask(this.type, this.name, this.description, this.reoccurrence);
+  BaseTask(
+      this.type, this.parentId, this.name, this.description, this.reoccurrence);
 
   factory BaseTask.createTask(String? id, Map<String, dynamic> map) {
     switch (TaskType.values[map['type']]) {
@@ -49,6 +51,7 @@ abstract class BaseTask {
 
   Map<String, dynamic> toMap() => {
         'name': name,
+        'parentId': parentId,
         'description': description,
         'lastDoneOn': lastDoneOn?.toIso8601String(),
         'reoccurrence': reoccurrence.index,
@@ -57,6 +60,7 @@ abstract class BaseTask {
 
   BaseTask.fromMap(this.id, Map<String, dynamic> map)
       : name = map['name'],
+        parentId = map['parentId'],
         description = map['description'],
         lastDoneOn = map['lastDoneOn'] == null
             ? null
@@ -82,16 +86,6 @@ enum TaskType {
   checked,
   timed,
   parent;
-
-  static TaskType of<T extends BaseTask>() {
-    if (T == TimedTask) {
-      return TaskType.timed;
-    }
-    if (T == CheckedTask) {
-      return TaskType.checked;
-    }
-    throw Exception('Unexpected type');
-  }
 
   String get displayTitle {
     switch (this) {

@@ -4,8 +4,8 @@ import 'package:todo_app/models/base_task.dart';
 
 class TimedTaskListenable extends TimedTask
     with BaseTaskListenable, ChangeNotifier {
-  TimedTaskListenable(
-      super.name, super.description, super.reoccurrence, super.totalTime);
+  TimedTaskListenable(super.parentId, super.name, super.description,
+      super.reoccurrence, super.totalTime);
 
   TimedTaskListenable.fromMap(super.id, super.map) : super.fromMap();
 
@@ -51,11 +51,11 @@ class TimedTask extends BaseTask {
   bool executing = false;
   DateTime? startOfExecution;
 
-  TimedTask(String name, String description, Reoccurrence reoccurrence,
-      this.totalTime)
+  TimedTask(String? parentId, String name, String description,
+      Reoccurrence reoccurrence, this.totalTime)
       : assert(name.isNotEmpty),
         remainingTime = totalTime,
-        super(TaskType.timed, name, description, reoccurrence);
+        super(TaskType.timed, parentId, name, description, reoccurrence);
 
   bool isCurrentlyExecuting() {
     return (executing &&
