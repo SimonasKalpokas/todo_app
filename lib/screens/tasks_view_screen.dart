@@ -16,8 +16,7 @@ class TasksViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    var tasks = firestoreService.getTasks();
-    var tasks1 = firestoreService.getTasks();
+    var tasks = firestoreService.getTasks().asBroadcastStream();
     return Scaffold(
       appBar: AppBar(title: const Text("Tasks:")),
       body: SingleChildScrollView(
@@ -27,7 +26,7 @@ class TasksViewScreen extends StatelessWidget {
               condition: (task) => !task.isDone,
               tasks: tasks,
             ),
-            DoneTasksListView(tasks: tasks1),
+            DoneTasksListView(tasks: tasks),
           ],
         ),
       ),
@@ -83,14 +82,11 @@ class DoneTasksListViewState extends State<DoneTasksListView> {
             ),
           ),
         ),
-        showDone
-            ? TasksListView(
-                condition: (task) => task.isDone,
-                tasks: widget.tasks,
-              )
-            : Container(
-                height: 20,
-              ),
+        TasksListView(
+          condition: (task) => task.isDone,
+          tasks: widget.tasks,
+          visible: showDone,
+        ),
       ],
     );
   }
@@ -98,9 +94,11 @@ class DoneTasksListViewState extends State<DoneTasksListView> {
 
 class TasksListView extends StatelessWidget {
   final bool Function(BaseTask)? condition;
+  final bool visible;
   final Stream<Iterable<BaseTask>> tasks;
 
-  const TasksListView({Key? key, this.condition, required this.tasks})
+  const TasksListView(
+      {Key? key, this.condition, required this.tasks, this.visible = true})
       : super(key: key);
 
   @override
@@ -108,6 +106,9 @@ class TasksListView extends StatelessWidget {
     return StreamBuilder<Iterable<BaseTask>>(
       stream: tasks,
       builder: (context, AsyncSnapshot<Iterable<BaseTask>> snapshot) {
+        if (!visible) {
+          return const SizedBox();
+        }
         if (!snapshot.hasData) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -179,11 +180,10 @@ class TaskCard extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              task.type == TaskType.timed
-                  ? task.isDone
-                      ? const Icon(Icons.repeat, color: Color(0xFF5F5F5F))
-                      : TimerWidget(timedTask: task as TimedTask)
-                  : Container(),
+              if (task.isDone && task.reoccurrence != Reoccurrence.notRepeating)
+                const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
+              if (task.type == TaskType.timed && !task.isDone)
+                TimerWidget(timedTask: task as TimedTask),
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: SizedBox(
