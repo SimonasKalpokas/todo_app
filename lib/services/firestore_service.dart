@@ -5,7 +5,7 @@ class FirestoreService {
   final tasks = FirebaseFirestore.instance
       .collection('tasks')
       .doc('tasks')
-      .collection('tasks');
+      .collection('withParentTasks');
 
   Future<DocumentReference<Map<String, dynamic>>> addTask(BaseTask task) {
     return tasks.add(task.toMap());

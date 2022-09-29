@@ -49,6 +49,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var isTimedOptionsExpanded = true;
   var isReoccurring = false;
   var isTimed = false;
+  var isParent = false;
   var reoccurrence = Reoccurrence.notRepeating;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
@@ -427,6 +428,23 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 iconData: CustomIcons.sublist,
                 label: "Assign to parent task",
               ),
+              AddIconTextButton(
+                iconData: Icons.folder,
+                label: "Make into parent task",
+                onPressed: () {
+                  setState(() {
+                    isParent = !isParent;
+                  });
+                },
+                trailing: Checkbox(
+                    value: isParent,
+                    activeColor: const Color(0xFFFFD699),
+                    onChanged: (value) {
+                      setState(() {
+                        isParent = value!;
+                      });
+                    }),
+              ),
             ],
           ),
         ),
@@ -438,24 +456,37 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
 class AddIconTextButton extends StatelessWidget {
   final IconData iconData;
   final String label;
+  final Widget? trailing;
+  final VoidCallback? onPressed;
   const AddIconTextButton(
-      {super.key, required this.iconData, required this.label});
+      {super.key,
+      required this.iconData,
+      required this.label,
+      this.trailing,
+      this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 12.0),
-      child: TextButton.icon(
-        onPressed: () {
-          notImplementedAlert(context);
-        },
-        style: const ButtonStyle(alignment: Alignment.centerLeft),
-        icon: Padding(
-          padding: const EdgeInsets.only(right: 4.0),
-          child: Icon(iconData, color: const Color(0xFF666666), size: 16),
-        ),
-        label: Text(label,
-            style: const TextStyle(color: Color(0xFF666666), fontSize: 13)),
+      child: Row(
+        children: [
+          TextButton.icon(
+            onPressed: onPressed ??
+                () {
+                  notImplementedAlert(context);
+                },
+            style: const ButtonStyle(alignment: Alignment.centerLeft),
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: Icon(iconData, color: const Color(0xFF666666), size: 16),
+            ),
+            label: Text(label,
+                style: const TextStyle(color: Color(0xFF666666), fontSize: 13)),
+          ),
+          const Spacer(),
+          trailing ?? const SizedBox.shrink(),
+        ],
       ),
     );
   }

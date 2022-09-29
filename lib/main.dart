@@ -83,6 +83,10 @@ class MyApp extends StatelessWidget {
           unselectedLabelStyle: TextStyle(
               fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
         ),
+        checkboxTheme: CheckboxThemeData(
+          side: const BorderSide(color: Color(0xFFFFD699)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        ),
         fontFamily: 'Nunito',
       ),
       // darkTheme: ThemeData(
