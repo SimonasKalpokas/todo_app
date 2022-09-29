@@ -56,7 +56,17 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: fonts/Nunito-Bold.ttf
+          weight: 700
+    - family: Icons
+      fonts:
+        - asset: assets/icons/sublist.ttf
+        # - asset: fonts/Nunito-VariableFont_wght.ttf
+        # - asset: fonts/Nunito-Italic-VariableFont_wght.ttf
+        #   style: italic
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -92,3 +102,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  

@@ -66,31 +66,40 @@ void main() {
         await tester.pump(const Duration(seconds: 5));
       }
 
-      var secs20 = find.text("0:0:20");
-      var secs18 = find.text("0:0:18");
-      var secs3 = find.text("0:0:3");
+      var secs20 = find.text("00:00:20");
+      var secs18 = find.text("00:00:18");
+      var secs3 = find.text("00:00:03");
+
+      var playButton = find.byIcon(Icons.play_arrow);
+      var pauseButton = find.byIcon(Icons.pause);
 
       expect(secs20, findsOneWidget);
-      await tester.tap(secs20);
+      expect(playButton, findsOneWidget);
+
+      await tester.tap(playButton);
       {
         dateTime.add(const Duration(seconds: 2));
         await tester.pump(const Duration(seconds: 2));
       }
       expect(secs18, findsOneWidget);
+      expect(pauseButton, findsOneWidget);
 
-      await tester.tap(secs18);
+      await tester.tap(pauseButton);
       {
         dateTime.add(const Duration(seconds: 4));
         await tester.pump(const Duration(seconds: 4));
       }
       expect(secs18, findsOneWidget);
-      await tester.tap(secs18);
+      expect(playButton, findsOneWidget);
+
+      await tester.tap(playButton);
       {
         dateTime.add(const Duration(seconds: 15));
         await tester.pump(const Duration(seconds: 15));
       }
       expect(secs3, findsOneWidget);
-      await tester.tap(secs3);
+      expect(pauseButton, findsOneWidget);
+      await tester.tap(pauseButton);
       {
         dateTime.add(const Duration(seconds: 1));
         await tester.pump(const Duration(seconds: 1));

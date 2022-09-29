@@ -26,11 +26,7 @@ class TasksViewScreen extends StatelessWidget {
               condition: (task) => !task.isDone,
               tasks: tasks,
             ),
-            const Text("Done"),
-            TasksListView(
-              condition: (task) => task.isDone,
-              tasks: tasks,
-            ),
+            DoneTasksListView(tasks: tasks),
           ],
         ),
       ),
@@ -48,11 +44,61 @@ class TasksViewScreen extends StatelessWidget {
   }
 }
 
+class DoneTasksListView extends StatefulWidget {
+  final Stream<Iterable<BaseTask>> tasks;
+  const DoneTasksListView({super.key, required this.tasks});
+
+  @override
+  State<DoneTasksListView> createState() => DoneTasksListViewState();
+}
+
+class DoneTasksListViewState extends State<DoneTasksListView> {
+  bool showDone = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                showDone = !showDone;
+              });
+            },
+            child: Row(
+              children: [
+                const Text(
+                  "Completed",
+                  style: TextStyle(fontSize: 18, color: Color(0xFF787878)),
+                ),
+                showDone
+                    ? const Icon(Icons.keyboard_arrow_up,
+                        color: Color(0xFF787878))
+                    : const Icon(Icons.keyboard_arrow_down,
+                        color: Color(0xFF787878))
+              ],
+            ),
+          ),
+        ),
+        TasksListView(
+          condition: (task) => task.isDone,
+          tasks: widget.tasks,
+          visible: showDone,
+        ),
+      ],
+    );
+  }
+}
+
 class TasksListView extends StatelessWidget {
   final bool Function(BaseTask)? condition;
+  final bool visible;
   final Stream<Iterable<BaseTask>> tasks;
 
-  const TasksListView({Key? key, this.condition, required this.tasks})
+  const TasksListView(
+      {Key? key, this.condition, required this.tasks, this.visible = true})
       : super(key: key);
 
   @override
@@ -60,6 +106,9 @@ class TasksListView extends StatelessWidget {
     return StreamBuilder<Iterable<BaseTask>>(
       stream: tasks,
       builder: (context, AsyncSnapshot<Iterable<BaseTask>> snapshot) {
+        if (!visible) {
+          return const SizedBox();
+        }
         if (!snapshot.hasData) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -92,6 +141,12 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
     return Card(
+      margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: Color(task.isDone ? 0xFFD7D7D7 : 0xFFFFD699)),
+      ),
+      color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
       child: Dismissible(
         key: ObjectKey(task),
         onDismissed: ((direction) {
@@ -105,9 +160,16 @@ class TaskCard extends StatelessWidget {
           child: const Icon(Icons.delete_sweep),
         ),
         child: ListTile(
-          title: Text(task.name),
-          subtitle: Text(task.description),
-          trailing: Text(task.reoccurrence.displayTitle),
+          contentPadding: const EdgeInsets.only(left: 20),
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              task.name,
+              style: TextStyle(
+                  fontSize: 18,
+                  color: task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
+            ),
+          ),
           onTap: () {
             Navigator.push(
               context,
@@ -115,20 +177,38 @@ class TaskCard extends StatelessWidget {
                   builder: (context) => TaskFormScreen(task: task)),
             );
           },
-          leading: task.type == TaskType.timed
-              ? TimerWidget(timedTask: task as TimedTask)
-              : Checkbox(
-                  onChanged: (bool? value) {
-                    if (value == null) {
-                      throw UnimplementedError();
-                    }
-                    firestoreService.updateTaskFields(task.id, {
-                      'lastDoneOn': value ? clock.now().toIso8601String() : null
-                    });
-                  },
-                  value: task.isDone,
-                  shape: const CircleBorder(),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (task.isDone && task.reoccurrence != Reoccurrence.notRepeating)
+                const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
+              if (task.type == TaskType.timed && !task.isDone)
+                TimerWidget(timedTask: task as TimedTask),
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: Checkbox(
+                    onChanged: (bool? value) {
+                      if (value == null) {
+                        throw UnimplementedError();
+                      }
+                      firestoreService.updateTaskFields(task.id, {
+                        'lastDoneOn':
+                            value ? clock.now().toIso8601String() : null
+                      });
+                    },
+                    value: task.isDone,
+                    side: const BorderSide(color: Color(0xFFFFD699)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5)),
+                    activeColor: const Color(0xFFD9D9D9),
+                  ),
                 ),
+              ),
+            ],
+          ),
         ),
       ),
     );

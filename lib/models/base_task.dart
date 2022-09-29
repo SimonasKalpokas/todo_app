@@ -110,11 +110,11 @@ extension ReoccurrenceExtension on Reoccurrence {
     assert(Reoccurrence.values.length == 3);
     switch (this) {
       case Reoccurrence.daily:
-        return 'Daily';
+        return 'daily';
       case Reoccurrence.weekly:
-        return 'Weekly';
+        return 'weekly';
       case Reoccurrence.notRepeating:
-        return 'Not repeating';
+        return 'not repeating';
     }
   }
 

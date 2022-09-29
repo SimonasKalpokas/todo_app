@@ -46,8 +46,50 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ToDo App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFFFD699),
+          titleTextStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Nunito',
+          ),
+          toolbarHeight: 76,
+          titleSpacing: 16,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.white,
+            enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Color(0xFFFFD699)),
+                borderRadius: BorderRadius.circular(10)),
+            focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Color(0xFFFFD699)),
+                borderRadius: BorderRadius.circular(10)),
+            contentPadding:
+                const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
+        scaffoldBackgroundColor: const Color(0xFFFFF9F1),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontWeight: FontWeight.bold),
+          labelLarge: TextStyle(fontWeight: FontWeight.bold),
+          labelMedium: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        tabBarTheme: const TabBarTheme(
+          indicator: BoxDecoration(color: Color(0xFFFFC36A)),
+          labelColor: Colors.black,
+          unselectedLabelColor: Color(0xFF737373),
+          labelStyle: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
+          unselectedLabelStyle: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
+        ),
+        fontFamily: 'Nunito',
       ),
+      // darkTheme: ThemeData(
+      //   primarySwatch: Colors.blue,
+      //   scaffoldBackgroundColor: Colors.black,
+      //   listTileTheme: const ListTileThemeData(tileColor: Colors.green),
+      // ),
       home: Builder(
         builder: (context) => const TasksViewScreen(),
       ),
