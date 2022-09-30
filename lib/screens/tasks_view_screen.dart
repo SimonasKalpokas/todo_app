@@ -145,99 +145,142 @@ class TasksListView extends StatelessWidget {
   }
 }
 
-class TaskCard extends StatelessWidget {
+class TaskCard extends StatefulWidget {
   final BaseTask task;
 
   const TaskCard(this.task, {Key? key}) : super(key: key);
 
   @override
+  State<TaskCard> createState() => _TaskCardState();
+}
+
+class _TaskCardState extends State<TaskCard> {
+  var isOpen = false;
+  @override
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
-    return Card(
-      margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Color(task.isDone ? 0xFFD7D7D7 : 0xFFFFD699)),
-      ),
-      color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
-      child: Dismissible(
-        key: ObjectKey(task),
-        onDismissed: ((direction) {
-          firestoreService.deleteTask(task.parentId, task.id);
-        }),
-        direction: DismissDirection.endToStart,
-        background: Container(
-          color: Colors.red,
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-          child: const Icon(Icons.delete_sweep),
-        ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.only(left: 20),
-          title: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              task.name,
-              style: TextStyle(
-                  fontSize: 18,
-                  color: task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
+    return Column(
+      children: [
+        Card(
+          margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(
+                color: Color(widget.task.isDone ? 0xFFD7D7D7 : 0xFFFFD699)),
+          ),
+          color: widget.task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
+          child: Dismissible(
+            key: ObjectKey(widget.task),
+            onDismissed: ((direction) {
+              firestoreService.deleteTask(widget.task.parentId, widget.task.id);
+            }),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+              child: const Icon(Icons.delete_sweep),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.only(left: 20),
+              title: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.task.name,
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: widget.task.isDone
+                          ? const Color(0xFFDBDBDB)
+                          : Colors.black),
+                ),
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => widget.task.type == TaskType.parent
+                          ? TasksViewScreen(parentTask: widget.task)
+                          : TaskFormScreen(
+                              parentId: widget.task.parentId,
+                              task: widget.task)),
+                );
+              },
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.task.isDone &&
+                      widget.task.reoccurrence != Reoccurrence.notRepeating)
+                    const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
+                  if (widget.task.type == TaskType.timed && !widget.task.isDone)
+                    TimerWidget(timedTask: widget.task as TimedTask),
+                  widget.task is ParentTask
+                      ? Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            icon: const Icon(Icons.folder,
+                                color: Color(0xFF666666)),
+                            onPressed: () {
+                              setState(() {
+                                isOpen = !isOpen;
+                              });
+                              // notImplementedAlert(context);
+                            },
+                          ),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: Checkbox(
+                              onChanged: (bool? value) {
+                                if (value == null) {
+                                  throw UnimplementedError();
+                                }
+                                firestoreService.updateTaskFields(
+                                  widget.task.parentId,
+                                  widget.task.id,
+                                  {
+                                    'lastDoneOn': value
+                                        ? clock.now().toIso8601String()
+                                        : null
+                                  },
+                                );
+                              },
+                              value: widget.task.isDone,
+                              activeColor: const Color(0xFFD9D9D9),
+                            ),
+                          ),
+                        ),
+                ],
+              ),
             ),
           ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => task.type == TaskType.parent
-                      ? TasksViewScreen(parentTask: task)
-                      : TaskFormScreen(parentId: task.parentId, task: task)),
-            );
-          },
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
+        ),
+        if (isOpen)
+          Row(
             children: [
-              if (task.isDone && task.reoccurrence != Reoccurrence.notRepeating)
-                const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
-              if (task.type == TaskType.timed && !task.isDone)
-                TimerWidget(timedTask: task as TimedTask),
-              task is ParentTask
-                  ? Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        icon:
-                            const Icon(Icons.folder, color: Color(0xFF666666)),
-                        onPressed: () {
-                          notImplementedAlert(context);
-                        },
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: Checkbox(
-                          onChanged: (bool? value) {
-                            if (value == null) {
-                              throw UnimplementedError();
-                            }
-                            firestoreService.updateTaskFields(
-                              task.parentId,
-                              task.id,
-                              {
-                                'lastDoneOn':
-                                    value ? clock.now().toIso8601String() : null
-                              },
-                            );
-                          },
-                          value: task.isDone,
-                          activeColor: const Color(0xFFD9D9D9),
-                        ),
-                      ),
-                    ),
+              // vertical line of parent's height and width 2
+
+              // Container(
+              //   height: 50,
+              //   width: 2,
+              //   color: const Color(0xFF666666),
+              // ),
+              Container(
+                width: 15,
+                color: const Color(0xFF666666),
+                //constraints: const BoxConstraints.expand(width: 10),
+              ),
+              Expanded(
+                child: TasksListView(
+                  condition: (task) => !task.isDone,
+                  tasks: firestoreService.getTasks(widget.task.id),
+                ),
+              ),
             ],
           ),
-        ),
-      ),
+      ],
     );
   }
 }
