@@ -18,7 +18,22 @@ class TasksViewScreen extends StatelessWidget {
     final firestoreService = Provider.of<FirestoreService>(context);
     var tasks = firestoreService.getTasks().asBroadcastStream();
     return Scaffold(
-      appBar: AppBar(title: const Text("Tasks:")),
+      appBar: AppBar(
+        title: const Text("Tasks:"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (context) => const ChooseMainCollectionDialog());
+            },
+            icon: const Icon(
+              Icons.settings,
+              color: Color(0xFF666666),
+            ),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -41,6 +56,50 @@ class TasksViewScreen extends StatelessWidget {
         child: const Icon(Icons.add),
       ),
     );
+  }
+}
+
+class ChooseMainCollectionDialog extends StatefulWidget {
+  const ChooseMainCollectionDialog({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<ChooseMainCollectionDialog> createState() =>
+      _ChooseMainCollectionDialogState();
+}
+
+class _ChooseMainCollectionDialogState
+    extends State<ChooseMainCollectionDialog> {
+  final mainCollectionController = TextEditingController();
+
+  @override
+  void dispose() {
+    mainCollectionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        title: const Text('Choose main collection'),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Main collection'),
+          controller: mainCollectionController,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () {
+                Provider.of<FirestoreService>(context, listen: false)
+                    .setMainCollection(mainCollectionController.text);
+                Navigator.pop(context);
+              },
+              child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+        ]);
   }
 }
 
