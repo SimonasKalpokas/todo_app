@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:rxdart/rxdart.dart';
 
 class FirestoreService {
   final SharedPreferences _prefs;
@@ -39,15 +40,16 @@ class FirestoreService {
 
   Stream<Iterable<BaseTask>> getTasks() {
     return _tasksController.stream
-        .asyncMap((tasks) => tasks.get())
-        .map((querySnapshot) => querySnapshot.docs.map((doc) {
-              var taskListenable =
-                  BaseTaskListenable.createTaskListenable(doc.id, doc.data());
-              taskListenable.addListener(() {
-                tasks.doc(doc.id).set(taskListenable.toMap());
+        .flatMap((tasks) => tasks.snapshots().map((snapshot) {
+              return snapshot.docs.map((doc) {
+                var taskListenable =
+                    BaseTaskListenable.createTaskListenable(doc.id, doc.data());
+                taskListenable.addListener(() {
+                  tasks.doc(doc.id).set(taskListenable.toMap());
+                });
+                taskListenable.refreshState();
+                return taskListenable;
               });
-              taskListenable.refreshState();
-              return taskListenable;
             }));
   }
 
