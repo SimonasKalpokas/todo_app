@@ -1,6 +1,5 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 
