@@ -3,14 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
-import 'package:rxdart/rxdart.dart';
 
 class FirestoreService {
   final SharedPreferences _prefs;
   String mainCollection;
   late CollectionReference<Map<String, dynamic>> tasks;
-  final StreamController<CollectionReference<Map<String, dynamic>>>
-      _tasksController = StreamController();
 
   FirestoreService(this._prefs)
       : mainCollection = _prefs.getString('mainCollection') ?? "tasks" {
@@ -18,12 +15,12 @@ class FirestoreService {
         .collection(mainCollection)
         .doc('tasks')
         .collection('tasks');
-    _tasksController.add(tasks);
   }
 
-  Future<void> setMainCollection(String newCollection) async {
+  /// Returns whether the main collection was set.
+  Future<bool> setMainCollection(String newCollection) async {
     if (newCollection.trim().isEmpty) {
-      return;
+      return false;
     }
     await _prefs.setString('mainCollection', newCollection);
     mainCollection = newCollection;
@@ -31,7 +28,7 @@ class FirestoreService {
         .collection(mainCollection)
         .doc('tasks')
         .collection('tasks');
-    _tasksController.add(tasks);
+    return true;
   }
 
   Future<DocumentReference<Map<String, dynamic>>> addTask(BaseTask task) {
@@ -39,18 +36,17 @@ class FirestoreService {
   }
 
   Stream<Iterable<BaseTask>> getTasks() {
-    return _tasksController.stream
-        .flatMap((tasks) => tasks.snapshots().map((snapshot) {
-              return snapshot.docs.map((doc) {
-                var taskListenable =
-                    BaseTaskListenable.createTaskListenable(doc.id, doc.data());
-                taskListenable.addListener(() {
-                  tasks.doc(doc.id).set(taskListenable.toMap());
-                });
-                taskListenable.refreshState();
-                return taskListenable;
-              });
-            }));
+    return tasks.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        var taskListenable =
+            BaseTaskListenable.createTaskListenable(doc.id, doc.data());
+        taskListenable.addListener(() {
+          tasks.doc(doc.id).set(taskListenable.toMap());
+        });
+        taskListenable.refreshState();
+        return taskListenable;
+      });
+    });
   }
 
   Future<void> updateTaskFields(String? taskId, Map<String, dynamic> fields) {

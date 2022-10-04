@@ -10,9 +10,14 @@ import 'package:todo_app/services/firestore_service.dart';
 import '../widgets/timer_widget.dart';
 import 'task_form_screen.dart';
 
-class TasksViewScreen extends StatelessWidget {
+class TasksViewScreen extends StatefulWidget {
   const TasksViewScreen({Key? key}) : super(key: key);
 
+  @override
+  State<TasksViewScreen> createState() => _TasksViewScreenState();
+}
+
+class _TasksViewScreenState extends State<TasksViewScreen> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
@@ -23,9 +28,16 @@ class TasksViewScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (context) => const ChooseMainCollectionDialog());
+              showDialog<bool?>(
+                      context: context,
+                      builder: (context) => const ChooseMainCollectionDialog())
+                  .then(
+                (hasChanged) {
+                  if (hasChanged ?? false) {
+                    setState(() {});
+                  }
+                },
+              );
             },
             icon: const Icon(
               Icons.settings,
@@ -90,10 +102,15 @@ class _ChooseMainCollectionDialogState
         ),
         actions: [
           TextButton(
-              onPressed: () {
-                Provider.of<FirestoreService>(context, listen: false)
-                    .setMainCollection(mainCollectionController.text);
-                Navigator.pop(context);
+              onPressed: () async {
+                var res =
+                    await Provider.of<FirestoreService>(context, listen: false)
+                        .setMainCollection(mainCollectionController.text);
+
+                if (!mounted) {
+                  return;
+                }
+                Navigator.pop(context, res);
               },
               child: const Text('OK')),
           TextButton(
