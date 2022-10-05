@@ -65,10 +65,10 @@ class MyApp extends StatelessWidget {
             fillColor: Colors.white,
             enabledBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: Color(0xFFFFD699)),
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(5)),
             focusedBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: Color(0xFFFFD699)),
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(5)),
             contentPadding:
                 const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
         scaffoldBackgroundColor: const Color(0xFFFFF9F1),
