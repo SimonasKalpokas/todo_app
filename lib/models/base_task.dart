@@ -1,5 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 
@@ -21,6 +22,7 @@ abstract class BaseTask {
   String? id;
   String name;
   String description;
+  String? categoryId;
   DateTime? lastDoneOn;
   Reoccurrence reoccurrence;
   TaskType type;
@@ -48,6 +50,7 @@ abstract class BaseTask {
         'lastDoneOn': lastDoneOn?.toIso8601String(),
         'reoccurrence': reoccurrence.index,
         'type': type.index,
+        'categoryId': categoryId,
       };
 
   BaseTask.fromMap(this.id, Map<String, dynamic> map)
@@ -57,7 +60,8 @@ abstract class BaseTask {
             ? null
             : DateTime.parse(map['lastDoneOn']),
         type = TaskType.values[map['type']],
-        reoccurrence = Reoccurrence.values[map['reoccurrence']];
+        reoccurrence = Reoccurrence.values[map['reoccurrence']],
+        categoryId = map['categoryId'];
 }
 
 enum Status {

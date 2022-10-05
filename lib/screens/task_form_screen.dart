@@ -5,10 +5,13 @@ import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
+import 'package:todo_app/models/category.dart';
 
 class TaskFormScreen extends StatelessWidget {
   final BaseTask? task;
-  const TaskFormScreen({Key? key, this.task}) : super(key: key);
+  final List<Category> categories;
+  const TaskFormScreen({Key? key, this.task, required this.categories})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +20,16 @@ class TaskFormScreen extends StatelessWidget {
         title: const Text("New task"),
         automaticallyImplyLeading: false,
       ),
-      body: TaskForm(task: task),
+      body: TaskForm(task: task, categories: categories),
     );
   }
 }
 
 class TaskForm extends StatefulWidget {
   final BaseTask? task;
-  const TaskForm({Key? key, this.task}) : super(key: key);
+  final List<Category> categories;
+  const TaskForm({Key? key, this.task, required this.categories})
+      : super(key: key);
 
   @override
   State<TaskForm> createState() => _TaskFormState();
@@ -51,6 +56,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var reoccurrence = Reoccurrence.notRepeating;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
+  String? categoryId;
 
   @override
   void initState() {
@@ -62,6 +68,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       if (type == TaskType.timed) {
         totalTime = (widget.task! as TimedTask).totalTime;
       }
+      categoryId = widget.task!.categoryId;
     }
     super.initState();
   }
@@ -113,6 +120,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       if (widget.task!.type == TaskType.timed) {
                         (widget.task! as TimedTask).totalTime = totalTime;
                       }
+                      widget.task!.categoryId = categoryId;
                       firestoreService.updateTask(widget.task!);
                     } else {
                       BaseTask? task;
@@ -129,9 +137,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                               totalTime);
                           break;
                       }
+                      widget.task!.categoryId = categoryId;
                       firestoreService.addTask(task);
-                      Navigator.pop(context);
                     }
+                    Navigator.pop(context);
                   }
                 },
               ),
@@ -413,9 +422,53 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 iconData: Icons.notifications_active,
                 label: "Set reminder",
               ),
-              const AddIconTextButton(
+              AddIconTextButton(
                 iconData: Icons.add,
                 label: "Assign a category",
+                onPressed: (() {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                            title: const Text('Select category'),
+                            content: DropdownButton<String>(
+                              value: categoryId,
+                              items: [
+                                const DropdownMenuItem(
+                                  value: null,
+                                  child: Text('None'),
+                                ),
+                                ...widget.categories
+                                    .map((c) => DropdownMenuItem(
+                                          value: c.id,
+                                          child: Text(c.name),
+                                        ))
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  categoryId = value;
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Ok')),
+                            ],
+                          ));
+                }),
+                trailing: categoryId != null
+                    ? Text(
+                        widget.categories
+                            .firstWhere((c) => c.id == categoryId)
+                            .name,
+                        style: TextStyle(
+                            color: Color(widget.categories
+                                .firstWhere((c) => c.id == categoryId)
+                                .color)))
+                    : null,
               ),
               const AddIconTextButton(
                 iconData: CustomIcons.sublist,
@@ -432,24 +485,37 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
 class AddIconTextButton extends StatelessWidget {
   final IconData iconData;
   final String label;
+  final Widget? trailing;
+  final VoidCallback? onPressed;
   const AddIconTextButton(
-      {super.key, required this.iconData, required this.label});
+      {super.key,
+      required this.iconData,
+      required this.label,
+      this.trailing,
+      this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 12.0),
-      child: TextButton.icon(
-        onPressed: () {
-          notImplementedAlert(context);
-        },
-        style: const ButtonStyle(alignment: Alignment.centerLeft),
-        icon: Padding(
-          padding: const EdgeInsets.only(right: 4.0),
-          child: Icon(iconData, color: const Color(0xFF666666), size: 16),
-        ),
-        label: Text(label,
-            style: const TextStyle(color: Color(0xFF666666), fontSize: 13)),
+      child: Row(
+        children: [
+          TextButton.icon(
+            onPressed: onPressed ??
+                () {
+                  notImplementedAlert(context);
+                },
+            style: const ButtonStyle(alignment: Alignment.centerLeft),
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: Icon(iconData, color: const Color(0xFF666666), size: 16),
+            ),
+            label: Text(label,
+                style: const TextStyle(color: Color(0xFF666666), fontSize: 13)),
+          ),
+          const Spacer(),
+          trailing ?? const SizedBox.shrink(),
+        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -22,6 +23,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     var tasks = firestoreService.getTasks().asBroadcastStream();
+    var categories = firestoreService.getCategories();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Tasks:"),
@@ -52,8 +54,12 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
             TasksListView(
               condition: (task) => !task.isDone,
               tasks: tasks,
+              categories: categories,
             ),
-            DoneTasksListView(tasks: tasks),
+            DoneTasksListView(
+              tasks: tasks,
+              categories: categories,
+            ),
           ],
         ),
       ),
@@ -61,7 +67,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const TaskFormScreen()),
+            MaterialPageRoute(
+                builder: (context) => TaskFormScreen(categories: categories)),
           );
         },
         tooltip: 'Add a task',
@@ -122,7 +129,9 @@ class _ChooseMainCollectionDialogState
 
 class DoneTasksListView extends StatefulWidget {
   final Stream<Iterable<BaseTask>> tasks;
-  const DoneTasksListView({super.key, required this.tasks});
+  final List<Category> categories;
+  const DoneTasksListView(
+      {super.key, required this.tasks, required this.categories});
 
   @override
   State<DoneTasksListView> createState() => DoneTasksListViewState();
@@ -162,6 +171,7 @@ class DoneTasksListViewState extends State<DoneTasksListView> {
           condition: (task) => task.isDone,
           tasks: widget.tasks,
           visible: showDone,
+          categories: widget.categories,
         ),
       ],
     );
@@ -172,10 +182,15 @@ class TasksListView extends StatelessWidget {
   final bool Function(BaseTask)? condition;
   final bool visible;
   final Stream<Iterable<BaseTask>> tasks;
+  final List<Category> categories;
 
-  const TasksListView(
-      {Key? key, this.condition, required this.tasks, this.visible = true})
-      : super(key: key);
+  const TasksListView({
+    Key? key,
+    this.condition,
+    required this.tasks,
+    required this.categories,
+    this.visible = true,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +214,7 @@ class TasksListView extends StatelessWidget {
               if (condition != null && !condition!(task)) {
                 return Container();
               }
-              return TaskCard(task);
+              return TaskCard(task: task, categories: categories);
             },
           ).toList(),
         );
@@ -210,17 +225,29 @@ class TasksListView extends StatelessWidget {
 
 class TaskCard extends StatelessWidget {
   final BaseTask task;
+  final List<Category> categories;
 
-  const TaskCard(this.task, {Key? key}) : super(key: key);
+  const TaskCard({Key? key, required this.task, required this.categories})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
+    var category = task.categoryId != null
+        ? categories.firstWhere((c) => c.id == task.categoryId)
+        : null;
     return Card(
       margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Color(task.isDone ? 0xFFD7D7D7 : 0xFFFFD699)),
+        borderRadius: BorderRadius.circular(5),
+        side: BorderSide(
+            color: Color(task.isDone
+                ? 0xFFD7D7D7
+                : task.categoryId == null
+                    ? 0xFFFFD699
+                    : categories
+                        .firstWhere((c) => c.id == task.categoryId)
+                        .color)),
       ),
       color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
       child: Dismissible(
@@ -236,21 +263,45 @@ class TaskCard extends StatelessWidget {
           child: const Icon(Icons.delete_sweep),
         ),
         child: ListTile(
-          contentPadding: const EdgeInsets.only(left: 20),
-          title: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              task.name,
-              style: TextStyle(
-                  fontSize: 18,
-                  color: task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
-            ),
+          minLeadingWidth: 10,
+          leading: Container(
+            width: 10,
+            decoration: BoxDecoration(
+                color: Color(category?.color ?? 0xFFFFFFFF),
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(5.0),
+                    bottomLeft: Radius.circular(5.0))),
+          ),
+          contentPadding: const EdgeInsets.only(left: 0),
+          title: Column(
+            children: [
+              if (category != null)
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    category.name,
+                    style:
+                        TextStyle(fontSize: 11, color: Color(category.color)),
+                  ),
+                ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  task.name,
+                  style: TextStyle(
+                      fontSize: 18,
+                      color:
+                          task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
+                ),
+              )
+            ],
           ),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => TaskFormScreen(task: task)),
+                  builder: (context) =>
+                      TaskFormScreen(task: task, categories: categories)),
             );
           },
           trailing: Row(
