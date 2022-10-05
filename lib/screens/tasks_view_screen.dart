@@ -4,7 +4,6 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
-import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -23,7 +22,6 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     var tasks = firestoreService.getTasks().asBroadcastStream();
-    var categories = firestoreService.getCategories();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Tasks:"),
@@ -54,12 +52,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
             TasksListView(
               condition: (task) => !task.isDone,
               tasks: tasks,
-              categories: categories,
             ),
-            DoneTasksListView(
-              tasks: tasks,
-              categories: categories,
-            ),
+            DoneTasksListView(tasks: tasks),
           ],
         ),
       ),
@@ -67,8 +61,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) => TaskFormScreen(categories: categories)),
+            MaterialPageRoute(builder: (context) => const TaskFormScreen()),
           );
         },
         tooltip: 'Add a task',
@@ -129,9 +122,7 @@ class _ChooseMainCollectionDialogState
 
 class DoneTasksListView extends StatefulWidget {
   final Stream<Iterable<BaseTask>> tasks;
-  final List<Category> categories;
-  const DoneTasksListView(
-      {super.key, required this.tasks, required this.categories});
+  const DoneTasksListView({super.key, required this.tasks});
 
   @override
   State<DoneTasksListView> createState() => DoneTasksListViewState();
@@ -171,7 +162,6 @@ class DoneTasksListViewState extends State<DoneTasksListView> {
           condition: (task) => task.isDone,
           tasks: widget.tasks,
           visible: showDone,
-          categories: widget.categories,
         ),
       ],
     );
@@ -182,13 +172,11 @@ class TasksListView extends StatelessWidget {
   final bool Function(BaseTask)? condition;
   final bool visible;
   final Stream<Iterable<BaseTask>> tasks;
-  final List<Category> categories;
 
   const TasksListView({
     Key? key,
     this.condition,
     required this.tasks,
-    required this.categories,
     this.visible = true,
   }) : super(key: key);
 
@@ -214,7 +202,7 @@ class TasksListView extends StatelessWidget {
               if (condition != null && !condition!(task)) {
                 return Container();
               }
-              return TaskCard(task: task, categories: categories);
+              return TaskCard(task: task);
             },
           ).toList(),
         );
@@ -225,14 +213,13 @@ class TasksListView extends StatelessWidget {
 
 class TaskCard extends StatelessWidget {
   final BaseTask task;
-  final List<Category> categories;
 
-  const TaskCard({Key? key, required this.task, required this.categories})
-      : super(key: key);
+  const TaskCard({Key? key, required this.task}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
+    var categories = firestoreService.getCategories();
     var category = task.categoryId != null
         ? categories.firstWhere((c) => c.id == task.categoryId)
         : null;
@@ -247,7 +234,7 @@ class TaskCard extends StatelessWidget {
                     ? 0xFFFFD699
                     : categories
                         .firstWhere((c) => c.id == task.categoryId)
-                        .color)),
+                        .colorValue)),
       ),
       color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
       child: Dismissible(
@@ -267,8 +254,9 @@ class TaskCard extends StatelessWidget {
           leading: Container(
             width: 10,
             decoration: BoxDecoration(
-                color: Color(
-                    task.isDone ? 0xFFF6F6F6 : category?.color ?? 0xFFFFFFFF),
+                color: Color(task.isDone
+                    ? 0xFFF6F6F6
+                    : category?.colorValue ?? 0xFFFFFFFF),
                 borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(5.0),
                     bottomLeft: Radius.circular(5.0))),
@@ -283,8 +271,8 @@ class TaskCard extends StatelessWidget {
                     category.name,
                     style: TextStyle(
                         fontSize: 11,
-                        color:
-                            Color(task.isDone ? 0xFFDBDBDB : category.color)),
+                        color: Color(
+                            task.isDone ? 0xFFDBDBDB : category.colorValue)),
                   ),
                 ),
               Align(
@@ -304,8 +292,7 @@ class TaskCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      TaskFormScreen(task: task, categories: categories)),
+                  builder: (context) => TaskFormScreen(task: task)),
             );
           },
           trailing: Row(

@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/custom_icons.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
-import 'package:todo_app/models/category.dart';
+import 'package:collection/collection.dart';
 
 class TaskFormScreen extends StatelessWidget {
   final BaseTask? task;
-  final List<Category> categories;
-  const TaskFormScreen({Key? key, this.task, required this.categories})
-      : super(key: key);
+  const TaskFormScreen({Key? key, this.task}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,16 +19,15 @@ class TaskFormScreen extends StatelessWidget {
         title: const Text("New task"),
         automaticallyImplyLeading: false,
       ),
-      body: TaskForm(task: task, categories: categories),
+      body: TaskForm(task: task),
     );
   }
 }
 
 class TaskForm extends StatefulWidget {
   final BaseTask? task;
-  final List<Category> categories;
-  const TaskForm({Key? key, this.task, required this.categories})
-      : super(key: key);
+
+  const TaskForm({Key? key, this.task}) : super(key: key);
 
   @override
   State<TaskForm> createState() => _TaskFormState();
@@ -56,7 +54,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var reoccurrence = Reoccurrence.notRepeating;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
-  String? categoryId;
+  Category? category;
 
   @override
   void initState() {
@@ -88,9 +86,17 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       if (type == TaskType.timed) {
         totalTime = (widget.task! as TimedTask).totalTime;
       }
-      categoryId = widget.task!.categoryId;
     }
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    category = Provider.of<FirestoreService>(context)
+        .getCategories()
+        .firstWhereOrNull((c) => c.id == widget.task!.categoryId);
+
+    super.didChangeDependencies();
   }
 
   @override
@@ -106,6 +112,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
+    final categories = firestoreService.getCategories();
     return Scaffold(
       bottomNavigationBar: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -140,7 +147,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       if (widget.task!.type == TaskType.timed) {
                         (widget.task! as TimedTask).totalTime = totalTime;
                       }
-                      widget.task!.categoryId = categoryId;
+                      widget.task!.categoryId = category?.id;
                       firestoreService.updateTask(widget.task!);
                     } else {
                       BaseTask? task;
@@ -157,7 +164,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                               totalTime);
                           break;
                       }
-                      task.categoryId = categoryId;
+                      task.categoryId = category?.id;
                       firestoreService.addTask(task);
                     }
                     Navigator.pop(context);
@@ -445,49 +452,18 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               AddIconTextButton(
                 iconData: Icons.add,
                 label: "Assign a category",
-                onPressed: (() {
+                onPressed: () {
                   showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: const Text('Select category'),
-                            content: DropdownButton<String>(
-                              value: categoryId,
-                              items: [
-                                const DropdownMenuItem(
-                                  value: null,
-                                  child: Text('None'),
-                                ),
-                                ...widget.categories
-                                    .map((c) => DropdownMenuItem(
-                                          value: c.id,
-                                          child: Text(c.name),
-                                        ))
-                              ],
-                              onChanged: (value) {
-                                setState(() {
-                                  categoryId = value;
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            actions: [
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Ok')),
-                            ],
-                          ));
-                }),
-                trailing: categoryId != null
-                    ? Text(
-                        widget.categories
-                            .firstWhere((c) => c.id == categoryId)
-                            .name,
-                        style: TextStyle(
-                            color: Color(widget.categories
-                                .firstWhere((c) => c.id == categoryId)
-                                .color)))
+                    context: context,
+                    builder: (_) => ChooseCategoryDialog(
+                        categories: categories, category: category),
+                  ).then((value) => setState(() {
+                        category = value;
+                      }));
+                },
+                trailing: category != null
+                    ? Text(category!.name,
+                        style: TextStyle(color: Color(category!.colorValue)))
                     : null,
               ),
               const AddIconTextButton(
@@ -498,6 +474,58 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ChooseCategoryDialog extends StatefulWidget {
+  final Category? category;
+  final List<Category> categories;
+
+  const ChooseCategoryDialog(
+      {super.key, required this.category, required this.categories});
+
+  @override
+  State<ChooseCategoryDialog> createState() => _ChooseCategoryDialogState();
+}
+
+class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
+  Category? category;
+  @override
+  void initState() {
+    category = widget.category;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select category'),
+      content: DropdownButton<Category?>(
+        value: category,
+        items: [
+          const DropdownMenuItem(
+            value: null,
+            child: Text('None'),
+          ),
+          ...widget.categories.map((c) => DropdownMenuItem(
+                value: c,
+                child: Text(c.name),
+              ))
+        ],
+        onChanged: (value) {
+          setState(() {
+            category = value;
+          });
+        },
+      ),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(category);
+            },
+            child: const Text('Ok')),
+      ],
     );
   }
 }
