@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 
@@ -33,6 +34,14 @@ class MockFirestoreService extends Mock implements FirestoreService {
       CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly),
       CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating),
     ]);
+  }
+  @override
+  List<Category> getCategories() {
+    return [
+      Category("abc", 0xFF000000, "Category 1"),
+      Category("def", 0xFF000000, "Category 2"),
+      Category("ghi", 0xFF000000, "Category 3"),
+    ];
   }
 
   @override
