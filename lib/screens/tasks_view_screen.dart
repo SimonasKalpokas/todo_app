@@ -267,7 +267,8 @@ class TaskCard extends StatelessWidget {
           leading: Container(
             width: 10,
             decoration: BoxDecoration(
-                color: Color(category?.color ?? 0xFFFFFFFF),
+                color: Color(
+                    task.isDone ? 0xFFF6F6F6 : category?.color ?? 0xFFFFFFFF),
                 borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(5.0),
                     bottomLeft: Radius.circular(5.0))),
@@ -280,13 +281,16 @@ class TaskCard extends StatelessWidget {
                   alignment: Alignment.topLeft,
                   child: Text(
                     category.name,
-                    style:
-                        TextStyle(fontSize: 11, color: Color(category.color)),
+                    style: TextStyle(
+                        fontSize: 11,
+                        color:
+                            Color(task.isDone ? 0xFFDBDBDB : category.color)),
                   ),
                 ),
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
+                  overflow: TextOverflow.ellipsis,
                   task.name,
                   style: TextStyle(
                       fontSize: 18,

@@ -137,7 +137,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                               totalTime);
                           break;
                       }
-                      widget.task!.categoryId = categoryId;
+                      task.categoryId = categoryId;
                       firestoreService.addTask(task);
                     }
                     Navigator.pop(context);
