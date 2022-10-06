@@ -1,7 +1,7 @@
 class Category {
   final String id;
   final int colorValue;
-  final String name;
+  String name;
 
   Category(this.id, this.colorValue, this.name);
 
@@ -12,4 +12,13 @@ class Category {
 
   @override
   int get hashCode => id.hashCode;
+
+  Category.fromMap(Map<String, dynamic> map)
+      : this(map['id'], map['colorValue'], map['name']);
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'colorValue': colorValue,
+        'name': name,
+      };
 }

@@ -36,12 +36,12 @@ class MockFirestoreService extends Mock implements FirestoreService {
     ]);
   }
   @override
-  List<Category> getCategories() {
-    return [
+  Stream<Iterable<Category>> getCategories() {
+    return Stream.value([
       Category("abc", 0xFF000000, "Category 1"),
       Category("def", 0xFF000000, "Category 2"),
       Category("ghi", 0xFF000000, "Category 3"),
-    ];
+    ]);
   }
 
   @override
@@ -70,12 +70,14 @@ class MockFirestoreService extends Mock implements FirestoreService {
 void main() {
   testWidgets('Widget loading test', (WidgetTester tester) async {
     final mockFirestoreService = MockFirestoreService();
+    var categories = await mockFirestoreService.getCategories().first;
     // Build our app and trigger a frame.
     await tester.pumpWidget(MultiProvider(
       providers: [
-        Provider<FirestoreService>(
-          create: (_) => mockFirestoreService,
-        ),
+        Provider<FirestoreService>(create: (_) => mockFirestoreService),
+        StreamProvider<Iterable<Category>>.value(
+            value: mockFirestoreService.getCategories(),
+            initialData: categories),
       ],
       child: const MaterialApp(home: TasksViewScreen()),
     ));

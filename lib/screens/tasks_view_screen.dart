@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -44,6 +46,19 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               color: Color(0xFF666666),
             ),
           ),
+          IconButton(
+            onPressed: () {
+              showDialog<bool?>(
+                  context: context,
+                  builder: (context) => CategorySettingsDialog(
+                      categories: Provider.of<Iterable<Category>>(context,
+                          listen: false)));
+            },
+            icon: const Icon(
+              Icons.category,
+              color: Color(0xFF666666),
+            ),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -68,6 +83,88 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+}
+
+class CategorySettingsDialog extends StatefulWidget {
+  final Iterable<Category> categories;
+
+  const CategorySettingsDialog({Key? key, required this.categories})
+      : super(key: key);
+
+  @override
+  State<CategorySettingsDialog> createState() => _CategorySettingsDialogState();
+}
+
+class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
+  final categoryNameController = TextEditingController();
+  Category? category;
+
+  @override
+  void dispose() {
+    categoryNameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        title: const Text('Category settings'),
+        content: Column(
+          children: [
+            DropdownButton<Category?>(
+              value: category,
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('None'),
+                ),
+                ...widget.categories.map((c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(
+                        c.name,
+                        style: TextStyle(color: Color(c.colorValue)),
+                      ),
+                    ))
+              ],
+              onChanged: (value) {
+                setState(() {
+                  category = value;
+                });
+              },
+            ),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(hintText: 'New category name'),
+              controller: categoryNameController,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () {
+                if (category != null &&
+                    categoryNameController.text.isNotEmpty) {
+                  category!.name = categoryNameController.text;
+                  Provider.of<FirestoreService>(context, listen: false)
+                      .updateCategory(category!);
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('OK')),
+          TextButton(
+              onPressed: () {
+                if (category != null) {
+                  Provider.of<FirestoreService>(context, listen: false)
+                      .deleteCategory(category!);
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('Delete')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+        ]);
   }
 }
 
@@ -219,9 +316,9 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
-    var categories = firestoreService.getCategories();
+    var categories = Provider.of<Iterable<Category>>(context);
     var category = task.categoryId != null
-        ? categories.firstWhere((c) => c.id == task.categoryId)
+        ? categories.firstWhereOrNull((c) => c.id == task.categoryId)
         : null;
     return Card(
       margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
@@ -233,8 +330,9 @@ class TaskCard extends StatelessWidget {
                 : task.categoryId == null
                     ? 0xFFFFD699
                     : categories
-                        .firstWhere((c) => c.id == task.categoryId)
-                        .colorValue)),
+                            .firstWhereOrNull((c) => c.id == task.categoryId)
+                            ?.colorValue ??
+                        0xFFFFD699)),
       ),
       color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
       child: Dismissible(

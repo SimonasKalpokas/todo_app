@@ -92,9 +92,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
 
   @override
   void didChangeDependencies() {
-    category = Provider.of<FirestoreService>(context)
-        .getCategories()
-        .firstWhereOrNull((c) => c.id == widget.task!.categoryId);
+    category = widget.task != null
+        ? Provider.of<Iterable<Category>>(context)
+            .firstWhereOrNull((c) => c.id == widget.task!.categoryId)
+        : null;
 
     super.didChangeDependencies();
   }
@@ -112,7 +113,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final categories = firestoreService.getCategories();
+    final categories = Provider.of<Iterable<Category>>(context);
     return Scaffold(
       bottomNavigationBar: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -480,7 +481,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
 
 class ChooseCategoryDialog extends StatefulWidget {
   final Category? category;
-  final List<Category> categories;
+  final Iterable<Category> categories;
 
   const ChooseCategoryDialog(
       {super.key, required this.category, required this.categories});

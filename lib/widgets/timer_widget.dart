@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/models/category.dart';
 
 import '../models/timed_task.dart';
-import '../services/firestore_service.dart';
 
 class TimerWidget extends StatefulWidget {
   final TimedTask timedTask;
@@ -68,13 +69,12 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    var firestoreService = Provider.of<FirestoreService>(context);
     var colorValue = widget.timedTask.categoryId == null
         ? 0xFFFFBE5C
-        : firestoreService
-            .getCategories()
-            .firstWhere((c) => c.id == widget.timedTask.categoryId)
-            .colorValue;
+        : Provider.of<Iterable<Category>>(context)
+                .firstWhereOrNull((c) => c.id == widget.timedTask.categoryId)
+                ?.colorValue ??
+            0xFFFFBE5C;
     int hours = timeLeft.inHours;
     int mins = timeLeft.inMinutes - hours * 60;
     int secs = timeLeft.inSeconds - hours * 3600 - mins * 60;
