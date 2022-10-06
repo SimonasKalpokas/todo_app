@@ -318,7 +318,8 @@ class TaskCard extends StatelessWidget {
                       });
                     },
                     value: task.isDone,
-                    side: const BorderSide(color: Color(0xFFFFD699)),
+                    side: BorderSide(
+                        color: Color(category?.colorValue ?? 0xFFFFD699)),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5)),
                     activeColor: const Color(0xFFD9D9D9),

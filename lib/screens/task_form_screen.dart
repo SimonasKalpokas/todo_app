@@ -510,7 +510,10 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
           ),
           ...widget.categories.map((c) => DropdownMenuItem(
                 value: c,
-                child: Text(c.name),
+                child: Text(
+                  c.name,
+                  style: TextStyle(color: Color(c.colorValue)),
+                ),
               ))
         ],
         onChanged: (value) {

@@ -16,7 +16,6 @@ class TimerWidget extends StatefulWidget {
 
 class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
   late Timer timer;
-  late FirestoreService firestoreService;
   late Duration timeLeft;
 
   @override
@@ -50,12 +49,6 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeDependencies() {
-    firestoreService = Provider.of<FirestoreService>(context);
-    super.didChangeDependencies();
-  }
-
-  @override
   void didUpdateWidget(covariant TimerWidget oldWidget) {
     var remainingTime = widget.timedTask.calculateCurrentRemainingTime();
     if (remainingTime != timeLeft) {
@@ -75,6 +68,13 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    var firestoreService = Provider.of<FirestoreService>(context);
+    var colorValue = widget.timedTask.categoryId == null
+        ? 0xFFFFBE5C
+        : firestoreService
+            .getCategories()
+            .firstWhere((c) => c.id == widget.timedTask.categoryId)
+            .colorValue;
     int hours = timeLeft.inHours;
     int mins = timeLeft.inMinutes - hours * 60;
     int secs = timeLeft.inSeconds - hours * 3600 - mins * 60;
@@ -84,14 +84,14 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
         widget.timedTask.executing
             ? IconButton(
                 icon: const Icon(Icons.pause),
-                color: const Color(0xFFFFBE5C),
+                color: Color(colorValue),
                 onPressed: () {
                   widget.timedTask.stopExecution();
                 },
               )
             : IconButton(
                 icon: const Icon(Icons.play_arrow),
-                color: const Color(0xFFFFBE5C),
+                color: Color(colorValue),
                 onPressed: () {
                   widget.timedTask.startExecution();
                 },
@@ -109,8 +109,7 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
                     color: Colors.white,
-                    border:
-                        Border.all(color: const Color(0xFFFFBE5C), width: 1)),
+                    border: Border.all(color: Color(colorValue), width: 1)),
                 child: Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
@@ -119,11 +118,11 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
                               timeLeft.inSeconds /
                                   widget.timedTask.totalTime.inSeconds) *
                           65,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(5.0),
                             bottomLeft: Radius.circular(5.0)),
-                        color: Color(0xFFFFBE5C),
+                        color: Color(colorValue),
                       ),
                     ))),
           ],
