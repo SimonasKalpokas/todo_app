@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
+import 'package:todo_app/widgets/task_card_widget.dart';
 
 import '../widgets/timer_widget.dart';
 import 'task_form_screen.dart';
@@ -199,7 +200,13 @@ class TasksListView extends StatelessWidget {
               if (condition != null && !condition!(task)) {
                 return Container();
               }
-              return TaskCard(task);
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 4.0,
+                ),
+                child: TaskCardWidget(task: task),
+              );
             },
           ).toList(),
         );
