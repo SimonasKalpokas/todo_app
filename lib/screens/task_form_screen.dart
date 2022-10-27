@@ -501,34 +501,211 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Select category'),
-      content: DropdownButton<Category?>(
-        value: category,
-        items: [
-          const DropdownMenuItem(
-            value: null,
-            child: Text('None'),
-          ),
-          ...widget.categories.map((c) => DropdownMenuItem(
-                value: c,
-                child: Text(
-                  c.name,
-                  style: TextStyle(color: Color(c.colorValue)),
-                ),
-              ))
-        ],
-        onChanged: (value) {
-          setState(() {
-            category = value;
-          });
-        },
+      contentPadding: const EdgeInsets.only(top: 10),
+      backgroundColor: const Color(0xFFFFF9F1),
+      title: const Text(
+        'Select a category',
+        style: TextStyle(fontSize: 24),
       ),
+      content: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: ListView(
+          children: ListTile.divideTiles(
+            context: context,
+            tiles: widget.categories
+                .map((category) => ListTile(
+                      minVerticalPadding: 0,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 15),
+                      minLeadingWidth: 10,
+                      horizontalTitleGap: 15,
+                      title: Text(category.name,
+                          style: const TextStyle(fontSize: 14)),
+                      leading: SizedBox(
+                        height: double.infinity,
+                        child: CircleAvatar(
+                          backgroundColor: Color(category.colorValue),
+                          maxRadius: 5,
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          this.category = category;
+                          Navigator.pop(context, category);
+                        });
+                      },
+                      trailing: this.category == category
+                          ? const Icon(Icons.check)
+                          : null,
+                    ))
+                .followedBy([
+              ListTile(
+                minVerticalPadding: 0,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 13),
+                minLeadingWidth: 10,
+                horizontalTitleGap: 13,
+                title: const Text('Add new..',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF6E6E6E))),
+                leading: const Icon(Icons.add, size: 15),
+                onTap: () {
+                  // not implemented
+                  showDialog(
+                    context: context,
+                    builder: (_) => const CategoryCreateDialog(),
+                  );
+                },
+              ),
+            ]),
+          ).toList(),
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.start,
       actions: [
-        TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(category);
-            },
-            child: const Text('Ok')),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 40, left: 40),
+          child: TextButton(
+              child: const Text("Cancel",
+                  style: TextStyle(color: Color(0xFFFFC36A), fontSize: 20)),
+              onPressed: () {
+                Navigator.pop(context, category);
+              }),
+        ),
+      ],
+    );
+  }
+}
+
+const pickerColors = [
+  Colors.blue,
+  Colors.red,
+  Colors.green,
+  Colors.yellow,
+  Colors.purple,
+  Colors.orange,
+  Colors.cyan,
+  Colors.lime,
+];
+
+class CategoryCreateDialog extends StatefulWidget {
+  const CategoryCreateDialog({super.key});
+
+  @override
+  State<CategoryCreateDialog> createState() => _CategoryCreateDialogState();
+}
+
+class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
+  final TextEditingController nameController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFFFFF9F1),
+      title: const Text(
+        'New category',
+        style: TextStyle(fontSize: 24),
+      ),
+      content: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const FormLabel(text: 'Name'),
+            TextFormField(
+              controller: nameController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a name';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            const FormLabel(text: 'Color'),
+            const SizedBox(height: 10),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: pickerColors
+                    .map((color) => Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: Container(
+                            height: 26,
+                            width: 26,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: color,
+                              border: Border.all(
+                                  color: Colors.black,
+                                  width: 0.3,
+                                  style: BorderStyle.solid),
+                            ),
+                          ),
+                        ))
+                    .toList()),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        side: const BorderSide(
+                            color: Colors.black, width: 0.25))),
+                onPressed: () {
+                  notImplementedAlert(context);
+                },
+                icon: const Icon(Icons.palette),
+                label:
+                    const Text('Custom color', style: TextStyle(fontSize: 12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.spaceEvenly,
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12.0, 0, 6.0, 8.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFC36A),
+                      minimumSize: const Size.fromHeight(43)),
+                  child: const Text(
+                    "Save",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(6.0, 0, 12.0, 8.0),
+                child: TextButton(
+                    style: TextButton.styleFrom(
+                        minimumSize: const Size.fromHeight(43)),
+                    child: const Text("Cancel",
+                        style:
+                            TextStyle(color: Color(0xFFFFC36A), fontSize: 20)),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ),
+            ),
+          ],
+        )
       ],
     );
   }
