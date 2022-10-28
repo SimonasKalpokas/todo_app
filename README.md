@@ -9,12 +9,12 @@ Demo: https://simonaskalpokas1.github.io/todo_app/
 - [x] Timed tasks
 - [x] Repeating tasks
 - [ ] Amounted tasks
-- [ ] [Subtasks/folders/lists](https://todo-aobhnf4kc-simonaskalpokas1.vercel.app)
+- [ ] [Subtasks/folders/lists](https://todo-app-git-subtasks-simonaskalpokas1.vercel.app)
 - [x] Main page
 - [ ] Notifications
-- [ ] [Categories](https://todo-ko12v8f5y-simonaskalpokas1.vercel.app)
+- [ ] [Categories](https://todo-app-git-categories-simonaskalpokas1.vercel.app)
 - [ ] Filtering system
-- [ ] [Nice UI](https://todo-akhu1wpe5-simonaskalpokas1.vercel.app/)
+- [ ] [Nice UI](https://todo-app-git-ui-task-card-expand-simonaskalpokas1.vercel.app)
 - [ ] Different users
 - [ ] Custom backend
 - [ ] E2E tests
