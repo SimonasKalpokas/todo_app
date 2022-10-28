@@ -69,6 +69,10 @@ class FirestoreService {
         (snapshot) => snapshot.docs.map((doc) => Category.fromMap(doc.data())));
   }
 
+  Future<void> addCategory(Category category) {
+    return categoriesCollection.add(category.toMap());
+  }
+
   Future<void> updateCategory(Category category) {
     return categoriesCollection.doc(category.id).set(category.toMap());
   }

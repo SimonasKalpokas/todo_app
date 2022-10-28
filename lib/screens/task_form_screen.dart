@@ -549,11 +549,14 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
                     style: TextStyle(fontSize: 14, color: Color(0xFF6E6E6E))),
                 leading: const Icon(Icons.add, size: 15),
                 onTap: () {
-                  // not implemented
                   showDialog(
                     context: context,
                     builder: (_) => const CategoryCreateDialog(),
-                  );
+                  ).then((value) {
+                    if (value != null) {
+                      Navigator.pop(context, value);
+                    }
+                  });
                 },
               ),
             ]),
@@ -563,7 +566,7 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
       actionsAlignment: MainAxisAlignment.start,
       actions: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 40, left: 40),
+          padding: const EdgeInsets.only(bottom: 20, left: 40),
           child: TextButton(
               child: const Text("Cancel",
                   style: TextStyle(color: Color(0xFFFFC36A), fontSize: 20)),
@@ -587,6 +590,103 @@ const pickerColors = [
   Colors.lime,
 ];
 
+class ColorPickerFormField extends FormField<Color> {
+  ColorPickerFormField({
+    super.key,
+    FormFieldSetter<Color>? onSaved,
+    FormFieldValidator<Color>? validator,
+    Color? initialValue,
+    bool autovalidate = false,
+  }) : super(
+            onSaved: onSaved,
+            validator: validator,
+            initialValue: initialValue,
+            autovalidateMode: autovalidate
+                ? AutovalidateMode.always
+                : AutovalidateMode.disabled,
+            builder: (FormFieldState<Color> field) {
+              final state = field as _ColorPickerFormFieldState;
+              return InputDecorator(
+                decoration: InputDecoration(
+                  enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFFF9F1))),
+                  focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFFF9F1))),
+                  fillColor: const Color(0xFFFFF9F1),
+                  errorText: state.errorText,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: pickerColors
+                            .map((color) => Padding(
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      state.didChange(color);
+                                    },
+                                    child: Container(
+                                      height: 26,
+                                      width: 26,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: color,
+                                        border: Border.all(
+                                            color: Colors.black,
+                                            width: 0.3,
+                                            style: BorderStyle.solid),
+                                      ),
+                                      child: state.value == color
+                                          ? const Icon(
+                                              Icons.check,
+                                              size: 15,
+                                              color: Colors.black,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                ))
+                            .toList()),
+                    const SizedBox(height: 15),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5),
+                                side: const BorderSide(
+                                    color: Colors.black, width: 0.25))),
+                        onPressed: () {
+                          notImplementedAlert(state.context);
+                        },
+                        icon: const Icon(Icons.palette),
+                        label: const Text('Custom color',
+                            style: TextStyle(fontSize: 12)),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            });
+
+  @override
+  FormFieldState<Color> createState() => _ColorPickerFormFieldState();
+}
+
+class _ColorPickerFormFieldState extends FormFieldState<Color> {
+  @override
+  ColorPickerFormField get widget => super.widget as ColorPickerFormField;
+
+  @override
+  void didChange(Color? value) {
+    super.didChange(value);
+    setState(() {});
+  }
+}
+
 class CategoryCreateDialog extends StatefulWidget {
   const CategoryCreateDialog({super.key});
 
@@ -596,9 +696,12 @@ class CategoryCreateDialog extends StatefulWidget {
 
 class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
   final TextEditingController nameController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
     return AlertDialog(
       backgroundColor: const Color(0xFFFFF9F1),
       title: const Text(
@@ -608,61 +711,37 @@ class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
       content: SizedBox(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const FormLabel(text: 'Name'),
-            TextFormField(
-              controller: nameController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            const FormLabel(text: 'Color'),
-            const SizedBox(height: 10),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: pickerColors
-                    .map((color) => Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Container(
-                            height: 26,
-                            width: 26,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: color,
-                              border: Border.all(
-                                  color: Colors.black,
-                                  width: 0.3,
-                                  style: BorderStyle.solid),
-                            ),
-                          ),
-                        ))
-                    .toList()),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                style: TextButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                        side: const BorderSide(
-                            color: Colors.black, width: 0.25))),
-                onPressed: () {
-                  notImplementedAlert(context);
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const FormLabel(text: 'Name'),
+              TextFormField(
+                controller: nameController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a name';
+                  }
+                  return null;
                 },
-                icon: const Icon(Icons.palette),
-                label:
-                    const Text('Custom color', style: TextStyle(fontSize: 12)),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              const FormLabel(text: 'Color'),
+              const SizedBox(height: 10),
+              ColorPickerFormField(
+                onSaved: (value) {
+                  color = value;
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a color';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
         ),
       ),
       actionsAlignment: MainAxisAlignment.spaceEvenly,
@@ -684,8 +763,18 @@ class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.bold),
                   ),
-                  onPressed: () {
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      final category = Category.randomId(
+                        color!.value,
+                        nameController.text,
+                      );
+                      await firestoreService.addCategory(category);
+                      if (mounted) {
+                        Navigator.pop(context, category);
+                      }
+                    }
                   },
                 ),
               ),

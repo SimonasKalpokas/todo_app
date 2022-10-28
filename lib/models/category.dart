@@ -1,9 +1,13 @@
+import 'package:uuid/uuid.dart';
+
 class Category {
   final String id;
   final int colorValue;
   String name;
 
   Category(this.id, this.colorValue, this.name);
+
+  Category.randomId(this.colorValue, this.name) : id = const Uuid().v4();
 
   @override
   bool operator ==(other) {
