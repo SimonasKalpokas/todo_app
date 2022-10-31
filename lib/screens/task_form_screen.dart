@@ -55,6 +55,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
   Category? category;
+  var showExtra = false;
 
   @override
   void initState() {
@@ -192,11 +193,19 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       body: Form(
         key: _formKey,
         child: Padding(
-          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+          padding: const EdgeInsets.only(left: 12.0, right: 12.0),
           child: ListView(
             children: [
               const FormLabel(text: "Task"),
               TextFormField(
+                decoration: const InputDecoration(
+                  hintText: "Enter task name",
+                  hintStyle: TextStyle(
+                    color: Color.fromARGB(255, 210, 210, 210),
+                  ),
+                  contentPadding: EdgeInsets.fromLTRB(12, 8, 12, 8),
+                ),
+                style: const TextStyle(fontSize: 20),
                 controller: nameController,
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
@@ -209,268 +218,313 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               TextFormField(
                 controller: descriptionController,
                 keyboardType: TextInputType.multiline,
+                style: const TextStyle(fontSize: 18),
+                decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.fromLTRB(12, 8, 12, 8)),
                 maxLines: 4,
                 minLines: 3,
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Container(
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: const Color(0xFFFFC36A)),
-                  ),
-                  child: TabBar(
-                    controller: isReoccurringTabController,
-                    onTap: (index) {
-                      setState(() {
-                        isReoccurring = index == 1;
-                      });
-                      if (index == 1 &&
-                          reoccurrence == Reoccurrence.notRepeating) {
-                        setState(() {
-                          reoccurrence = Reoccurrence.daily;
-                        });
-                      }
-                      if (isTimed && isTimedOptionsExpanded) {
-                        setState(() {
-                          isTimedOptionsExpanded = false;
-                        });
-                      }
-                    },
-                    tabs: const [
-                      Tab(child: Text('Normal')),
-                      Tab(child: Text('Repeating')),
-                    ],
-                  ),
-                ),
-              ),
-              Visibility(
-                visible: isReoccurring,
-                child: isReoccurrenceOptionsExpanded
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const FormLabel(text: "Repeat"),
-                          Container(
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              border:
-                                  Border.all(color: const Color(0xFFFFC36A)),
-                            ),
-                            child: TabBar(
-                              onTap: (index) {
-                                if (index > 1) {
-                                  reoccurrencePeriodTabController.index =
-                                      reoccurrencePeriodTabController
-                                          .previousIndex;
-                                  notImplementedAlert(context);
-                                } else {
-                                  setState(() {
-                                    reoccurrence = Reoccurrence.values[index];
-                                  });
-                                }
-                              },
-                              controller: reoccurrencePeriodTabController,
-                              labelStyle: Theme.of(context)
-                                  .tabBarTheme
-                                  .labelStyle
-                                  ?.copyWith(fontSize: 11),
-                              unselectedLabelStyle: Theme.of(context)
-                                  .tabBarTheme
-                                  .unselectedLabelStyle
-                                  ?.copyWith(fontSize: 11),
-                              tabs: const [
-                                Tab(child: Text('Daily')),
-                                Tab(child: Text('Weekly')),
-                                Tab(child: Text('Monthly')),
-                                Tab(child: Text('Custom..')),
-                              ],
-                            ),
-                          ),
-                          const FormLabel(text: 'Starting'),
-                          Container(
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              border:
-                                  Border.all(color: const Color(0xFFFFC36A)),
-                            ),
-                            child: TabBar(
-                              controller: startingTabController,
-                              labelStyle: Theme.of(context)
-                                  .tabBarTheme
-                                  .labelStyle
-                                  ?.copyWith(fontSize: 11),
-                              unselectedLabelStyle: Theme.of(context)
-                                  .tabBarTheme
-                                  .unselectedLabelStyle
-                                  ?.copyWith(fontSize: 11),
-                              tabs: const [
-                                Tab(child: Text('Today')),
-                                Tab(child: Text('Next week')),
-                                Tab(child: Text('Next month')),
-                                Tab(child: Text('Custom..')),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : DefaultTextStyle(
-                        style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFFAAAAAA),
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Nunito'),
-                        child: Row(children: [
-                          const Text("Repeats "),
-                          Text(
-                            reoccurrence.displayTitle,
-                            style: const TextStyle(color: Color(0xFF666666)),
-                          ),
-                          const Text(' starting '),
-                          const Text(
-                            '8th of August, 2023',
-                            style: TextStyle(color: Color(0xFF666666)),
-                          ),
-                          const Spacer(),
-                          TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  isReoccurrenceOptionsExpanded = true;
-                                });
-                                if (isTimed && isTimedOptionsExpanded) {
-                                  setState(() {
-                                    isTimedOptionsExpanded = false;
-                                  });
-                                }
-                              },
-                              child: const Text(
-                                'Modify',
-                                style: TextStyle(
-                                    color: Color(0xFFFFC36A), fontSize: 11),
-                              ))
-                        ]),
-                      ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Container(
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: const Color(0xFFFFC36A)),
-                  ),
-                  child: TabBar(
-                    onTap: (index) {
-                      setState(() {
-                        isTimed = index == 1;
-                      });
-                      if (isReoccurring && isReoccurrenceOptionsExpanded) {
-                        setState(() {
-                          isReoccurrenceOptionsExpanded = false;
-                        });
-                      }
-                    },
-                    controller: typeTabController,
-                    tabs: const [
-                      Tab(child: Text('Checklist')),
-                      Tab(child: Text('Timed')),
-                    ],
-                  ),
-                ),
-              ),
-              Visibility(
-                visible: isTimed,
-                child: isTimedOptionsExpanded
-                    ? Row(children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12.0),
-                          child: SizedBox(
-                            width: 40,
-                            height: 30,
-                            child: TextFormField(
-                              controller: hoursController,
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ),
-                        const FormLabel(text: "Hours"),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0, top: 12.0),
-                          child: SizedBox(
-                            width: 40,
-                            height: 30,
-                            child: TextFormField(
-                              controller: minutesController,
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ),
-                        const FormLabel(text: "Minutes"),
-                      ])
-                    : DefaultTextStyle(
-                        style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFFAAAAAA),
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Nunito'),
-                        child: Row(children: [
-                          Text(
-                              '${hoursController.text} hours ${minutesController.text} minutes',
-                              style: const TextStyle(color: Color(0xFF666666))),
-                          const Text(' to complete'),
-                          const Spacer(),
-                          TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  isTimedOptionsExpanded = true;
-                                });
-                                if (isReoccurring &&
-                                    isReoccurrenceOptionsExpanded) {
-                                  setState(() {
-                                    isReoccurrenceOptionsExpanded = false;
-                                  });
-                                }
-                              },
-                              child: const Text(
-                                'Modify',
-                                style: TextStyle(
-                                    color: Color(0xFFFFC36A), fontSize: 11),
-                              ))
-                        ]),
-                      ),
-              ),
-              const AddIconTextButton(
-                iconData: Icons.notifications_active,
-                label: "Set reminder",
-              ),
-              AddIconTextButton(
-                iconData: Icons.add,
-                label: "Assign a category",
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => ChooseCategoryDialog(
-                        categories: categories, category: category),
-                  ).then((value) => setState(() {
-                        category = value;
-                      }));
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    showExtra = !showExtra;
+                  });
                 },
-                trailing: category != null
-                    ? Text(category!.name,
-                        style: TextStyle(color: Color(category!.colorValue)))
-                    : null,
+                child: Row(
+                  children: [
+                    const Text(
+                      "Advanced",
+                      style: TextStyle(fontSize: 16, color: Color(0xFF787878)),
+                    ),
+                    showExtra
+                        ? const Icon(Icons.keyboard_arrow_up,
+                            color: Color(0xFF787878))
+                        : const Icon(Icons.keyboard_arrow_down,
+                            color: Color(0xFF787878))
+                  ],
+                ),
               ),
-              const AddIconTextButton(
-                iconData: CustomIcons.sublist,
-                label: "Assign to parent task",
-              ),
+              if (showExtra)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: const Color(0xFFFFC36A)),
+                    ),
+                    child: TabBar(
+                      labelStyle: Theme.of(context)
+                          .tabBarTheme
+                          .labelStyle
+                          ?.copyWith(fontSize: 16),
+                      unselectedLabelStyle: Theme.of(context)
+                          .tabBarTheme
+                          .unselectedLabelStyle
+                          ?.copyWith(fontSize: 16),
+                      controller: isReoccurringTabController,
+                      onTap: (index) {
+                        setState(() {
+                          isReoccurring = index == 1;
+                        });
+                        if (index == 1 &&
+                            reoccurrence == Reoccurrence.notRepeating) {
+                          setState(() {
+                            reoccurrence = Reoccurrence.daily;
+                          });
+                        }
+                        if (isTimed && isTimedOptionsExpanded) {
+                          setState(() {
+                            isTimedOptionsExpanded = false;
+                          });
+                        }
+                      },
+                      tabs: const [
+                        Tab(child: Text('Normal')),
+                        Tab(child: Text('Repeating')),
+                      ],
+                    ),
+                  ),
+                ),
+              if (showExtra)
+                Visibility(
+                  visible: isReoccurring,
+                  child: isReoccurrenceOptionsExpanded
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const FormLabel(
+                              text: "Repeat",
+                              fontSize: 14,
+                            ),
+                            Container(
+                              height: 35,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                border:
+                                    Border.all(color: const Color(0xFFFFC36A)),
+                              ),
+                              child: TabBar(
+                                onTap: (index) {
+                                  if (index > 1) {
+                                    reoccurrencePeriodTabController.index =
+                                        reoccurrencePeriodTabController
+                                            .previousIndex;
+                                    notImplementedAlert(context);
+                                  } else {
+                                    setState(() {
+                                      reoccurrence = Reoccurrence.values[index];
+                                    });
+                                  }
+                                },
+                                controller: reoccurrencePeriodTabController,
+                                labelStyle: Theme.of(context)
+                                    .tabBarTheme
+                                    .labelStyle
+                                    ?.copyWith(fontSize: 14),
+                                unselectedLabelStyle: Theme.of(context)
+                                    .tabBarTheme
+                                    .unselectedLabelStyle
+                                    ?.copyWith(fontSize: 14),
+                                tabs: const [
+                                  Tab(child: Text('Daily')),
+                                  Tab(child: Text('Weekly')),
+                                  Tab(child: Text('Monthly')),
+                                  Tab(child: Text('Custom..')),
+                                ],
+                              ),
+                            ),
+                            const FormLabel(text: 'Starting'),
+                            Container(
+                              height: 22,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                border:
+                                    Border.all(color: const Color(0xFFFFC36A)),
+                              ),
+                              child: TabBar(
+                                controller: startingTabController,
+                                labelStyle: Theme.of(context)
+                                    .tabBarTheme
+                                    .labelStyle
+                                    ?.copyWith(fontSize: 11),
+                                unselectedLabelStyle: Theme.of(context)
+                                    .tabBarTheme
+                                    .unselectedLabelStyle
+                                    ?.copyWith(fontSize: 11),
+                                tabs: const [
+                                  Tab(child: Text('Today')),
+                                  Tab(child: Text('Next week')),
+                                  Tab(child: Text('Next month')),
+                                  Tab(child: Text('Custom..')),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : DefaultTextStyle(
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFFAAAAAA),
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Nunito'),
+                          child: Row(children: [
+                            const Text("Repeats "),
+                            Text(
+                              reoccurrence.displayTitle,
+                              style: const TextStyle(color: Color(0xFF666666)),
+                            ),
+                            const Text(' starting '),
+                            const Text(
+                              '8th of August, 2023',
+                              style: TextStyle(color: Color(0xFF666666)),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isReoccurrenceOptionsExpanded = true;
+                                  });
+                                  if (isTimed && isTimedOptionsExpanded) {
+                                    setState(() {
+                                      isTimedOptionsExpanded = false;
+                                    });
+                                  }
+                                },
+                                child: const Text(
+                                  'Modify',
+                                  style: TextStyle(
+                                      color: Color(0xFFFFC36A), fontSize: 11),
+                                ))
+                          ]),
+                        ),
+                ),
+              if (showExtra)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Container(
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: const Color(0xFFFFC36A)),
+                    ),
+                    child: TabBar(
+                      onTap: (index) {
+                        setState(() {
+                          isTimed = index == 1;
+                        });
+                        if (isReoccurring && isReoccurrenceOptionsExpanded) {
+                          setState(() {
+                            isReoccurrenceOptionsExpanded = false;
+                          });
+                        }
+                      },
+                      controller: typeTabController,
+                      tabs: const [
+                        Tab(child: Text('Checklist')),
+                        Tab(child: Text('Timed')),
+                      ],
+                    ),
+                  ),
+                ),
+              if (showExtra)
+                Visibility(
+                  visible: isTimed,
+                  child: isTimedOptionsExpanded
+                      ? Row(children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12.0),
+                            child: SizedBox(
+                              width: 40,
+                              height: 30,
+                              child: TextFormField(
+                                controller: hoursController,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ),
+                          const FormLabel(text: "Hours"),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(left: 8.0, top: 12.0),
+                            child: SizedBox(
+                              width: 40,
+                              height: 30,
+                              child: TextFormField(
+                                controller: minutesController,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ),
+                          const FormLabel(text: "Minutes"),
+                        ])
+                      : DefaultTextStyle(
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFFAAAAAA),
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Nunito'),
+                          child: Row(children: [
+                            Text(
+                                '${hoursController.text} hours ${minutesController.text} minutes',
+                                style:
+                                    const TextStyle(color: Color(0xFF666666))),
+                            const Text(' to complete'),
+                            const Spacer(),
+                            TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isTimedOptionsExpanded = true;
+                                  });
+                                  if (isReoccurring &&
+                                      isReoccurrenceOptionsExpanded) {
+                                    setState(() {
+                                      isReoccurrenceOptionsExpanded = false;
+                                    });
+                                  }
+                                },
+                                child: const Text(
+                                  'Modify',
+                                  style: TextStyle(
+                                      color: Color(0xFFFFC36A), fontSize: 11),
+                                ))
+                          ]),
+                        ),
+                ),
+              if (showExtra) const SizedBox(height: 16),
+              if (showExtra)
+                const AddIconTextButton(
+                  iconData: Icons.notifications_active,
+                  label: "Set reminder",
+                ),
+              if (showExtra)
+                AddIconTextButton(
+                  iconData: Icons.add,
+                  label: "Assign a category",
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => ChooseCategoryDialog(
+                          categories: categories, category: category),
+                    ).then((value) => setState(() {
+                          category = value;
+                        }));
+                  },
+                  trailing: category != null
+                      ? Text(category!.name,
+                          style: TextStyle(color: Color(category!.colorValue)))
+                      : null,
+                ),
+              if (showExtra)
+                const AddIconTextButton(
+                  iconData: CustomIcons.sublist,
+                  label: "Assign to parent task",
+                ),
             ],
           ),
         ),
@@ -814,34 +868,29 @@ class AddIconTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12.0),
-      child: Row(
-        children: [
-          TextButton.icon(
-            onPressed: onPressed ??
-                () {
-                  notImplementedAlert(context);
-                },
-            style: const ButtonStyle(alignment: Alignment.centerLeft),
-            icon: Padding(
-              padding: const EdgeInsets.only(right: 4.0),
-              child: Icon(iconData, color: const Color(0xFF666666), size: 16),
-            ),
-            label: Text(label,
-                style: const TextStyle(color: Color(0xFF666666), fontSize: 13)),
-          ),
-          const Spacer(),
-          trailing ?? const SizedBox.shrink(),
-        ],
-      ),
+    return Row(
+      children: [
+        TextButton.icon(
+          onPressed: onPressed ??
+              () {
+                notImplementedAlert(context);
+              },
+          style: const ButtonStyle(alignment: Alignment.centerLeft),
+          icon: Icon(iconData, color: const Color(0xFF666666), size: 25),
+          label: Text(label,
+              style: const TextStyle(color: Color(0xFF666666), fontSize: 14)),
+        ),
+        const Spacer(),
+        trailing ?? const SizedBox.shrink(),
+      ],
     );
   }
 }
 
 class FormLabel extends StatelessWidget {
   final String text;
-  const FormLabel({super.key, required this.text});
+  final double fontSize;
+  const FormLabel({super.key, required this.text, this.fontSize = 16.0});
 
   @override
   Widget build(BuildContext context) {
@@ -849,7 +898,7 @@ class FormLabel extends StatelessWidget {
       padding: const EdgeInsets.only(top: 12.0),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.black, fontSize: 12),
+        style: TextStyle(color: const Color(0xFF666666), fontSize: fontSize),
       ),
     );
   }

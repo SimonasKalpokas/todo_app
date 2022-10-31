@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/timed_task.dart';
@@ -244,7 +245,8 @@ class DoneTasksListViewState extends State<DoneTasksListView> {
               children: [
                 const Text(
                   "Completed",
-                  style: TextStyle(fontSize: 18, color: Color(0xFF787878)),
+                  style:
+                      TextStyle(fontSize: fontSize, color: Color(0xFF787878)),
                 ),
                 showDone
                     ? const Icon(Icons.keyboard_arrow_up,
@@ -349,6 +351,7 @@ class TaskCard extends StatelessWidget {
         ),
         child: ListTile(
           minLeadingWidth: 10,
+          horizontalTitleGap: 7.5,
           leading: Container(
             width: 10,
             decoration: BoxDecoration(
@@ -368,7 +371,7 @@ class TaskCard extends StatelessWidget {
                   child: Text(
                     category.name,
                     style: TextStyle(
-                        fontSize: 11,
+                        fontSize: fontSize * 0.6,
                         color: Color(
                             task.isDone ? 0xFFDBDBDB : category.colorValue)),
                   ),
@@ -379,7 +382,7 @@ class TaskCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   task.name,
                   style: TextStyle(
-                      fontSize: 18,
+                      fontSize: fontSize,
                       color:
                           task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
                 ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/category.dart';
 
 import '../models/timed_task.dart';
@@ -101,7 +102,7 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
           children: [
             Text(
               '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}',
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: fontSize * 8 / 9),
             ),
             Container(
                 height: 5,
