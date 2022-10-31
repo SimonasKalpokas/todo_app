@@ -95,7 +95,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // TODO: extract title + input to separate widget
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
