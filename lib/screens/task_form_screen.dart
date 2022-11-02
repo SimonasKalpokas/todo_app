@@ -820,10 +820,8 @@ class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      final category = Category.randomId(
-                        color!.value,
-                        nameController.text,
-                      );
+                      final category =
+                          Category(color!.value, nameController.text);
                       await firestoreService.addCategory(category);
                       if (mounted) {
                         Navigator.pop(context, category);

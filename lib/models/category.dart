@@ -1,28 +1,23 @@
-import 'package:uuid/uuid.dart';
+import 'package:todo_app/models/entity.dart';
 
-class Category {
-  final String id;
+class Category extends Entity {
   final int colorValue;
   String name;
 
-  Category(this.id, this.colorValue, this.name);
-
-  Category.randomId(this.colorValue, this.name) : id = const Uuid().v4();
-
-  @override
-  bool operator ==(other) {
-    return other is Category && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
+  Category(this.colorValue, this.name) : super.create();
 
   Category.fromMap(Map<String, dynamic> map)
-      : this(map['id'], map['colorValue'], map['name']);
+      : colorValue = map['colorValue'],
+        name = map['name'],
+        super.fromMap(map);
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'colorValue': colorValue,
-        'name': name,
-      };
+  @override
+  Map<String, dynamic> toMap() {
+    var map = super.toMap();
+    map.addAll({
+      'colorValue': colorValue,
+      'name': name,
+    });
+    return map;
+  }
 }

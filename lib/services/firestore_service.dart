@@ -42,7 +42,7 @@ class FirestoreService {
     return tasksCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         var taskListenable =
-            BaseTaskListenable.createTaskListenable(doc.id, doc.data());
+            BaseTaskListenable.createTaskListenable(doc.data());
         taskListenable.addListener(() {
           tasksCollection.doc(doc.id).set(taskListenable.toMap());
         });

@@ -26,7 +26,6 @@ class MockFirestoreService extends Mock implements FirestoreService {
   var one = CheckedTaskListenable("One", "one desc", Reoccurrence.daily);
 
   MockFirestoreService() {
-    one.id = "abc";
     streamController.add([
       TimedTaskListenable('TimedOne', 'timedOne desc',
           Reoccurrence.notRepeating, const Duration(days: 1)),
@@ -38,9 +37,9 @@ class MockFirestoreService extends Mock implements FirestoreService {
   @override
   Stream<Iterable<Category>> getCategories() {
     return Stream.value([
-      Category("abc", 0xFF000000, "Category 1"),
-      Category("def", 0xFF000000, "Category 2"),
-      Category("ghi", 0xFF000000, "Category 3"),
+      Category(0xFF000000, "Category 1"),
+      Category(0xFF000000, "Category 2"),
+      Category(0xFF000000, "Category 3"),
     ]);
   }
 
@@ -52,7 +51,7 @@ class MockFirestoreService extends Mock implements FirestoreService {
   @override
   Future<void> updateTaskFields(
       String? taskId, Map<String, dynamic> fields) async {
-    if (taskId == "abc" && fields.length == 1 && fields["lastDoneOn"] != null) {
+    if (fields.length == 1 && fields["lastDoneOn"] != null) {
       one.lastDoneOn = DateTime.parse(fields["lastDoneOn"]);
       streamController.add([
         TimedTaskListenable('TimedOne', 'timedOne desc',
