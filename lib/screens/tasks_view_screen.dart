@@ -25,11 +25,28 @@ class TasksViewScreen extends StatelessWidget {
         leading: parentTask == null
             ? null
             : IconButton(
-                icon: const Icon(Icons.keyboard_arrow_left),
+                icon:
+                    const Icon(Icons.keyboard_arrow_left, color: Colors.black),
                 onPressed: () {
                   Navigator.pop(context);
                 },
               ),
+        actions: [
+          parentTask != null
+              ? IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskFormScreen(
+                            parentId: parentTask!.parentId, task: parentTask),
+                      ),
+                    );
+                  },
+                )
+              : Container()
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

@@ -57,6 +57,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var reoccurrence = Reoccurrence.notRepeating;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
+  String? parentId;
 
   @override
   void initState() {
@@ -69,6 +70,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
         totalTime = (widget.task! as TimedTask).totalTime;
       }
     }
+    parentId = widget.parentId;
+
     super.initState();
   }
 
@@ -129,7 +132,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                               : TaskType.checked) {
                         case TaskType.checked:
                           task = CheckedTask(
-                            widget.parentId,
+                            parentId,
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
@@ -137,7 +140,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           break;
                         case TaskType.timed:
                           task = TimedTask(
-                            widget.parentId,
+                            parentId,
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
@@ -146,11 +149,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           break;
                         case TaskType.parent:
                           task = ParentTask(
-                            widget.parentId,
+                            parentId,
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
-                            [],
                           );
                           break;
                       }
@@ -443,26 +445,27 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 label: "Assign a category",
               ),
               const AddIconTextButton(
-                iconData: CustomIcons.sublist,
-                label: "Assign to parent task",
+                iconData: Icons.account_tree,
+                label: "Assign to a list",
               ),
-              AddIconTextButton(
-                iconData: Icons.folder,
-                label: "Make into parent task",
-                onPressed: () {
-                  setState(() {
-                    isParent = !isParent;
-                  });
-                },
-                trailing: Checkbox(
-                    value: isParent,
-                    activeColor: const Color(0xFFFFD699),
-                    onChanged: (value) {
-                      setState(() {
-                        isParent = value!;
-                      });
-                    }),
-              ),
+              if (widget.task == null)
+                AddIconTextButton(
+                  iconData: Icons.folder,
+                  label: "Make into a list",
+                  onPressed: () {
+                    setState(() {
+                      isParent = !isParent;
+                    });
+                  },
+                  trailing: Checkbox(
+                      value: isParent,
+                      activeColor: const Color(0xFFFFD699),
+                      onChanged: (value) {
+                        setState(() {
+                          isParent = value!;
+                        });
+                      }),
+                ),
             ],
           ),
         ),
