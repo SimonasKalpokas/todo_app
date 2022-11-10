@@ -176,7 +176,7 @@ class _TaskCardState extends State<TaskCard> {
   @override
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
-    return Column(
+    Widget child = Column(
       children: [
         Card(
           margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
@@ -240,7 +240,6 @@ class _TaskCardState extends State<TaskCard> {
                               setState(() {
                                 isOpen = !isOpen;
                               });
-                              // notImplementedAlert(context);
                             },
                           ),
                         )
@@ -298,6 +297,30 @@ class _TaskCardState extends State<TaskCard> {
             ],
           ),
       ],
+    );
+
+    return DragTarget<BaseTask>(
+      builder: (BuildContext context, List<BaseTask?> candidateData,
+          List<dynamic> rejectedData) {
+        return LongPressDraggable<BaseTask>(
+          data: widget.task,
+          axis: Axis.vertical,
+          feedback: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Material(color: Colors.transparent, child: child),
+          ),
+          childWhenDragging: Container(),
+          child: child,
+        );
+      },
+      onWillAccept: (incoming) {
+        return widget.task.type == TaskType.parent &&
+            incoming!.parentId != widget.task.id;
+      },
+      onAccept: (incoming) {
+        firestoreService.moveTask(incoming, widget.task.id);
+      },
+      onLeave: (incoming) {},
     );
   }
 }

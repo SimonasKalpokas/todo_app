@@ -30,6 +30,12 @@ class FirestoreService {
             }));
   }
 
+  Future<void> moveTask(BaseTask task, String? newParentId) async {
+    await _currentCollection(task.parentId).doc(task.id).delete();
+    task.parentId = newParentId;
+    await _currentCollection(newParentId).doc(task.id).set(task.toMap());
+  }
+
   Future<void> updateTaskFields(
       String? parentId, String? taskId, Map<String, dynamic> fields) {
     return _currentCollection(parentId).doc(taskId).update(fields);
