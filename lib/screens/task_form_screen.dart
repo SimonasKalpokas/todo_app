@@ -64,6 +64,26 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       nameController.text = widget.task!.name;
       descriptionController.text = widget.task!.description;
       reoccurrence = widget.task!.reoccurrence;
+      isReoccurringTabController.index =
+          reoccurrence == Reoccurrence.notRepeating ? 0 : 1;
+      isReoccurring = reoccurrence != Reoccurrence.notRepeating;
+      isReoccurrenceOptionsExpanded = !isReoccurring;
+      reoccurrencePeriodTabController.index =
+          reoccurrence == Reoccurrence.weekly ? 1 : 0;
+      isTimed = widget.task!.type == TaskType.timed;
+      isTimedOptionsExpanded = !isTimed;
+      hoursController.text = widget.task!.type == TaskType.timed
+          ? (widget.task as TimedTask).totalTime.inHours.toString()
+          : '0';
+      minutesController.text = widget.task!.type == TaskType.timed
+          ? (widget.task as TimedTask)
+              .totalTime
+              .inMinutes
+              .remainder(60)
+              .toString()
+          : '0';
+
+      typeTabController.index = widget.task!.type.index;
       type = widget.task!.type;
       if (type == TaskType.timed) {
         totalTime = (widget.task! as TimedTask).totalTime;
@@ -381,8 +401,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                         Padding(
                           padding: const EdgeInsets.only(top: 12.0),
                           child: SizedBox(
-                            width: 44,
-                            height: 22,
+                            width: 40,
+                            height: 30,
                             child: TextFormField(
                               controller: hoursController,
                               keyboardType: TextInputType.number,
@@ -393,8 +413,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0, top: 12.0),
                           child: SizedBox(
-                            width: 44,
-                            height: 22,
+                            width: 40,
+                            height: 30,
                             child: TextFormField(
                               controller: minutesController,
                               keyboardType: TextInputType.number,

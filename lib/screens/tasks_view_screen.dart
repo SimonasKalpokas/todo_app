@@ -11,12 +11,18 @@ import 'package:todo_app/services/firestore_service.dart';
 import '../widgets/timer_widget.dart';
 import 'task_form_screen.dart';
 
-class TasksViewScreen extends StatelessWidget {
+class TasksViewScreen extends StatefulWidget {
   final BaseTask? parentTask;
   const TasksViewScreen({Key? key, required this.parentTask}) : super(key: key);
 
   @override
+  State<TasksViewScreen> createState() => _TasksViewScreenState();
+}
+
+class _TasksViewScreenState extends State<TasksViewScreen> {
+  @override
   Widget build(BuildContext context) {
+    final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
     var tasks = firestoreService.getTasks(parentTask?.id).asBroadcastStream();
     return Scaffold(
@@ -32,6 +38,24 @@ class TasksViewScreen extends StatelessWidget {
                 },
               ),
         actions: [
+          IconButton(
+            onPressed: () {
+              showDialog<bool?>(
+                      context: context,
+                      builder: (context) => const ChooseMainCollectionDialog())
+                  .then(
+                (hasChanged) {
+                  if (hasChanged ?? false) {
+                    setState(() {});
+                  }
+                },
+              );
+            },
+            icon: const Icon(
+              Icons.settings,
+              color: Color(0xFF666666),
+            ),
+          ),
           parentTask != null
               ? IconButton(
                   icon: const Icon(Icons.edit, color: Colors.black),
@@ -40,7 +64,7 @@ class TasksViewScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskFormScreen(
-                            parentId: parentTask!.parentId, task: parentTask),
+                            parentId: parentTask.parentId, task: parentTask),
                       ),
                     );
                   },
@@ -71,6 +95,55 @@ class TasksViewScreen extends StatelessWidget {
         child: const Icon(Icons.add),
       ),
     );
+  }
+}
+
+class ChooseMainCollectionDialog extends StatefulWidget {
+  const ChooseMainCollectionDialog({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<ChooseMainCollectionDialog> createState() =>
+      _ChooseMainCollectionDialogState();
+}
+
+class _ChooseMainCollectionDialogState
+    extends State<ChooseMainCollectionDialog> {
+  final mainCollectionController = TextEditingController();
+
+  @override
+  void dispose() {
+    mainCollectionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        title: const Text('Choose main collection'),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Main collection'),
+          controller: mainCollectionController,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () async {
+                var res =
+                    await Provider.of<FirestoreService>(context, listen: false)
+                        .setMainCollection(mainCollectionController.text);
+
+                if (!mounted) {
+                  return;
+                }
+                Navigator.pop(context, res);
+              },
+              child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+        ]);
   }
 }
 

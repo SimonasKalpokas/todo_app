@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -32,8 +33,10 @@ Future<void> initialiseDb() async {
 Future<void> main() async {
   await initialiseDb();
 
+  var prefs = await SharedPreferences.getInstance();
+
   runApp(MultiProvider(
-    providers: [Provider(create: (_) => FirestoreService())],
+    providers: [Provider(create: (_) => FirestoreService(prefs))],
     child: const MyApp(),
   ));
 }
@@ -62,10 +65,10 @@ class MyApp extends StatelessWidget {
             fillColor: Colors.white,
             enabledBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: Color(0xFFFFD699)),
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(5)),
             focusedBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: Color(0xFFFFD699)),
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(5)),
             contentPadding:
                 const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
         scaffoldBackgroundColor: const Color(0xFFFFF9F1),

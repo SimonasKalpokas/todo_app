@@ -1,13 +1,38 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
 
 class FirestoreService {
-  final tasks =
-      FirebaseFirestore.instance.collection('tasks').doc('withParentTasks');
+  // final tasks =
+  //     FirebaseFirestore.instance.collection('tasks').doc('withParentTasks');
+  late DocumentReference<Map<String, dynamic>> tasks;
 
   CollectionReference<Map<String, dynamic>> _currentCollection(
       String? parentId) {
     return tasks.collection(parentId ?? 'root');
+  }
+
+  final SharedPreferences _prefs;
+  String mainCollection;
+
+  FirestoreService(this._prefs)
+      : mainCollection = _prefs.getString('mainCollection') ?? "tasks" {
+    tasks = FirebaseFirestore.instance
+        .collection(mainCollection)
+        .doc('withParentTasks');
+  }
+
+  /// Returns whether the main collection was set.
+  Future<bool> setMainCollection(String newCollection) async {
+    if (newCollection.trim().isEmpty) {
+      return false;
+    }
+    await _prefs.setString('mainCollection', newCollection);
+    mainCollection = newCollection;
+    tasks = FirebaseFirestore.instance.collection(mainCollection).doc('tasks');
+    return true;
   }
 
   Future<DocumentReference<Map<String, dynamic>>> addTask(BaseTask task) {

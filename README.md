@@ -1,16 +1,31 @@
 # todo_app
 
-A new Flutter project.
+An WIP android app for tasks using Flutter and Firebase.
 
-## Getting Started
+Demo: https://simonaskalpokas1.github.io/todo_app/
 
-This project is a starting point for a Flutter application.
+## Development Milestones
+- [x] Checked tasks
+- [x] Timed tasks
+- [x] Repeating tasks
+- [ ] Amounted tasks
+- [ ] [Subtasks/folders/lists](https://todo-app-git-subtasks-simonaskalpokas1.vercel.app)
+- [x] Main page
+- [ ] Notifications
+- [ ] [Categories](https://todo-app-git-categories-simonaskalpokas1.vercel.app)
+- [ ] Filtering system
+- [ ] [Nice UI](https://todo-app-git-ui-task-card-expand-simonaskalpokas1.vercel.app)
+- [ ] Different users
+- [ ] Custom backend
+- [ ] E2E tests
 
-A few resources to get you started if this is your first Flutter project:
+## Quick Start
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Install [Flutter](https://flutter.dev/).
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Clone and run the repo:
+```console
+git clone https://github.com/SimonasKalpokas1/todo_app.git
+cd todo_app
+flutter run
+```
