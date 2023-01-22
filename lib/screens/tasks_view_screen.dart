@@ -131,7 +131,7 @@ class TasksListView extends StatelessWidget {
                   horizontal: 15,
                   vertical: 4.0,
                 ),
-                child: TaskCardWidget(task: task),
+                child: TaskCardWidget(key: Key(task.id!), task: task),
               );
             },
           ).toList(),

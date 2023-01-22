@@ -59,19 +59,22 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    height: 50.0,
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            widget.task.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: widget.task.isDone
-                                  ? const Color(0xFFDBDBDB)
-                                  : Colors.black,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 13, horizontal: 0),
+                            child: Text(
+                              widget.task.name,
+                              maxLines: isExpanded ? 2 : 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: widget.task.isDone
+                                    ? const Color(0xFFDBDBDB)
+                                    : Colors.black,
+                              ),
                             ),
                           ),
                         ),
@@ -123,7 +126,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                   width: 140,
                                 ),
                                 if (widget.task.description.isNotEmpty)
-                                  Text(widget.task.description),
+                                  Text(widget.task.description,
+                                      style: const TextStyle(
+                                          color: Color(0xFF898989))),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 10.0, horizontal: 0.0),
