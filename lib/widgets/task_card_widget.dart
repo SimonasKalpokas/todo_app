@@ -58,10 +58,11 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    child: Row(
-                      children: [
-                        Expanded(
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 300),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 13, horizontal: 0),
@@ -78,36 +79,34 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                             ),
                           ),
                         ),
-                        if (widget.task.reoccurrence !=
-                                Reoccurrence.notRepeating &&
-                            widget.task.isDone)
-                          const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
-                        if (widget.task is TimedTask && !widget.task.isDone)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 10.0),
-                            child: TimerWidget(
-                                timedTask: widget.task as TimedTask),
-                          ),
+                      ),
+                      if (widget.task.reoccurrence !=
+                              Reoccurrence.notRepeating &&
+                          widget.task.isDone)
+                        const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
+                      if (widget.task is TimedTask && !widget.task.isDone)
                         Padding(
-                          padding: const EdgeInsets.only(left: 0.0),
-                          child: Checkbox(
-                            onChanged: (bool? value) {
-                              firestoreService.updateTaskFields(
-                                  widget.task.id, {
-                                'lastDoneOn': value!
-                                    ? clock.now().toIso8601String()
-                                    : null
-                              });
-                            },
-                            value: widget.task.isDone,
-                            side: const BorderSide(color: Color(0xFFFFD699)),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5)),
-                            activeColor: const Color(0xFFD9D9D9),
-                          ),
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child:
+                              TimerWidget(timedTask: widget.task as TimedTask),
                         ),
-                      ],
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 0.0),
+                        child: Checkbox(
+                          onChanged: (bool? value) {
+                            firestoreService.updateTaskFields(widget.task.id, {
+                              'lastDoneOn':
+                                  value! ? clock.now().toIso8601String() : null
+                            });
+                          },
+                          value: widget.task.isDone,
+                          side: const BorderSide(color: Color(0xFFFFD699)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5)),
+                          activeColor: const Color(0xFFD9D9D9),
+                        ),
+                      ),
+                    ],
                   ),
                   if (!widget.task.isDone)
                     AnimatedSwitcher(
