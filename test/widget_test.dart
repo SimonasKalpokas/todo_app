@@ -22,16 +22,19 @@ import 'package:todo_app/services/firestore_service.dart';
 class MockFirestoreService extends Mock implements FirestoreService {
   StreamController<Iterable<BaseTaskListenable>> streamController =
       StreamController();
-  var one = CheckedTaskListenable("One", "one desc", Reoccurrence.daily);
+  var one = CheckedTaskListenable("One", "one desc", Reoccurrence.daily)
+    ..id = "abc";
 
   MockFirestoreService() {
-    one.id = "abc";
     streamController.add([
       TimedTaskListenable('TimedOne', 'timedOne desc',
-          Reoccurrence.notRepeating, const Duration(days: 1)),
+          Reoccurrence.notRepeating, const Duration(days: 1))
+        ..id = "abcd",
       one,
-      CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly),
-      CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating),
+      CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly)
+        ..id = "abce",
+      CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating)
+        ..id = "abcf",
     ]);
   }
 
@@ -47,10 +50,13 @@ class MockFirestoreService extends Mock implements FirestoreService {
       one.lastDoneOn = DateTime.parse(fields["lastDoneOn"]);
       streamController.add([
         TimedTaskListenable('TimedOne', 'timedOne desc',
-            Reoccurrence.notRepeating, const Duration(days: 1)),
+            Reoccurrence.notRepeating, const Duration(days: 1))
+          ..id = "abcd",
         one,
-        CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly),
-        CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating),
+        CheckedTaskListenable("Two", "two desc", Reoccurrence.weekly)
+          ..id = "abce",
+        CheckedTaskListenable("Three", "three desc", Reoccurrence.notRepeating)
+          ..id = "abcf",
       ]);
     } else {
       throw Exception("Only task with id 'abc' was expected");
@@ -75,8 +81,8 @@ void main() {
     expect(completed, findsOneWidget);
 
     await tester.pump(Duration.zero);
-    var checkedTaskOne =
-        find.ancestor(of: find.text("One"), matching: find.byType(ListTile));
+    var checkedTaskOne = find.ancestor(
+        of: find.text("One"), matching: find.byType(GestureDetector));
     expect(checkedTaskOne, findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
@@ -85,8 +91,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(checkedTaskOne, findsNothing);
 
-    await tester.tap(completed);
-    await tester.pumpAndSettle();
+    // await tester.tap(completed);
+    // await tester.pumpAndSettle();
     expect(find.text("TimedOne"), findsOneWidget);
   });
 

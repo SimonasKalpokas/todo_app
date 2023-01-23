@@ -134,6 +134,7 @@ class TasksListView extends StatelessWidget {
                   horizontal: 15,
                   vertical: 4.0,
                 ),
+                // TODO: make task.id mandatory
                 child: TaskCardWidget(key: Key(task.id!), task: task),
               );
             },
