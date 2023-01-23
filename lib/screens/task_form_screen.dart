@@ -16,7 +16,7 @@ class TaskFormScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New task"),
+        title: Text(task != null ? "Edit task" : "New task"),
         automaticallyImplyLeading: false,
       ),
       body: TaskForm(parentId: parentId, task: task),
@@ -83,7 +83,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               .toString()
           : '0';
 
-      typeTabController.index = widget.task!.type.index;
+      typeTabController.index = widget.task!.type.index % 2;
       type = widget.task!.type;
       if (type == TaskType.timed) {
         totalTime = (widget.task! as TimedTask).totalTime;
@@ -103,7 +103,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // TODO: extract title + input to separate widget
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
@@ -136,8 +135,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       widget.task!.name = nameController.text;
                       widget.task!.description = descriptionController.text;
                       widget.task!.reoccurrence = reoccurrence;
-                      widget.task!.type =
-                          isTimed ? TaskType.timed : TaskType.checked;
                       if (widget.task!.type == TaskType.timed) {
                         (widget.task! as TimedTask).totalTime = totalTime;
                       }
@@ -176,8 +173,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           break;
                       }
                       firestoreService.addTask(task);
-                      Navigator.pop(context);
                     }
+                    Navigator.pop(context);
                   }
                 },
               ),
@@ -366,34 +363,35 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                         ]),
                       ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Container(
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: const Color(0xFFFFC36A)),
-                  ),
-                  child: TabBar(
-                    onTap: (index) {
-                      setState(() {
-                        isTimed = index == 1;
-                      });
-                      if (isReoccurring && isReoccurrenceOptionsExpanded) {
+              if (widget.task == null || widget.task!.type != TaskType.parent)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Container(
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: const Color(0xFFFFC36A)),
+                    ),
+                    child: TabBar(
+                      onTap: (index) {
                         setState(() {
-                          isReoccurrenceOptionsExpanded = false;
+                          isTimed = index == 1;
                         });
-                      }
-                    },
-                    controller: typeTabController,
-                    tabs: const [
-                      Tab(child: Text('Checklist')),
-                      Tab(child: Text('Timed')),
-                    ],
+                        if (isReoccurring && isReoccurrenceOptionsExpanded) {
+                          setState(() {
+                            isReoccurrenceOptionsExpanded = false;
+                          });
+                        }
+                      },
+                      controller: typeTabController,
+                      tabs: const [
+                        Tab(child: Text('Checklist')),
+                        Tab(child: Text('Timed')),
+                      ],
+                    ),
                   ),
                 ),
-              ),
               Visibility(
                 visible: isTimed,
                 child: isTimedOptionsExpanded
