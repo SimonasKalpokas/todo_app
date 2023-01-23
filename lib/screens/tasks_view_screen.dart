@@ -76,12 +76,10 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 ),
               ),
             ),
-            Visibility(
+            TasksListView(
+              tasks: tasks,
+              condition: (task) => task.isDone,
               visible: showDone,
-              child: TasksListView(
-                tasks: tasks,
-                condition: (task) => task.isDone,
-              ),
             ),
           ],
         ),
@@ -103,8 +101,10 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
 class TasksListView extends StatelessWidget {
   final bool Function(BaseTask)? condition;
   final Stream<Iterable<BaseTask>> tasks;
+  final bool visible;
 
-  const TasksListView({Key? key, this.condition, required this.tasks})
+  const TasksListView(
+      {Key? key, this.condition, required this.tasks, this.visible = true})
       : super(key: key);
 
   @override
@@ -112,6 +112,9 @@ class TasksListView extends StatelessWidget {
     return StreamBuilder<Iterable<BaseTask>>(
       stream: tasks,
       builder: (context, AsyncSnapshot<Iterable<BaseTask>> snapshot) {
+        if (!visible) {
+          return const SizedBox();
+        }
         if (!snapshot.hasData) {
           return const Center(
             child: CircularProgressIndicator(),
