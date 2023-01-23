@@ -14,7 +14,7 @@ class TaskFormScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New task"),
+        title: Text(task != null ? "Edit task" : "New task"),
         automaticallyImplyLeading: false,
       ),
       body: TaskForm(task: task),
@@ -95,7 +95,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // TODO: extract title + input to separate widget
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
@@ -118,7 +117,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.bold),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   var form = _formKey.currentState!;
                   if (form.validate()) {
                     totalTime = Duration(
@@ -150,8 +149,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           break;
                       }
                       firestoreService.addTask(task);
-                      Navigator.pop(context);
                     }
+                    Navigator.pop(context);
                   }
                 },
               ),

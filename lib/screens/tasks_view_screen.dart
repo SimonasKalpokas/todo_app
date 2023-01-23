@@ -1,13 +1,11 @@
 import 'dart:async';
-
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
-import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
+import 'package:todo_app/widgets/task_card_widget.dart';
 
-import '../widgets/timer_widget.dart';
+import '../widgets/dialogs/choose_main_collection_dialog.dart';
 import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatefulWidget {
@@ -18,6 +16,8 @@ class TasksViewScreen extends StatefulWidget {
 }
 
 class _TasksViewScreenState extends State<TasksViewScreen> {
+  var showDone = false;
+
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
@@ -53,7 +53,34 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               condition: (task) => !task.isDone,
               tasks: tasks,
             ),
-            DoneTasksListView(tasks: tasks),
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    showDone = !showDone;
+                  });
+                },
+                child: Row(
+                  children: [
+                    const Text(
+                      "Completed",
+                      style: TextStyle(fontSize: 18, color: Color(0xFF787878)),
+                    ),
+                    showDone
+                        ? const Icon(Icons.keyboard_arrow_up,
+                            color: Color(0xFF787878))
+                        : const Icon(Icons.keyboard_arrow_down,
+                            color: Color(0xFF787878))
+                  ],
+                ),
+              ),
+            ),
+            TasksListView(
+              tasks: tasks,
+              condition: (task) => task.isDone,
+              visible: showDone,
+            ),
           ],
         ),
       ),
@@ -71,107 +98,10 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   }
 }
 
-class ChooseMainCollectionDialog extends StatefulWidget {
-  const ChooseMainCollectionDialog({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  State<ChooseMainCollectionDialog> createState() =>
-      _ChooseMainCollectionDialogState();
-}
-
-class _ChooseMainCollectionDialogState
-    extends State<ChooseMainCollectionDialog> {
-  final mainCollectionController = TextEditingController();
-
-  @override
-  void dispose() {
-    mainCollectionController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-        title: const Text('Choose main collection'),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Main collection'),
-          controller: mainCollectionController,
-        ),
-        actions: [
-          TextButton(
-              onPressed: () async {
-                var res =
-                    await Provider.of<FirestoreService>(context, listen: false)
-                        .setMainCollection(mainCollectionController.text);
-
-                if (!mounted) {
-                  return;
-                }
-                Navigator.pop(context, res);
-              },
-              child: const Text('OK')),
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-        ]);
-  }
-}
-
-class DoneTasksListView extends StatefulWidget {
-  final Stream<Iterable<BaseTask>> tasks;
-  const DoneTasksListView({super.key, required this.tasks});
-
-  @override
-  State<DoneTasksListView> createState() => DoneTasksListViewState();
-}
-
-class DoneTasksListViewState extends State<DoneTasksListView> {
-  bool showDone = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 15.0, top: 8.0),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                showDone = !showDone;
-              });
-            },
-            child: Row(
-              children: [
-                const Text(
-                  "Completed",
-                  style: TextStyle(fontSize: 18, color: Color(0xFF787878)),
-                ),
-                showDone
-                    ? const Icon(Icons.keyboard_arrow_up,
-                        color: Color(0xFF787878))
-                    : const Icon(Icons.keyboard_arrow_down,
-                        color: Color(0xFF787878))
-              ],
-            ),
-          ),
-        ),
-        TasksListView(
-          condition: (task) => task.isDone,
-          tasks: widget.tasks,
-          visible: showDone,
-        ),
-      ],
-    );
-  }
-}
-
 class TasksListView extends StatelessWidget {
   final bool Function(BaseTask)? condition;
-  final bool visible;
   final Stream<Iterable<BaseTask>> tasks;
+  final bool visible;
 
   const TasksListView(
       {Key? key, this.condition, required this.tasks, this.visible = true})
@@ -199,94 +129,18 @@ class TasksListView extends StatelessWidget {
               if (condition != null && !condition!(task)) {
                 return Container();
               }
-              return TaskCard(task);
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 4.0,
+                ),
+                // TODO: make task.id mandatory
+                child: TaskCardWidget(key: Key(task.id!), task: task),
+              );
             },
           ).toList(),
         );
       },
-    );
-  }
-}
-
-class TaskCard extends StatelessWidget {
-  final BaseTask task;
-
-  const TaskCard(this.task, {Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    var firestoreService = Provider.of<FirestoreService>(context);
-    return Card(
-      margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Color(task.isDone ? 0xFFD7D7D7 : 0xFFFFD699)),
-      ),
-      color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
-      child: Dismissible(
-        key: ObjectKey(task),
-        onDismissed: ((direction) {
-          firestoreService.deleteTask(task.id);
-        }),
-        direction: DismissDirection.endToStart,
-        background: Container(
-          color: Colors.red,
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-          child: const Icon(Icons.delete_sweep),
-        ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.only(left: 20),
-          title: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              task.name,
-              style: TextStyle(
-                  fontSize: 18,
-                  color: task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => TaskFormScreen(task: task)),
-            );
-          },
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (task.isDone && task.reoccurrence != Reoccurrence.notRepeating)
-                const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
-              if (task.type == TaskType.timed && !task.isDone)
-                TimerWidget(timedTask: task as TimedTask),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: Checkbox(
-                    onChanged: (bool? value) {
-                      if (value == null) {
-                        throw UnimplementedError();
-                      }
-                      firestoreService.updateTaskFields(task.id, {
-                        'lastDoneOn':
-                            value ? clock.now().toIso8601String() : null
-                      });
-                    },
-                    value: task.isDone,
-                    side: const BorderSide(color: Color(0xFFFFD699)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5)),
-                    activeColor: const Color(0xFFD9D9D9),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
