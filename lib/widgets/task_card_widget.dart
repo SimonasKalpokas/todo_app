@@ -19,22 +19,17 @@ class TaskCardWidget extends StatefulWidget {
 
 class _TaskCardWidgetState extends State<TaskCardWidget> {
   bool isExpanded = false;
+  Widget? ghost;
 
   @override
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
-    return GestureDetector(
-      onTap: () {
-        widget.task.type == TaskType.parent
-            ? Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        TasksViewScreen(parentTask: widget.task)))
-            : setState(() {
-                isExpanded = !isExpanded;
-              });
-      },
+
+    var task = Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 15,
+        vertical: 4.0,
+      ),
       child: Container(
         padding: const EdgeInsets.only(right: 0),
         decoration: BoxDecoration(
@@ -233,6 +228,46 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+    return DragTarget<Widget>(
+      onWillAccept: (incomingWidget) {
+        ghost = incomingWidget;
+        return true;
+      },
+      onLeave: (data) {
+        ghost = null;
+      },
+      onAccept: (data) {
+        ghost = null;
+      },
+      builder: (context, candidateData, rejectedData) => Draggable<Widget>(
+        data: task,
+        axis: Axis.vertical,
+        childWhenDragging: Container(),
+        feedback: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Material(color: Colors.transparent, child: task),
+        ),
+        child: GestureDetector(
+          onTap: () {
+            widget.task.type == TaskType.parent
+                ? Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            TasksViewScreen(parentTask: widget.task)))
+                : setState(() {
+                    isExpanded = !isExpanded;
+                  });
+          },
+          child: ghost == null
+              ? task
+              : Column(mainAxisSize: MainAxisSize.min, children: [
+                  Opacity(opacity: 0.5, child: ghost!),
+                  task,
+                ]),
         ),
       ),
     );

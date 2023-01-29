@@ -155,14 +155,8 @@ class TasksListView extends StatelessWidget {
               if (condition != null && !condition!(task)) {
                 return Container();
               }
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 4.0,
-                ),
-                // TODO: make task.id mandatory
-                child: TaskCardWidget(key: Key(task.id!), task: task),
-              );
+              // TODO: make task.id mandatory
+              return TaskCardWidget(key: Key(task.id!), task: task);
             },
           ).toList(),
         );
