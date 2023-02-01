@@ -39,10 +39,12 @@ class FirestoreService {
     return _currentCollection(task.parentId).add(task.toMap());
   }
 
-  Stream<Iterable<BaseTask>> getTasks(String? parentId) {
+  Stream<List<BaseTask>> getTasks(String? parentId, bool done) {
     return _currentCollection(parentId)
+        .orderBy('index', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
+        .map((snapshot) => snapshot.docs
+            .map((doc) {
               var taskListenable =
                   BaseTaskListenable.createTaskListenable(doc.id, doc.data());
               taskListenable.addListener(() {
@@ -52,7 +54,9 @@ class FirestoreService {
               });
               taskListenable.refreshState();
               return taskListenable;
-            }));
+            })
+            .where((task) => task.isDone == done)
+            .toList());
   }
 
   Future<void> moveTask(BaseTask task, String? newParentId) async {
@@ -72,5 +76,43 @@ class FirestoreService {
 
   Future<void> updateTask(BaseTask task) {
     return _currentCollection(task.parentId).doc(task.id).set(task.toMap());
+  }
+
+  void reorderTasks(String? parentId, int target, int source) {
+    if (source == target) {
+      return;
+    }
+    if (source > target) {
+      target += 1;
+    }
+
+    var tasksList = [];
+    var task = tasksList[source];
+    task.index = target;
+
+    tasksList.removeAt(source);
+    tasksList.insert(target, task);
+    if (source > target) {
+      var tmp = source;
+      source = target;
+      target = tmp;
+    }
+
+    for (var i = source; i <= target; i++) {
+      tasksList[i].index = i;
+      updateTask(tasksList[i]);
+    }
+    // for (var i = 0; i < tasksList.length; i++) {
+    //   // tasksList[i].reference.update({'index': i});
+    // }
+  }
+
+  Future<void> migrateDb(String collection) async {
+    var i = 0;
+    for (var doc in (await _currentCollection(collection).get()).docs) {
+      await tasks.collection(collection).doc(doc.id).update({'index': i});
+      await migrateDb(doc.id);
+      i++;
+    }
   }
 }

@@ -20,27 +20,28 @@ import 'package:todo_app/services/firestore_service.dart';
 
 // TODO: write tests for existing functionality
 class MockFirestoreService extends Mock implements FirestoreService {
-  StreamController<Iterable<BaseTaskListenable>> streamController =
+  StreamController<List<BaseTaskListenable>> streamController =
       StreamController();
-  var one = CheckedTaskListenable(null, "One", "one desc", Reoccurrence.daily)
-    ..id = "abc";
+  var one =
+      CheckedTaskListenable(null, "One", "one desc", Reoccurrence.daily, 0)
+        ..id = "abc";
 
   MockFirestoreService() {
     streamController.add([
       TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
-          Reoccurrence.notRepeating, const Duration(days: 1))
+          Reoccurrence.notRepeating, 0, const Duration(days: 1))
         ..id = "abcd",
       one,
-      CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly)
+      CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly, 0)
         ..id = "abce",
       CheckedTaskListenable(
-          null, "Three", "three desc", Reoccurrence.notRepeating)
+          null, "Three", "three desc", Reoccurrence.notRepeating, 0)
         ..id = "abcf",
     ]);
   }
 
   @override
-  Stream<Iterable<BaseTaskListenable>> getTasks(String? parentId) {
+  Stream<List<BaseTaskListenable>> getTasks(String? parentId, bool done) {
     return streamController.stream;
   }
 
@@ -51,13 +52,13 @@ class MockFirestoreService extends Mock implements FirestoreService {
       one.lastDoneOn = DateTime.parse(fields["lastDoneOn"]);
       streamController.add([
         TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
-            Reoccurrence.notRepeating, const Duration(days: 1))
+            Reoccurrence.notRepeating, 0, const Duration(days: 1))
           ..id = "abcd",
         one,
-        CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly)
+        CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly, 0)
           ..id = "abce",
         CheckedTaskListenable(
-            null, "Three", "three desc", Reoccurrence.notRepeating)
+            null, "Three", "three desc", Reoccurrence.notRepeating, 0)
           ..id = "abcf",
       ]);
     } else {

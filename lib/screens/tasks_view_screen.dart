@@ -23,7 +23,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   Widget build(BuildContext context) {
     final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
-    var tasks = firestoreService.getTasks(parentTask?.id).asBroadcastStream();
+    var doneTasks = firestoreService.getTasks(parentTask?.id, true);
+    var undoneTasks = firestoreService.getTasks(parentTask?.id, false);
     return Scaffold(
       appBar: AppBar(
         title: Text("${parentTask?.name ?? "Tasks"}:"),
@@ -76,7 +77,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
           children: [
             TasksListView(
               condition: (task) => !task.isDone,
-              tasks: tasks,
+              tasks: undoneTasks,
             ),
             Padding(
               padding: const EdgeInsets.only(left: 15.0, top: 8.0),
@@ -102,7 +103,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               ),
             ),
             TasksListView(
-              tasks: tasks,
+              tasks: doneTasks,
               condition: (task) => task.isDone,
               visible: showDone,
             ),
@@ -124,9 +125,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   }
 }
 
-class TasksListView extends StatelessWidget {
+class TasksListView extends StatefulWidget {
   final bool Function(BaseTask)? condition;
-  final Stream<Iterable<BaseTask>> tasks;
+  final Stream<List<BaseTask>> tasks;
   final bool visible;
 
   const TasksListView(
@@ -134,11 +135,61 @@ class TasksListView extends StatelessWidget {
       : super(key: key);
 
   @override
+  State<TasksListView> createState() => _TasksListViewState();
+}
+
+class _TasksListViewState extends State<TasksListView> {
+  List<BaseTask> tasks = [];
+
+  void _onReorder(int oldIndex, int newIndex) {
+    var firestoreService =
+        Provider.of<FirestoreService>(context, listen: false);
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    print("Moving ${tasks[oldIndex].name} from $oldIndex to $newIndex");
+    // setState(() {
+    //   final task = tasks.removeAt(oldIndex);
+    //   tasks.insert(newIndex, task);
+    // });
+    setState(() {
+      final task = tasks.removeAt(oldIndex);
+      tasks.insert(newIndex, task);
+    });
+
+    // if (newIndex > oldIndex) {
+    //   for (var i = oldIndex; i < newIndex; i++) {
+    //     print(
+    //         "Updating ${tasks[i].name} with index ${tasks[i].index} to index $i");
+    //     tasks[i].index = i + 1;
+    //     tasks[i + 1].index = i;
+    //     firestoreService.updateTask(tasks[i]);
+    //     firestoreService.updateTask(tasks[i + 1]);
+    //     var temp = tasks[i];
+    //     tasks[i] = tasks[i + 1];
+    //     tasks[i + 1] = temp;
+    //     // tasks[i].index = i;
+    //     // firestoreService.updateTask(tasks[i]);
+    //   }
+    // } else {
+    //   for (var i = oldIndex; i > newIndex; i--) {
+    //     print(
+    //         "Updating ${tasks[i].name} with index ${tasks[i].index} to index $i");
+    //     var temp = tasks[i];
+    //     tasks[i] = tasks[i - 1];
+    //     tasks[i - 1] = temp;
+    //     // tasks[i].index = i;
+    //     // firestoreService.updateTask(tasks[i]);
+    //   }
+    // }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Iterable<BaseTask>>(
-      stream: tasks,
-      builder: (context, AsyncSnapshot<Iterable<BaseTask>> snapshot) {
-        if (!visible) {
+    return StreamBuilder<List<BaseTask>>(
+      stream: widget.tasks,
+      builder: (context, AsyncSnapshot<List<BaseTask>> snapshot) {
+        if (!widget.visible) {
           return const SizedBox();
         }
         if (!snapshot.hasData) {
@@ -146,17 +197,41 @@ class TasksListView extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        return ListView(
+        tasks = snapshot.data!.toList();
+        return ReorderableListView(
+          onReorder: ((oldIndex, newIndex) async {
+            if (newIndex > oldIndex) {
+              newIndex -= 1;
+            }
+            setState(() {
+              var task = snapshot.data!.removeAt(oldIndex);
+              snapshot.data!.insert(newIndex, task);
+            });
+            if (newIndex > oldIndex) {
+              for (var i = oldIndex; i <= newIndex; i++) {
+                await Provider.of<FirestoreService>(context, listen: false)
+                    .updateTaskFields(
+                        tasks[i].parentId, tasks[i].id, {'index': i});
+              }
+            } else {
+              for (var i = oldIndex; i >= newIndex; i--) {
+                await Provider.of<FirestoreService>(context, listen: false)
+                    .updateTaskFields(
+                        tasks[i].parentId, tasks[i].id, {'index': i});
+              }
+            }
+          }),
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.map(
             (task) {
-              if (condition != null && !condition!(task)) {
-                return Container();
+              if (widget.condition != null && !widget.condition!(task)) {
+                return Container(key: Key(task.id!));
               }
               // TODO: make task.id mandatory
-              return TaskCardWidget(key: Key(task.id!), task: task);
+              return TaskCardWidget(
+                  key: Key(task.id!), task: task, onReorder: _onReorder);
             },
           ).toList(),
         );

@@ -126,6 +126,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
+                  int index = 0;
                   var form = _formKey.currentState!;
                   if (form.validate()) {
                     totalTime = Duration(
@@ -152,6 +153,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
+                            index,
                           );
                           break;
                         case TaskType.timed:
@@ -160,6 +162,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
+                            index,
                             totalTime,
                           );
                           break;
@@ -169,6 +172,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
+                            index,
                           );
                           break;
                       }

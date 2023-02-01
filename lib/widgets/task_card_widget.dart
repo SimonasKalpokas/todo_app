@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/timed_task.dart';
+import 'package:todo_app/widgets/list_drag_target.dart';
 import 'package:todo_app/widgets/timer_widget.dart';
 
 import '../models/base_task.dart';
@@ -11,7 +12,9 @@ import '../services/firestore_service.dart';
 
 class TaskCardWidget extends StatefulWidget {
   final BaseTask task;
-  const TaskCardWidget({super.key, required this.task});
+  final void Function(int, int) onReorder;
+  const TaskCardWidget(
+      {super.key, required this.task, required this.onReorder});
 
   @override
   State<TaskCardWidget> createState() => _TaskCardWidgetState();
@@ -231,45 +234,48 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
         ),
       ),
     );
-    return DragTarget<Widget>(
-      onWillAccept: (incomingWidget) {
-        ghost = incomingWidget;
-        return true;
+    // return DragTarget<ListDragTarget>(
+    //   onWillAccept: (incomingWidget) {
+    //     ghost = incomingWidget?.child;
+    //     return true;
+    //   },
+    //   onLeave: (data) {
+    //     ghost = null;
+    //   },
+    //   onAccept: (data) {
+    //     ghost = null;
+    //     widget.onReorder(data.index, widget.task.index);
+    //   },
+    //   builder: (context, candidateData, rejectedData) =>
+    //       Draggable<ListDragTarget>(
+    //     data: ListDragTarget(widget.task.index, task),
+    //     axis: Axis.vertical,
+    //     childWhenDragging: Container(),
+    //     feedback: SizedBox(
+    //       width: MediaQuery.of(context).size.width,
+    //       child: Material(color: Colors.transparent, child: task),
+    //     ),
+    // child: GestureDetector(
+    return GestureDetector(
+      onTap: () {
+        widget.task.type == TaskType.parent
+            ? Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        TasksViewScreen(parentTask: widget.task)))
+            : setState(() {
+                isExpanded = !isExpanded;
+              });
       },
-      onLeave: (data) {
-        ghost = null;
-      },
-      onAccept: (data) {
-        ghost = null;
-      },
-      builder: (context, candidateData, rejectedData) => Draggable<Widget>(
-        data: task,
-        axis: Axis.vertical,
-        childWhenDragging: Container(),
-        feedback: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Material(color: Colors.transparent, child: task),
-        ),
-        child: GestureDetector(
-          onTap: () {
-            widget.task.type == TaskType.parent
-                ? Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            TasksViewScreen(parentTask: widget.task)))
-                : setState(() {
-                    isExpanded = !isExpanded;
-                  });
-          },
-          child: ghost == null
-              ? task
-              : Column(mainAxisSize: MainAxisSize.min, children: [
-                  Opacity(opacity: 0.5, child: ghost!),
-                  task,
-                ]),
-        ),
-      ),
+      child: ghost == null
+          ? task
+          : Column(mainAxisSize: MainAxisSize.min, children: [
+              Opacity(opacity: 0.5, child: ghost!),
+              task,
+            ]),
+      //   ),
+      // ),
     );
   }
 }

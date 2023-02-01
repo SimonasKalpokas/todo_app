@@ -28,9 +28,10 @@ abstract class BaseTask {
   DateTime? lastDoneOn;
   Reoccurrence reoccurrence;
   TaskType type;
+  int index;
 
-  BaseTask(
-      this.type, this.parentId, this.name, this.description, this.reoccurrence);
+  BaseTask(this.type, this.parentId, this.name, this.description,
+      this.reoccurrence, this.index);
 
   factory BaseTask.createTask(String? id, Map<String, dynamic> map) {
     switch (TaskType.values[map['type']]) {
@@ -56,6 +57,7 @@ abstract class BaseTask {
         'lastDoneOn': lastDoneOn?.toIso8601String(),
         'reoccurrence': reoccurrence.index,
         'type': type.index,
+        'index': index,
       };
 
   BaseTask.fromMap(this.id, Map<String, dynamic> map)
@@ -66,7 +68,8 @@ abstract class BaseTask {
             ? null
             : DateTime.parse(map['lastDoneOn']),
         type = TaskType.values[map['type']],
-        reoccurrence = Reoccurrence.values[map['reoccurrence']];
+        reoccurrence = Reoccurrence.values[map['reoccurrence']],
+        index = map['index'];
 }
 
 enum Status {

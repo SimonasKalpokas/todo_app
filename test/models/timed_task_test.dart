@@ -10,8 +10,8 @@ void main() {
   group('TimedTask', () {
     test('execution, stop execution and completion', () {
       Reoccurrence reoccurrence = Reoccurrence.daily;
-      var timedTask = TimedTask(
-          null, 'a', 'description', reoccurrence, const Duration(seconds: 10));
+      var timedTask = TimedTask(null, 'a', 'description', reoccurrence, 0,
+          const Duration(seconds: 10));
       var dateTime = DateTimeWrapper(DateTime(2015, 5, 2, 13, 20));
       withClock(Clock(() => dateTime.dateTime), () {
         // when(reoccurrence.isActiveNow(clock.now())).thenReturn(true);
@@ -65,8 +65,8 @@ void main() {
       });
     });
     test('remainingTime test', () {
-      var timedTask = TimedTask(
-          null, 'test one', '', Reoccurrence.daily, const Duration(hours: 2));
+      var timedTask = TimedTask(null, 'test one', '', Reoccurrence.daily, 0,
+          const Duration(hours: 2));
       expect(
           timedTask.calculateCurrentRemainingTime(), const Duration(hours: 2));
       var dateTimeWrapper = DateTimeWrapper(DateTime(2000, 2, 3, 1, 10));
@@ -107,8 +107,8 @@ void main() {
       });
     });
     test('Complete previous task on this reoccurrence period', () {
-      var timedTask = TimedTask(
-          null, 'test', 'wawa', Reoccurrence.daily, const Duration(hours: 1));
+      var timedTask = TimedTask(null, 'test', 'wawa', Reoccurrence.daily, 0,
+          const Duration(hours: 1));
       var dateTime = DateTimeWrapper(DateTime(2015, 1, 1, 20, 5));
       withClock(Clock(() => dateTime.dateTime), () {
         timedTask.startExecution();

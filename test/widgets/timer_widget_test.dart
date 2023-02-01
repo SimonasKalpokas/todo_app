@@ -14,7 +14,7 @@ import '../datetime_wrapper.dart';
 
 class MockFirestoreService extends Mock implements FirestoreService {
   TimedTaskListenable task = TimedTaskListenable(null, 'one', 'description',
-      Reoccurrence.daily, const Duration(seconds: 20));
+      Reoccurrence.daily, 0, const Duration(seconds: 20));
   StreamController streamController = StreamController();
 
   MockFirestoreService() {
