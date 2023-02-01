@@ -39,7 +39,10 @@ class FirestoreService {
     return _currentCollection(task.parentId).add(task.toMap());
   }
 
-  Stream<Iterable<BaseTask>> getTasks(String? parentId) {
+  // TODO: make filter parameters better
+  // currently undone true means undone while undone false means done
+  // which isn't very clear
+  Stream<Iterable<BaseTask>> getTasks(String? parentId, bool undone) {
     return _currentCollection(parentId)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
@@ -52,7 +55,7 @@ class FirestoreService {
               });
               taskListenable.refreshState();
               return taskListenable;
-            }));
+            }).where((task) => task.isDone == !undone));
   }
 
   Future<void> moveTask(BaseTask task, String? newParentId) async {

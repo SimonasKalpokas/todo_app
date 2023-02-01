@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
+import 'package:todo_app/widgets/movable_list/movable_list.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
 
 import '../widgets/dialogs/choose_main_collection_dialog.dart';
@@ -23,7 +24,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   Widget build(BuildContext context) {
     final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
-    var tasks = firestoreService.getTasks(parentTask?.id).asBroadcastStream();
+    var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
+    var doneTasks = firestoreService.getTasks(parentTask?.id, false);
     return Scaffold(
       appBar: AppBar(
         title: Text("${parentTask?.name ?? "Tasks"}:"),
@@ -74,10 +76,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            TasksListView(
-              condition: (task) => !task.isDone,
-              tasks: tasks,
-            ),
+            TasksListView(tasks: undoneTasks),
             Padding(
               padding: const EdgeInsets.only(left: 15.0, top: 8.0),
               child: InkWell(
@@ -101,11 +100,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 ),
               ),
             ),
-            TasksListView(
-              tasks: tasks,
-              condition: (task) => task.isDone,
-              visible: showDone,
-            ),
+            TasksListView(tasks: doneTasks, visible: showDone),
           ],
         ),
       ),
@@ -125,12 +120,10 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
 }
 
 class TasksListView extends StatelessWidget {
-  final bool Function(BaseTask)? condition;
   final Stream<Iterable<BaseTask>> tasks;
   final bool visible;
 
-  const TasksListView(
-      {Key? key, this.condition, required this.tasks, this.visible = true})
+  const TasksListView({Key? key, required this.tasks, this.visible = true})
       : super(key: key);
 
   @override
@@ -146,15 +139,9 @@ class TasksListView extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        return ListView(
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+        return MovableList(
           children: snapshot.data!.map(
             (task) {
-              if (condition != null && !condition!(task)) {
-                return Container();
-              }
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
