@@ -26,7 +26,14 @@ class MockFirestoreService extends Mock implements FirestoreService {
       StreamController();
   StreamController<Iterable<BaseTaskListenable>> undoneStreamController =
       StreamController();
-  var one = CheckedTaskListenable(null, "One", "one desc", Reoccurrence.daily);
+  var one = CheckedTaskListenable.fromMap({
+    "id": "abc",
+    "createdAt": DateTime.now().toIso8601String(),
+    "name": "One",
+    "description": "one desc",
+    "type": TaskType.checked.index,
+    "reoccurrence": Reoccurrence.daily.index,
+  });
 
   MockFirestoreService() {
     undoneStreamController.add([
