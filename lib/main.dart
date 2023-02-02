@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/category.dart';
+import 'package:todo_app/providers/selection_provider.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -45,6 +46,8 @@ Future<void> main() async {
       StreamProvider<Iterable<Category>>.value(
           value: firestoreService.getCategories(),
           initialData: initialCategories),
+      Provider(create: (_) => FirestoreService(prefs)),
+      ChangeNotifierProvider(create: (_) => SelectionProvider())
     ],
     child: const MyApp(),
   ));
@@ -95,6 +98,10 @@ class MyApp extends StatelessWidget {
           unselectedLabelStyle: TextStyle(
               fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
         ),
+        checkboxTheme: CheckboxThemeData(
+          side: const BorderSide(color: Color(0xFFFFD699)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        ),
         fontFamily: 'Nunito',
       ),
       // darkTheme: ThemeData(
@@ -103,7 +110,9 @@ class MyApp extends StatelessWidget {
       //   listTileTheme: const ListTileThemeData(tileColor: Colors.green),
       // ),
       home: Builder(
-        builder: (context) => const TasksViewScreen(),
+        builder: (context) => const TasksViewScreen(
+          parentTask: null,
+        ),
       ),
     );
   }

@@ -1,33 +1,49 @@
 import 'dart:async';
 
-import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
-import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
+import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
+import 'package:todo_app/widgets/task_card_widget.dart';
 
-import '../widgets/timer_widget.dart';
+import '../providers/selection_provider.dart';
 import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatefulWidget {
-  const TasksViewScreen({Key? key}) : super(key: key);
+  final BaseTask? parentTask;
+  const TasksViewScreen({Key? key, required this.parentTask}) : super(key: key);
 
   @override
   State<TasksViewScreen> createState() => _TasksViewScreenState();
 }
 
 class _TasksViewScreenState extends State<TasksViewScreen> {
+  var showDone = false;
+
   @override
   Widget build(BuildContext context) {
+    final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
-    var tasks = firestoreService.getTasks().asBroadcastStream();
+    final selectionProvider = Provider.of<SelectionProvider>(context);
+    var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
+    var doneTasks = firestoreService.getTasks(parentTask?.id, false);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tasks:"),
+        title: selectionProvider.isSelecting
+            ? Text("${selectionProvider.selectedItems.length} tasks selected")
+            : Text("${parentTask?.name ?? "Tasks"}:"),
+        leading: parentTask == null
+            ? null
+            : IconButton(
+                icon:
+                    const Icon(Icons.keyboard_arrow_left, color: Colors.black),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
         actions: [
           IconButton(
             onPressed: () {
@@ -60,29 +76,121 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               color: Color(0xFF666666),
             ),
           ),
+          parentTask != null
+              ? IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskFormScreen(
+                            parentId: parentTask.parentId, task: parentTask),
+                      ),
+                    );
+                  },
+                )
+              : Container()
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            TasksListView(
-              condition: (task) => !task.isDone,
-              tasks: tasks,
+            TasksListView(tasks: undoneTasks),
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    showDone = !showDone;
+                  });
+                },
+                child: Row(
+                  children: [
+                    const Text(
+                      "Completed",
+                      style: TextStyle(fontSize: 18, color: Color(0xFF787878)),
+                    ),
+                    showDone
+                        ? const Icon(Icons.keyboard_arrow_up,
+                            color: Color(0xFF787878))
+                        : const Icon(Icons.keyboard_arrow_down,
+                            color: Color(0xFF787878))
+                  ],
+                ),
+              ),
             ),
-            DoneTasksListView(tasks: tasks),
+            TasksListView(tasks: doneTasks, visible: showDone),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const TaskFormScreen()),
-          );
-        },
-        tooltip: 'Add a task',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: selectionProvider.isSelecting
+          ? Container()
+          : FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          TaskFormScreen(parentId: parentTask?.id)),
+                );
+              },
+              tooltip: 'Add a task',
+              child: const Icon(Icons.add),
+            ),
+      persistentFooterButtons: selectionProvider.state ==
+              SelectionState.inactive
+          ? null
+          : [
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Cancel selection"),
+                ),
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    for (var item in selectionProvider.selectedItems) {
+                      firestoreService.deleteTask(item.parentId, item.id);
+                    }
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Delete selected"),
+                ),
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.setStateMoving();
+                  },
+                  child: const Text("Move selected"),
+                ),
+              if (selectionProvider.state == SelectionState.moving)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Cancel"),
+                ),
+              if (selectionProvider.state == SelectionState.moving)
+                TextButton(
+                  onPressed: () async {
+                    if (!await firestoreService.moveTasks(
+                        selectionProvider.selectedItems, parentTask?.id)) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Cannot move selected tasks here"),
+                          ),
+                        );
+                      }
+                    } else {
+                      selectionProvider.clearSelection();
+                    }
+                  },
+                  child: const Text("Move here"),
+                ),
+            ],
     );
   }
 }
@@ -257,27 +365,17 @@ class DoneTasksListViewState extends State<DoneTasksListView> {
             ),
           ),
         ),
-        TasksListView(
-          condition: (task) => task.isDone,
-          tasks: widget.tasks,
-          visible: showDone,
-        ),
       ],
     );
   }
 }
 
 class TasksListView extends StatelessWidget {
-  final bool Function(BaseTask)? condition;
-  final bool visible;
   final Stream<Iterable<BaseTask>> tasks;
+  final bool visible;
 
-  const TasksListView({
-    Key? key,
-    this.condition,
-    required this.tasks,
-    this.visible = true,
-  }) : super(key: key);
+  const TasksListView({Key? key, required this.tasks, this.visible = true})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -298,139 +396,20 @@ class TasksListView extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.map(
             (task) {
-              if (condition != null && !condition!(task)) {
-                return Container();
-              }
-              return TaskCard(task: task);
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 4.0,
+                ),
+                child: MovableListItem(
+                    selectionItem:
+                        SelectionItem(task.id, parentId: task.parentId),
+                    child: TaskCardWidget(key: Key(task.id), task: task)),
+              );
             },
           ).toList(),
         );
       },
-    );
-  }
-}
-
-class TaskCard extends StatelessWidget {
-  final BaseTask task;
-
-  const TaskCard({Key? key, required this.task}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    var firestoreService = Provider.of<FirestoreService>(context);
-    var categories = Provider.of<Iterable<Category>>(context);
-    var category = task.categoryId != null
-        ? categories.firstWhereOrNull((c) => c.id == task.categoryId)
-        : null;
-    return Card(
-      margin: const EdgeInsets.fromLTRB(15, 8.0, 15, 0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5),
-        side: BorderSide(
-            color: Color(task.isDone
-                ? 0xFFD7D7D7
-                : task.categoryId == null
-                    ? 0xFFFFD699
-                    : categories
-                            .firstWhereOrNull((c) => c.id == task.categoryId)
-                            ?.colorValue ??
-                        0xFFFFD699)),
-      ),
-      color: task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
-      child: Dismissible(
-        key: ObjectKey(task),
-        onDismissed: ((direction) {
-          firestoreService.deleteTask(task.id);
-        }),
-        direction: DismissDirection.endToStart,
-        background: Container(
-          color: Colors.red,
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-          child: const Icon(Icons.delete_sweep),
-        ),
-        child: ListTile(
-          minLeadingWidth: 10,
-          horizontalTitleGap: 7.5,
-          leading: Container(
-            width: 10,
-            decoration: BoxDecoration(
-                color: Color(task.isDone
-                    ? 0xFFF6F6F6
-                    : category?.colorValue ?? 0xFFFFFFFF),
-                borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(5.0),
-                    bottomLeft: Radius.circular(5.0))),
-          ),
-          contentPadding: const EdgeInsets.only(left: 0),
-          title: Column(
-            children: [
-              if (category != null)
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    category.name,
-                    style: TextStyle(
-                        fontSize: fontSize * 0.6,
-                        color: Color(
-                            task.isDone ? 0xFFDBDBDB : category.colorValue)),
-                  ),
-                ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  overflow: TextOverflow.ellipsis,
-                  task.name,
-                  style: TextStyle(
-                      fontSize: fontSize,
-                      color:
-                          task.isDone ? const Color(0xFFDBDBDB) : Colors.black),
-                ),
-              )
-            ],
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => TaskFormScreen(task: task)),
-            );
-          },
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (task.isDone && task.reoccurrence != Reoccurrence.notRepeating)
-                const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
-              if (task.type == TaskType.timed && !task.isDone)
-                TimerWidget(timedTask: task as TimedTask),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: Checkbox(
-                    onChanged: (bool? value) {
-                      if (value == null) {
-                        throw UnimplementedError();
-                      }
-                      firestoreService.updateTaskFields(task.id, {
-                        'lastDoneOn':
-                            value ? clock.now().toIso8601String() : null
-                      });
-                    },
-                    value: task.isDone,
-                    side: BorderSide(
-                        color: Color(category?.colorValue ?? 0xFFFFD699)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5)),
-                    activeColor: const Color(0xFFD9D9D9),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

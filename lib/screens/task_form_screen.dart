@@ -1,33 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/custom_icons.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/checked_task.dart';
+import 'package:todo_app/models/parent_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:collection/collection.dart';
 
+import '../custom_icons.dart';
+
 class TaskFormScreen extends StatelessWidget {
+  final String? parentId;
   final BaseTask? task;
-  const TaskFormScreen({Key? key, this.task}) : super(key: key);
+  const TaskFormScreen({Key? key, required this.parentId, this.task})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New task"),
+        title: Text(task != null ? "Edit task" : "New task"),
         automaticallyImplyLeading: false,
       ),
-      body: TaskForm(task: task),
+      body: TaskForm(parentId: parentId, task: task),
     );
   }
 }
 
 class TaskForm extends StatefulWidget {
+  final String? parentId;
   final BaseTask? task;
-
-  const TaskForm({Key? key, this.task}) : super(key: key);
+  const TaskForm({Key? key, required this.parentId, this.task})
+      : super(key: key);
 
   @override
   State<TaskForm> createState() => _TaskFormState();
@@ -51,11 +56,13 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var isTimedOptionsExpanded = true;
   var isReoccurring = false;
   var isTimed = false;
+  var isParent = false;
   var reoccurrence = Reoccurrence.notRepeating;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
   Category? category;
   var showExtra = false;
+  String? parentId;
 
   @override
   void initState() {
@@ -82,12 +89,14 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               .toString()
           : '0';
 
-      typeTabController.index = widget.task!.type.index;
+      typeTabController.index = widget.task!.type.index % 2;
       type = widget.task!.type;
       if (type == TaskType.timed) {
         totalTime = (widget.task! as TimedTask).totalTime;
       }
     }
+    parentId = widget.parentId;
+
     super.initState();
   }
 
@@ -110,7 +119,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // TODO: extract title + input to separate widget
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
@@ -144,8 +152,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       widget.task!.name = nameController.text;
                       widget.task!.description = descriptionController.text;
                       widget.task!.reoccurrence = reoccurrence;
-                      widget.task!.type =
-                          isTimed ? TaskType.timed : TaskType.checked;
                       if (widget.task!.type == TaskType.timed) {
                         (widget.task! as TimedTask).totalTime = totalTime;
                       }
@@ -153,17 +159,35 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       firestoreService.updateTask(widget.task!);
                     } else {
                       BaseTask? task;
-                      switch (isTimed ? TaskType.timed : TaskType.checked) {
+                      switch (isParent
+                          ? TaskType.parent
+                          : isTimed
+                              ? TaskType.timed
+                              : TaskType.checked) {
                         case TaskType.checked:
-                          task = CheckedTask(nameController.text,
-                              descriptionController.text, reoccurrence);
+                          task = CheckedTask(
+                            parentId,
+                            nameController.text,
+                            descriptionController.text,
+                            reoccurrence,
+                          );
                           break;
                         case TaskType.timed:
                           task = TimedTask(
-                              nameController.text,
-                              descriptionController.text,
-                              reoccurrence,
-                              totalTime);
+                            parentId,
+                            nameController.text,
+                            descriptionController.text,
+                            reoccurrence,
+                            totalTime,
+                          );
+                          break;
+                        case TaskType.parent:
+                          task = ParentTask(
+                            parentId,
+                            nameController.text,
+                            descriptionController.text,
+                            reoccurrence,
+                          );
                           break;
                       }
                       task.categoryId = category?.id;
@@ -524,6 +548,28 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 const AddIconTextButton(
                   iconData: CustomIcons.sublist,
                   label: "Assign to parent task",
+                ),
+              const AddIconTextButton(
+                iconData: Icons.account_tree,
+                label: "Assign to a list",
+              ),
+              if (widget.task == null)
+                AddIconTextButton(
+                  iconData: Icons.folder,
+                  label: "Make into a list",
+                  onPressed: () {
+                    setState(() {
+                      isParent = !isParent;
+                    });
+                  },
+                  trailing: Checkbox(
+                      value: isParent,
+                      activeColor: const Color(0xFFFFD699),
+                      onChanged: (value) {
+                        setState(() {
+                          isParent = value!;
+                        });
+                      }),
                 ),
             ],
           ),

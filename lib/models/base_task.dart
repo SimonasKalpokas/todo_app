@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/entity.dart';
+import 'package:todo_app/models/parent_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 
 abstract class BaseTaskListenable implements Listenable, BaseTask {
@@ -13,19 +14,23 @@ abstract class BaseTaskListenable implements Listenable, BaseTask {
         return CheckedTaskListenable.fromMap(map);
       case TaskType.timed:
         return TimedTaskListenable.fromMap(map);
+      case TaskType.parent:
+        return ParentTaskListenable.fromMap(map);
     }
   }
 }
 
 abstract class BaseTask extends Entity {
   String name;
+  String? parentId;
   String description;
   String? categoryId;
   DateTime? lastDoneOn;
   Reoccurrence reoccurrence;
   TaskType type;
 
-  BaseTask(this.type, this.name, this.description, this.reoccurrence)
+  BaseTask(
+      this.type, this.parentId, this.name, this.description, this.reoccurrence)
       : super.create();
 
   factory BaseTask.createTask(Map<String, dynamic> map) {
@@ -34,6 +39,8 @@ abstract class BaseTask extends Entity {
         return CheckedTask.fromMap(map);
       case TaskType.timed:
         return TimedTask.fromMap(map);
+      case TaskType.parent:
+        return ParentTask.fromMap(map);
     }
   }
 
@@ -48,6 +55,7 @@ abstract class BaseTask extends Entity {
     var map = super.toMap();
     map.addAll({
       'name': name,
+      'parentId': parentId,
       'description': description,
       'lastDoneOn': lastDoneOn?.toIso8601String(),
       'reoccurrence': reoccurrence.index,
@@ -59,6 +67,7 @@ abstract class BaseTask extends Entity {
 
   BaseTask.fromMap(Map<String, dynamic> map)
       : name = map['name'],
+        parentId = map['parentId'],
         description = map['description'],
         lastDoneOn = map['lastDoneOn'] == null
             ? null
@@ -84,17 +93,8 @@ enum Reoccurrence {
 
 enum TaskType {
   checked,
-  timed;
-
-  static TaskType of<T extends BaseTask>() {
-    if (T == TimedTask) {
-      return TaskType.timed;
-    }
-    if (T == CheckedTask) {
-      return TaskType.checked;
-    }
-    throw Exception('Unexpected type');
-  }
+  timed,
+  parent;
 
   String get displayTitle {
     switch (this) {
@@ -102,6 +102,8 @@ enum TaskType {
         return 'Checked';
       case TaskType.timed:
         return 'Timed';
+      case TaskType.parent:
+        return 'Parent'; // TODO: Consider changing to list or smth
     }
   }
 }
