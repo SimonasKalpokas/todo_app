@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
+import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
 
+import '../providers/selection_provider.dart';
 import '../widgets/dialogs/choose_main_collection_dialog.dart';
 import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatefulWidget {
-  const TasksViewScreen({Key? key}) : super(key: key);
+  final BaseTask? parentTask;
+  const TasksViewScreen({Key? key, required this.parentTask}) : super(key: key);
 
   @override
   State<TasksViewScreen> createState() => _TasksViewScreenState();
@@ -20,11 +23,25 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
-    var tasks = firestoreService.getTasks().asBroadcastStream();
+    final selectionProvider = Provider.of<SelectionProvider>(context);
+    var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
+    var doneTasks = firestoreService.getTasks(parentTask?.id, false);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tasks:"),
+        title: selectionProvider.isSelecting
+            ? Text("${selectionProvider.selectedItems.length} tasks selected")
+            : Text("${parentTask?.name ?? "Tasks"}:"),
+        leading: parentTask == null
+            ? null
+            : IconButton(
+                icon:
+                    const Icon(Icons.keyboard_arrow_left, color: Colors.black),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
         actions: [
           IconButton(
             onPressed: () {
@@ -44,15 +61,26 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               color: Color(0xFF666666),
             ),
           ),
+          parentTask != null
+              ? IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskFormScreen(
+                            parentId: parentTask.parentId, task: parentTask),
+                      ),
+                    );
+                  },
+                )
+              : Container()
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            TasksListView(
-              condition: (task) => !task.isDone,
-              tasks: tasks,
-            ),
+            TasksListView(tasks: undoneTasks),
             Padding(
               padding: const EdgeInsets.only(left: 15.0, top: 8.0),
               child: InkWell(
@@ -76,35 +104,87 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 ),
               ),
             ),
-            TasksListView(
-              tasks: tasks,
-              condition: (task) => task.isDone,
-              visible: showDone,
-            ),
+            TasksListView(tasks: doneTasks, visible: showDone),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const TaskFormScreen()),
-          );
-        },
-        tooltip: 'Add a task',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: selectionProvider.isSelecting
+          ? Container()
+          : FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          TaskFormScreen(parentId: parentTask?.id)),
+                );
+              },
+              tooltip: 'Add a task',
+              child: const Icon(Icons.add),
+            ),
+      persistentFooterButtons: selectionProvider.state ==
+              SelectionState.inactive
+          ? null
+          : [
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Cancel selection"),
+                ),
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    for (var item in selectionProvider.selectedItems) {
+                      firestoreService.deleteTask(item.parentId, item.id);
+                    }
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Delete selected"),
+                ),
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.setStateMoving();
+                  },
+                  child: const Text("Move selected"),
+                ),
+              if (selectionProvider.state == SelectionState.moving)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Cancel"),
+                ),
+              if (selectionProvider.state == SelectionState.moving)
+                TextButton(
+                  onPressed: () async {
+                    if (!await firestoreService.moveTasks(
+                        selectionProvider.selectedItems, parentTask?.id)) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Cannot move selected tasks here"),
+                          ),
+                        );
+                      }
+                    } else {
+                      selectionProvider.clearSelection();
+                    }
+                  },
+                  child: const Text("Move here"),
+                ),
+            ],
     );
   }
 }
 
 class TasksListView extends StatelessWidget {
-  final bool Function(BaseTask)? condition;
   final Stream<Iterable<BaseTask>> tasks;
   final bool visible;
 
-  const TasksListView(
-      {Key? key, this.condition, required this.tasks, this.visible = true})
+  const TasksListView({Key? key, required this.tasks, this.visible = true})
       : super(key: key);
 
   @override
@@ -126,16 +206,16 @@ class TasksListView extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.map(
             (task) {
-              if (condition != null && !condition!(task)) {
-                return Container();
-              }
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 4.0,
                 ),
                 // TODO: make task.id mandatory
-                child: TaskCardWidget(key: Key(task.id!), task: task),
+                child: MovableListItem(
+                    selectionItem:
+                        SelectionItem(task.id!, parentId: task.parentId),
+                    child: TaskCardWidget(key: Key(task.id!), task: task)),
               );
             },
           ).toList(),

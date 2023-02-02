@@ -6,6 +6,7 @@ import 'package:todo_app/widgets/timer_widget.dart';
 
 import '../models/base_task.dart';
 import '../screens/task_form_screen.dart';
+import '../screens/tasks_view_screen.dart';
 import '../services/firestore_service.dart';
 
 class TaskCardWidget extends StatefulWidget {
@@ -24,9 +25,15 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
     var firestoreService = Provider.of<FirestoreService>(context);
     return GestureDetector(
       onTap: () {
-        setState(() {
-          isExpanded = !isExpanded;
-        });
+        widget.task.type == TaskType.parent
+            ? Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        TasksViewScreen(parentTask: widget.task)))
+            : setState(() {
+                isExpanded = !isExpanded;
+              });
       },
       child: Container(
         padding: const EdgeInsets.only(right: 0),
@@ -90,22 +97,29 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                           child:
                               TimerWidget(timedTask: widget.task as TimedTask),
                         ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 0.0),
-                        child: Checkbox(
-                          onChanged: (bool? value) {
-                            firestoreService.updateTaskFields(widget.task.id, {
-                              'lastDoneOn':
-                                  value! ? clock.now().toIso8601String() : null
-                            });
-                          },
-                          value: widget.task.isDone,
-                          side: const BorderSide(color: Color(0xFFFFD699)),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5)),
-                          activeColor: const Color(0xFFD9D9D9),
-                        ),
-                      ),
+                      widget.task.type == TaskType.parent
+                          ? const Padding(
+                              padding: EdgeInsets.only(right: 5),
+                              child: Icon(Icons.folder))
+                          : Padding(
+                              padding: const EdgeInsets.only(left: 0.0),
+                              child: Checkbox(
+                                onChanged: (bool? value) {
+                                  firestoreService.updateTaskFields(
+                                      widget.task.parentId, widget.task.id, {
+                                    'lastDoneOn': value!
+                                        ? clock.now().toIso8601String()
+                                        : null
+                                  });
+                                },
+                                value: widget.task.isDone,
+                                side:
+                                    const BorderSide(color: Color(0xFFFFD699)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                activeColor: const Color(0xFFD9D9D9),
+                              ),
+                            ),
                     ],
                   ),
                   if (!widget.task.isDone)
@@ -140,8 +154,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                             padding: const EdgeInsets.only(
                                                 right: 8)),
                                         onPressed: () {
-                                          firestoreService
-                                              .deleteTask(widget.task.id);
+                                          firestoreService.deleteTask(
+                                              widget.task.parentId,
+                                              widget.task.id);
                                         },
                                         icon: const Icon(
                                           Icons.delete,
@@ -166,6 +181,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                             MaterialPageRoute(
                                                 builder: (context) =>
                                                     TaskFormScreen(
+                                                        parentId: widget
+                                                            .task.parentId,
                                                         task: widget.task)),
                                           );
                                         },
@@ -188,6 +205,7 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                       TextButton.icon(
                                         onPressed: () {
                                           firestoreService.updateTaskFields(
+                                              widget.task.parentId,
                                               widget.task.id, {
                                             'lastDoneOn':
                                                 clock.now().toIso8601String()
