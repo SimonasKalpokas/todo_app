@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
-import 'package:todo_app/widgets/movable_list/movable_list.dart';
+import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
 
+import '../providers/selection_provider.dart';
 import '../widgets/dialogs/choose_main_collection_dialog.dart';
 import 'task_form_screen.dart';
 
@@ -24,11 +25,14 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   Widget build(BuildContext context) {
     final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
+    final selectionProvider = Provider.of<SelectionProvider>(context);
     var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
     var doneTasks = firestoreService.getTasks(parentTask?.id, false);
     return Scaffold(
       appBar: AppBar(
-        title: Text("${parentTask?.name ?? "Tasks"}:"),
+        title: selectionProvider.isSelecting
+            ? Text("${selectionProvider.selectedItems.length} tasks selected")
+            : Text("${parentTask?.name ?? "Tasks"}:"),
         leading: parentTask == null
             ? null
             : IconButton(
@@ -104,17 +108,74 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => TaskFormScreen(parentId: parentTask?.id)),
-          );
-        },
-        tooltip: 'Add a task',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: selectionProvider.isSelecting
+          ? Container()
+          : FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          TaskFormScreen(parentId: parentTask?.id)),
+                );
+              },
+              tooltip: 'Add a task',
+              child: const Icon(Icons.add),
+            ),
+      persistentFooterButtons: selectionProvider.state ==
+              SelectionState.inactive
+          ? null
+          : [
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Cancel selection"),
+                ),
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    for (var item in selectionProvider.selectedItems) {
+                      firestoreService.deleteTask(item.parentId, item.id);
+                    }
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Delete selected"),
+                ),
+              if (selectionProvider.isSelecting)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.setStateMoving();
+                  },
+                  child: const Text("Move selected"),
+                ),
+              if (selectionProvider.state == SelectionState.moving)
+                TextButton(
+                  onPressed: () {
+                    selectionProvider.clearSelection();
+                  },
+                  child: const Text("Cancel"),
+                ),
+              if (selectionProvider.state == SelectionState.moving)
+                TextButton(
+                  onPressed: () async {
+                    if (!await firestoreService.moveTasks(
+                        selectionProvider.selectedItems, parentTask?.id)) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Cannot move selected tasks here"),
+                          ),
+                        );
+                      }
+                    } else {
+                      selectionProvider.clearSelection();
+                    }
+                  },
+                  child: const Text("Move here"),
+                ),
+            ],
     );
   }
 }
@@ -139,7 +200,10 @@ class TasksListView extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        return MovableList(
+        return ListView(
+          scrollDirection: Axis.vertical,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.map(
             (task) {
               return Padding(
@@ -148,7 +212,10 @@ class TasksListView extends StatelessWidget {
                   vertical: 4.0,
                 ),
                 // TODO: make task.id mandatory
-                child: TaskCardWidget(key: Key(task.id!), task: task),
+                child: MovableListItem(
+                    selectionItem:
+                        SelectionItem(task.id!, parentId: task.parentId),
+                    child: TaskCardWidget(key: Key(task.id!), task: task)),
               );
             },
           ).toList(),

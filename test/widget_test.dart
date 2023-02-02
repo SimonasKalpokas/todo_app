@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
+import 'package:todo_app/providers/selection_provider.dart';
 
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
@@ -82,6 +83,7 @@ void main() {
         Provider<FirestoreService>(
           create: (_) => mockFirestoreService,
         ),
+        ChangeNotifierProvider(create: (_) => SelectionProvider()),
       ],
       child: const MaterialApp(
           home: TasksViewScreen(

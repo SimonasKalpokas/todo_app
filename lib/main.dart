@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todo_app/providers/selection_provider.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
@@ -36,7 +37,10 @@ Future<void> main() async {
   var prefs = await SharedPreferences.getInstance();
 
   runApp(MultiProvider(
-    providers: [Provider(create: (_) => FirestoreService(prefs))],
+    providers: [
+      Provider(create: (_) => FirestoreService(prefs)),
+      ChangeNotifierProvider(create: (_) => SelectionProvider())
+    ],
     child: const MyApp(),
   ));
 }

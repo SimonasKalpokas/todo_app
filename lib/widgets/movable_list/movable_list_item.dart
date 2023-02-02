@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/selection_provider.dart';
 
 class MovableListItem extends StatefulWidget {
   final Widget child;
-  final bool selectMode;
-  final void Function(bool) onSelect;
+  final SelectionItem selectionItem;
   const MovableListItem(
-      {super.key,
-      required this.child,
-      this.selectMode = false,
-      required this.onSelect});
+      {super.key, required this.selectionItem, required this.child});
 
   @override
   State<MovableListItem> createState() => _MovableListItemState();
@@ -18,7 +17,13 @@ class _MovableListItemState extends State<MovableListItem> {
   bool selected = false;
 
   void _onSelect() {
-    widget.onSelect(!selected);
+    var selectionProvider =
+        Provider.of<SelectionProvider>(context, listen: false);
+    if (selected) {
+      selectionProvider.deselect(widget.selectionItem);
+    } else {
+      selectionProvider.select(widget.selectionItem);
+    }
     setState(() {
       selected = !selected;
     });
@@ -26,9 +31,14 @@ class _MovableListItemState extends State<MovableListItem> {
 
   @override
   Widget build(BuildContext context) {
+    var selectionProvider =
+        Provider.of<SelectionProvider>(context, listen: true);
     return GestureDetector(
-      onLongPress: _onSelect,
-      child: !widget.selectMode
+      behavior: HitTestBehavior.opaque,
+      onLongPress:
+          selectionProvider.state != SelectionState.moving ? _onSelect : null,
+      onTap: selectionProvider.isSelecting ? _onSelect : null,
+      child: !selectionProvider.isSelecting
           ? widget.child
           : SizedBox(
               child: Row(
@@ -37,7 +47,7 @@ class _MovableListItemState extends State<MovableListItem> {
                     value: selected,
                     onChanged: (value) => _onSelect(),
                   ),
-                  Expanded(child: widget.child),
+                  Expanded(child: IgnorePointer(child: widget.child)),
                 ],
               ),
             ),
