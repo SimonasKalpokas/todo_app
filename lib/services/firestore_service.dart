@@ -8,10 +8,6 @@ import 'package:todo_app/models/category.dart';
 import '../providers/selection_provider.dart';
 
 class FirestoreService {
-  CollectionReference<Map<String, dynamic>> _currentTasks(String? parentId) {
-    return tasks.doc(parentId ?? 'root').collection('tasks');
-  }
-
   late CollectionReference<Map<String, dynamic>> tasks;
   final SharedPreferences _prefs;
   late String mainCollection;
@@ -22,8 +18,12 @@ class FirestoreService {
     mainCollection = _prefs.getString('mainCollection') ?? "tasks";
     tasks = FirebaseFirestore.instance
         .collection(mainCollection)
-        .doc('withParentTasks')
+        .doc('tasks')
         .collection("tasks");
+  }
+
+  CollectionReference<Map<String, dynamic>> _currentTasks(String? parentId) {
+    return tasks.doc(parentId ?? 'root').collection('tasks');
   }
 
   /// Returns whether the main collection was set.
@@ -35,7 +35,7 @@ class FirestoreService {
     mainCollection = newCollection;
     tasks = FirebaseFirestore.instance
         .collection(mainCollection)
-        .doc('withParentTasks')
+        .doc('tasks')
         .collection('tasks');
     return true;
   }
