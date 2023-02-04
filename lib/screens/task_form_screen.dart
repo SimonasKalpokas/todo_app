@@ -522,11 +522,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 ),
               if (showExtra) const SizedBox(height: 16),
               if (showExtra)
-                const AddIconTextButton(
-                  iconData: Icons.notifications_active,
-                  label: "Set reminder",
-                ),
-              if (showExtra)
                 AddIconTextButton(
                   iconData: Icons.add,
                   label: "Assign a category",
@@ -544,16 +539,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           style: TextStyle(color: Color(category!.colorValue)))
                       : null,
                 ),
-              if (showExtra)
-                const AddIconTextButton(
-                  iconData: CustomIcons.sublist,
-                  label: "Assign to parent task",
-                ),
-              const AddIconTextButton(
-                iconData: Icons.account_tree,
-                label: "Assign to a list",
-              ),
-              if (widget.task == null)
+              if (showExtra && widget.task == null)
                 AddIconTextButton(
                   iconData: Icons.folder,
                   label: "Make into a list",

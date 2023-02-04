@@ -146,7 +146,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                   onPressed: () {
                     selectionProvider.clearSelection();
                   },
-                  child: const Text("Cancel selection"),
+                  child: const Text("Cancel"),
                 ),
               if (selectionProvider.isSelecting)
                 TextButton(
