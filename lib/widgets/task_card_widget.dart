@@ -78,10 +78,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                         Expanded(
                           child: AnimatedSize(
                             duration: const Duration(milliseconds: 300),
-                            child: SizedBox(
-                              height: isExpanded ? 80 : 50,
-                              // padding: const EdgeInsets.symmetric(
-                              //     vertical: 13, horizontal: 0),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: category == null ? 13 : 5),
                               child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: Column(
@@ -126,31 +125,28 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                           ),
                         widget.task.type == TaskType.parent
                             ? Padding(
-                                padding: const EdgeInsets.only(right: 5),
+                                padding: const EdgeInsets.only(right: 10),
                                 child: Icon(
                                   Icons.folder,
                                   color:
                                       Color(category?.colorValue ?? 0xFF000000),
                                 ))
-                            : Padding(
-                                padding: const EdgeInsets.only(left: 0.0),
-                                child: Checkbox(
-                                  onChanged: (bool? value) {
-                                    firestoreService.updateTaskFields(
-                                        widget.task.parentId, widget.task.id, {
-                                      'lastDoneOn': value!
-                                          ? clock.now().toIso8601String()
-                                          : null
-                                    });
-                                  },
-                                  value: widget.task.isDone,
-                                  side: BorderSide(
-                                      color: Color(
-                                          category?.colorValue ?? 0xFFFFD699)),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5)),
-                                  activeColor: const Color(0xFFD9D9D9),
-                                ),
+                            : Checkbox(
+                                onChanged: (bool? value) {
+                                  firestoreService.updateTaskFields(
+                                      widget.task.parentId, widget.task.id, {
+                                    'lastDoneOn': value!
+                                        ? clock.now().toIso8601String()
+                                        : null
+                                  });
+                                },
+                                value: widget.task.isDone,
+                                side: BorderSide(
+                                    color: Color(
+                                        category?.colorValue ?? 0xFFFFD699)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                activeColor: const Color(0xFFD9D9D9),
                               ),
                       ],
                     ),
