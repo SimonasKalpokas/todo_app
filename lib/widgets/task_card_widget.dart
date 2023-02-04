@@ -165,10 +165,16 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
                                   Container(
                                     color: const Color(0xFF7F7F7F),
                                     height: 1,
                                     width: 140,
+                                  ),
+                                  const SizedBox(
+                                    height: 20,
                                   ),
                                   if (widget.task.description.isNotEmpty)
                                     Text(widget.task.description,
@@ -218,14 +224,17 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                                           task: widget.task)),
                                             );
                                           },
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.edit,
-                                            color: Color(0xFFFFAC30),
+                                            color: Color(category?.colorValue ??
+                                                0xFFFFAC30),
                                           ),
-                                          label: const Text(
+                                          label: Text(
                                             'Edit',
                                             style: TextStyle(
-                                                color: Color(0xFFFFAC30),
+                                                color: Color(
+                                                    category?.colorValue ??
+                                                        0xFFFFAC30),
                                                 fontSize: 12),
                                           ),
                                         ),
@@ -243,14 +252,17 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                                   clock.now().toIso8601String()
                                             });
                                           },
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.done,
-                                            color: Color(0xFFFFAC30),
+                                            color: Color(category?.colorValue ??
+                                                0xFFFFAC30),
                                           ),
-                                          label: const Text(
+                                          label: Text(
                                             'Mark as complete',
                                             style: TextStyle(
-                                                color: Color(0xFFFFAC30),
+                                                color: Color(
+                                                    category?.colorValue ??
+                                                        0xFFFFAC30),
                                                 fontSize: 12),
                                           ),
                                         ),
