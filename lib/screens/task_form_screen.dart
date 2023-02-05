@@ -273,9 +273,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   child: Container(
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF383838),
                       borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: const Color(0xFFFFC36A)),
+                      border: Border.all(color: const Color(0xFFE3E3E3)),
                     ),
                     child: TabBar(
                       labelStyle: Theme.of(context)
@@ -324,10 +324,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             Container(
                               height: 35,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: const Color(0xFF383838),
                                 borderRadius: BorderRadius.circular(5),
                                 border:
-                                    Border.all(color: const Color(0xFFFFC36A)),
+                                    Border.all(color: const Color(0xFFE3E3E3)),
                               ),
                               child: TabBar(
                                 onTap: (index) {
@@ -363,10 +363,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             Container(
                               height: 22,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: const Color(0xFF383838),
                                 borderRadius: BorderRadius.circular(5),
                                 border:
-                                    Border.all(color: const Color(0xFFFFC36A)),
+                                    Border.all(color: const Color(0xFFE3E3E3)),
                               ),
                               child: TabBar(
                                 controller: startingTabController,
@@ -431,9 +431,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   child: Container(
                     height: 30,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF383838),
                       borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: const Color(0xFFFFC36A)),
+                      border: Border.all(color: const Color(0xFFE3E3E3)),
                     ),
                     child: TabBar(
                       onTap: (index) {

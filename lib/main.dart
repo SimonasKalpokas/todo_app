@@ -104,11 +104,50 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: 'Nunito',
       ),
-      // darkTheme: ThemeData(
-      //   primarySwatch: Colors.blue,
-      //   scaffoldBackgroundColor: Colors.black,
-      //   listTileTheme: const ListTileThemeData(tileColor: Colors.green),
-      // ),
+      darkTheme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF484848),
+          titleTextStyle: TextStyle(
+            color: Color(0xFFFFDD33),
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Nunito',
+          ),
+          toolbarHeight: 76,
+          titleSpacing: 16,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: const Color(0xFF383838),
+            enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Color(0xFFE3E3E3)),
+                borderRadius: BorderRadius.circular(5)),
+            focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Color(0xFFE3E3E3)),
+                borderRadius: BorderRadius.circular(5)),
+            contentPadding:
+                const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
+        scaffoldBackgroundColor: const Color(0xFF282828),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontWeight: FontWeight.bold),
+          labelLarge: TextStyle(fontWeight: FontWeight.bold),
+          labelMedium: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        tabBarTheme: const TabBarTheme(
+          indicator: BoxDecoration(color: Color(0xFFFFEC8D)),
+          labelColor: Colors.black,
+          unselectedLabelColor: Color(0xFF737373),
+          labelStyle: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
+          unselectedLabelStyle: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
+        ),
+        checkboxTheme: CheckboxThemeData(
+          side: const BorderSide(color: Color(0xFFE3E3E3)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        ),
+        fontFamily: 'Nunito',
+      ),
       home: Builder(
         builder: (context) => const TasksViewScreen(
           parentTask: null,

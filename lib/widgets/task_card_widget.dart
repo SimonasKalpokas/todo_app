@@ -49,9 +49,11 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
           border: Border.all(
             color: widget.task.isDone
                 ? const Color(0xFFD7D7D7)
-                : Color(category?.colorValue ?? 0xFFFFD699),
+                : Color(category?.colorValue ?? 0xFFE3E3E3),
           ),
-          color: widget.task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
+          color: widget.task.isDone
+              ? const Color(0xFFF6F6F6)
+              : const Color(0xFF383838),
         ),
         child: IntrinsicHeight(
           child: Row(
@@ -66,7 +68,7 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                   ),
                   color: widget.task.isDone
                       ? const Color(0xFFF6F6F6)
-                      : Color(category?.colorValue ?? 0xFFFFFFFF),
+                      : Color(category?.colorValue ?? 0xFF383838),
                 ),
               ),
               Expanded(
@@ -104,7 +106,7 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                         fontSize: 18,
                                         color: widget.task.isDone
                                             ? const Color(0xFFDBDBDB)
-                                            : Colors.black,
+                                            : const Color(0xFFFFFFFF),
                                       ),
                                     ),
                                   ],
@@ -143,7 +145,7 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                 value: widget.task.isDone,
                                 side: BorderSide(
                                     color: Color(
-                                        category?.colorValue ?? 0xFFFFD699)),
+                                        category?.colorValue ?? 0xFFE3E3E3)),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5)),
                                 activeColor: const Color(0xFFD9D9D9),

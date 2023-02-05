@@ -60,7 +60,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
             },
             icon: const Icon(
               Icons.settings,
-              color: Color(0xFF666666),
+              color: Color(0xFFFFEC8D),
             ),
           ),
           IconButton(
@@ -73,12 +73,12 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
             },
             icon: const Icon(
               Icons.category,
-              color: Color(0xFF666666),
+              color: Color(0xFFFFEC8D),
             ),
           ),
           parentTask != null
               ? IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
+                  icon: const Icon(Icons.edit, color: Color(0xFFFFEC8D)),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -134,8 +134,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                           TaskFormScreen(parentId: parentTask?.id)),
                 );
               },
+              backgroundColor: const Color(0xFF484848),
               tooltip: 'Add a task',
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.add, color: Color(0xFFFFEC8D)),
             ),
       persistentFooterButtons: selectionProvider.state ==
               SelectionState.inactive
