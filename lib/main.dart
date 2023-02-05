@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todo_app/models/category.dart';
 import 'package:todo_app/providers/selection_provider.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
@@ -35,9 +36,16 @@ Future<void> main() async {
   await initialiseDb();
 
   var prefs = await SharedPreferences.getInstance();
+  var firestoreService = FirestoreService(prefs);
+
+  var initialCategories = await firestoreService.getCategories().first;
 
   runApp(MultiProvider(
     providers: [
+      Provider(create: (_) => firestoreService),
+      StreamProvider<Iterable<Category>>.value(
+          value: firestoreService.getCategories(),
+          initialData: initialCategories),
       Provider(create: (_) => FirestoreService(prefs)),
       ChangeNotifierProvider(create: (_) => SelectionProvider())
     ],

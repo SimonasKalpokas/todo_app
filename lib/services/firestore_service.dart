@@ -3,16 +3,19 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/category.dart';
 
 import '../providers/selection_provider.dart';
 
 class FirestoreService {
   late CollectionReference<Map<String, dynamic>> tasks;
   final SharedPreferences _prefs;
-  String mainCollection;
+  late String mainCollection;
+  final CollectionReference<Map<String, dynamic>> categoriesCollection =
+      FirebaseFirestore.instance.collection('categories');
 
-  FirestoreService(this._prefs)
-      : mainCollection = _prefs.getString('mainCollection') ?? "tasks" {
+  FirestoreService(SharedPreferences preferences) : _prefs = preferences {
+    mainCollection = _prefs.getString('mainCollection') ?? "tasks";
     tasks = FirebaseFirestore.instance
         .collection(mainCollection)
         .doc('tasks')
@@ -37,12 +40,28 @@ class FirestoreService {
     return true;
   }
 
-  Future<DocumentReference<Map<String, dynamic>>> addTask(BaseTask task) async {
-    var newTask = await _currentTasks(task.parentId).add(task.toMap());
+  Stream<Iterable<Category>> getCategories() {
+    return categoriesCollection.snapshots().map(
+        (snapshot) => snapshot.docs.map((doc) => Category.fromMap(doc.data())));
+  }
+
+  Future<void> addCategory(Category category) {
+    return categoriesCollection.add(category.toMap());
+  }
+
+  Future<void> updateCategory(Category category) {
+    return categoriesCollection.doc(category.id).set(category.toMap());
+  }
+
+  Future<void> deleteCategory(Category category) {
+    return categoriesCollection.doc(category.id).delete();
+  }
+
+  Future<void> addTask(BaseTask task) async {
     if (task.type == TaskType.parent) {
-      await tasks.doc(newTask.id).set({'parentId': task.parentId});
+      await tasks.doc(task.id).set({'parentId': task.parentId});
     }
-    return newTask;
+    await _currentTasks(task.parentId).doc(task.id).set(task.toMap());
   }
 
   // TODO: make filter parameters better
@@ -53,7 +72,7 @@ class FirestoreService {
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               var taskListenable =
-                  BaseTaskListenable.createTaskListenable(doc.id, doc.data());
+                  BaseTaskListenable.createTaskListenable(doc.data());
               taskListenable.addListener(() {
                 _currentTasks(parentId).doc(doc.id).set(taskListenable.toMap());
               });
@@ -102,7 +121,7 @@ class FirestoreService {
 
   Future<bool> canTasksBeMoved(
       String? targetTaskId, List<String> currentTaskIds) async {
-    while (targetTaskId != null && targetTaskId != 'root') {
+    while (targetTaskId != null) {
       if (currentTaskIds.contains(targetTaskId)) {
         return false;
       }

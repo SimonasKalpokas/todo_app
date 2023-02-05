@@ -1,13 +1,15 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/category.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
 
 import '../providers/selection_provider.dart';
-import '../widgets/dialogs/choose_main_collection_dialog.dart';
 import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatefulWidget {
@@ -58,6 +60,19 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
             },
             icon: const Icon(
               Icons.settings,
+              color: Color(0xFF666666),
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              showDialog<bool?>(
+                  context: context,
+                  builder: (context) => CategorySettingsDialog(
+                      categories: Provider.of<Iterable<Category>>(context,
+                          listen: false)));
+            },
+            icon: const Icon(
+              Icons.category,
               color: Color(0xFF666666),
             ),
           ),
@@ -131,7 +146,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                   onPressed: () {
                     selectionProvider.clearSelection();
                   },
-                  child: const Text("Cancel selection"),
+                  child: const Text("Cancel"),
                 ),
               if (selectionProvider.isSelecting)
                 TextButton(
@@ -180,6 +195,181 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   }
 }
 
+class CategorySettingsDialog extends StatefulWidget {
+  final Iterable<Category> categories;
+
+  const CategorySettingsDialog({Key? key, required this.categories})
+      : super(key: key);
+
+  @override
+  State<CategorySettingsDialog> createState() => _CategorySettingsDialogState();
+}
+
+class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
+  final categoryNameController = TextEditingController();
+  Category? category;
+
+  @override
+  void dispose() {
+    categoryNameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        title: const Text('Category settings'),
+        content: Column(
+          children: [
+            DropdownButton<Category?>(
+              value: category,
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('None'),
+                ),
+                ...widget.categories.map((c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(
+                        c.name,
+                        style: TextStyle(color: Color(c.colorValue)),
+                      ),
+                    ))
+              ],
+              onChanged: (value) {
+                setState(() {
+                  category = value;
+                });
+              },
+            ),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(hintText: 'New category name'),
+              controller: categoryNameController,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () {
+                if (category != null &&
+                    categoryNameController.text.isNotEmpty) {
+                  category!.name = categoryNameController.text;
+                  Provider.of<FirestoreService>(context, listen: false)
+                      .updateCategory(category!);
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('OK')),
+          TextButton(
+              onPressed: () {
+                if (category != null) {
+                  Provider.of<FirestoreService>(context, listen: false)
+                      .deleteCategory(category!);
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('Delete')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+        ]);
+  }
+}
+
+class ChooseMainCollectionDialog extends StatefulWidget {
+  const ChooseMainCollectionDialog({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<ChooseMainCollectionDialog> createState() =>
+      _ChooseMainCollectionDialogState();
+}
+
+class _ChooseMainCollectionDialogState
+    extends State<ChooseMainCollectionDialog> {
+  final mainCollectionController = TextEditingController();
+
+  @override
+  void dispose() {
+    mainCollectionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        title: const Text('Choose main collection'),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Main collection'),
+          controller: mainCollectionController,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () async {
+                var res =
+                    await Provider.of<FirestoreService>(context, listen: false)
+                        .setMainCollection(mainCollectionController.text);
+
+                if (!mounted) {
+                  return;
+                }
+                Navigator.pop(context, res);
+              },
+              child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+        ]);
+  }
+}
+
+class DoneTasksListView extends StatefulWidget {
+  final Stream<Iterable<BaseTask>> tasks;
+  const DoneTasksListView({super.key, required this.tasks});
+
+  @override
+  State<DoneTasksListView> createState() => DoneTasksListViewState();
+}
+
+class DoneTasksListViewState extends State<DoneTasksListView> {
+  bool showDone = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 15.0, top: 8.0),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                showDone = !showDone;
+              });
+            },
+            child: Row(
+              children: [
+                const Text(
+                  "Completed",
+                  style:
+                      TextStyle(fontSize: fontSize, color: Color(0xFF787878)),
+                ),
+                showDone
+                    ? const Icon(Icons.keyboard_arrow_up,
+                        color: Color(0xFF787878))
+                    : const Icon(Icons.keyboard_arrow_down,
+                        color: Color(0xFF787878))
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class TasksListView extends StatelessWidget {
   final Stream<Iterable<BaseTask>> tasks;
   final bool visible;
@@ -211,11 +401,10 @@ class TasksListView extends StatelessWidget {
                   horizontal: 15,
                   vertical: 4.0,
                 ),
-                // TODO: make task.id mandatory
                 child: MovableListItem(
                     selectionItem:
-                        SelectionItem(task.id!, parentId: task.parentId),
-                    child: TaskCardWidget(key: Key(task.id!), task: task)),
+                        SelectionItem(task.id, parentId: task.parentId),
+                    child: TaskCardWidget(key: Key(task.id), task: task)),
               );
             },
           ).toList(),

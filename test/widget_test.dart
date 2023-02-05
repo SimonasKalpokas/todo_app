@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/providers/selection_provider.dart';
@@ -25,22 +26,33 @@ class MockFirestoreService extends Mock implements FirestoreService {
       StreamController();
   StreamController<Iterable<BaseTaskListenable>> undoneStreamController =
       StreamController();
-  var one = CheckedTaskListenable(null, "One", "one desc", Reoccurrence.daily)
-    ..id = "abc";
+  var one = CheckedTaskListenable.fromMap({
+    "id": "abc",
+    "createdAt": DateTime.now().toIso8601String(),
+    "name": "One",
+    "description": "one desc",
+    "type": TaskType.checked.index,
+    "reoccurrence": Reoccurrence.daily.index,
+  });
 
   MockFirestoreService() {
     undoneStreamController.add([
       TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
-          Reoccurrence.notRepeating, const Duration(days: 1))
-        ..id = "abcd",
+          Reoccurrence.notRepeating, const Duration(days: 1)),
       one,
-      CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly)
-        ..id = "abce",
+      CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly),
       CheckedTaskListenable(
           null, "Three", "three desc", Reoccurrence.notRepeating)
-        ..id = "abcf",
     ]);
     doneStreamController.add(const Iterable.empty());
+  }
+  @override
+  Stream<Iterable<Category>> getCategories() {
+    return Stream.value([
+      Category(0xFF000000, "Category 1"),
+      Category(0xFF000000, "Category 2"),
+      Category(0xFF000000, "Category 3"),
+    ]);
   }
 
   @override
@@ -55,17 +67,14 @@ class MockFirestoreService extends Mock implements FirestoreService {
   @override
   Future<void> updateTaskFields(
       String? parentId, String? taskId, Map<String, dynamic> fields) async {
-    if (taskId == "abc" && fields.length == 1 && fields["lastDoneOn"] != null) {
+    if (fields.length == 1 && fields["lastDoneOn"] != null) {
       one.lastDoneOn = DateTime.parse(fields["lastDoneOn"]);
       undoneStreamController.add([
         TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
-            Reoccurrence.notRepeating, const Duration(days: 1))
-          ..id = "abcd",
-        CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly)
-          ..id = "abce",
+            Reoccurrence.notRepeating, const Duration(days: 1)),
+        CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly),
         CheckedTaskListenable(
             null, "Three", "three desc", Reoccurrence.notRepeating)
-          ..id = "abcf",
       ]);
       doneStreamController.add([one]);
     } else {
@@ -77,9 +86,13 @@ class MockFirestoreService extends Mock implements FirestoreService {
 void main() {
   testWidgets('Widget loading test', (WidgetTester tester) async {
     final mockFirestoreService = MockFirestoreService();
+    var categories = await mockFirestoreService.getCategories().first;
     // Build our app and trigger a frame.
     await tester.pumpWidget(MultiProvider(
       providers: [
+        StreamProvider<Iterable<Category>>.value(
+            value: mockFirestoreService.getCategories(),
+            initialData: categories),
         Provider<FirestoreService>(
           create: (_) => mockFirestoreService,
         ),
