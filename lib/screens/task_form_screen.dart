@@ -8,8 +8,6 @@ import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:collection/collection.dart';
 
-import '../custom_icons.dart';
-
 class TaskFormScreen extends StatelessWidget {
   final String? parentId;
   final BaseTask? task;
