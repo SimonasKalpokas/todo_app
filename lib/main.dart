@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/providers/selection_provider.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
@@ -105,10 +106,12 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Nunito',
       ),
       darkTheme: ThemeData(
+        fontFamily: 'Nunito',
+        primaryColor: primaryColor,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF484848),
+          backgroundColor: headerFooterColor,
           titleTextStyle: TextStyle(
-            color: Color(0xFFFFDD33),
+            color: primaryColor,
             fontSize: 28,
             fontWeight: FontWeight.bold,
             fontFamily: 'Nunito',
@@ -116,25 +119,35 @@ class MyApp extends StatelessWidget {
           toolbarHeight: 76,
           titleSpacing: 16,
         ),
+        dialogBackgroundColor: backgroundColor,
+        dialogTheme: const DialogTheme(
+          titleTextStyle: TextStyle(
+            color: primaryColor,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Nunito',
+          ),
+        ),
         inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFF383838),
+            fillColor: tasksColor,
+            hintStyle: const TextStyle(color: white2),
             enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFE3E3E3)),
+                borderSide: const BorderSide(color: white2),
                 borderRadius: BorderRadius.circular(5)),
             focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFE3E3E3)),
+                borderSide: const BorderSide(color: white2),
                 borderRadius: BorderRadius.circular(5)),
             contentPadding:
                 const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
-        scaffoldBackgroundColor: const Color(0xFF282828),
+        scaffoldBackgroundColor: backgroundColor,
         textTheme: const TextTheme(
           bodyMedium: TextStyle(fontWeight: FontWeight.bold),
           labelLarge: TextStyle(fontWeight: FontWeight.bold),
           labelMedium: TextStyle(fontWeight: FontWeight.bold),
         ),
         tabBarTheme: const TabBarTheme(
-          indicator: BoxDecoration(color: Color(0xFFFFEC8D)),
+          indicator: BoxDecoration(color: primaryColorLight),
           labelColor: Colors.black,
           unselectedLabelColor: Color(0xFF737373),
           labelStyle: TextStyle(
@@ -143,10 +156,9 @@ class MyApp extends StatelessWidget {
               fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
         ),
         checkboxTheme: CheckboxThemeData(
-          side: const BorderSide(color: Color(0xFFE3E3E3)),
+          side: const BorderSide(color: white2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         ),
-        fontFamily: 'Nunito',
       ),
       home: Builder(
         builder: (context) => const TasksViewScreen(

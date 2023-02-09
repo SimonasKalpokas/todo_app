@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../constants.dart';
 import '../../services/firestore_service.dart';
 
 class ChooseMainCollectionDialog extends StatefulWidget {
@@ -28,6 +29,7 @@ class _ChooseMainCollectionDialogState
     return AlertDialog(
         title: const Text('Choose main collection'),
         content: TextField(
+          style: const TextStyle(color: white1),
           autofocus: true,
           decoration: const InputDecoration(hintText: 'Main collection'),
           controller: mainCollectionController,
