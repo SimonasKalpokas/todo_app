@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/parent_task.dart';
 import 'package:todo_app/models/timed_task.dart';
+import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:collection/collection.dart';
 
@@ -127,6 +127,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     final categories = Provider.of<Iterable<Category>>(context);
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     return Scaffold(
       bottomNavigationBar: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -136,12 +137,12 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               padding: const EdgeInsets.fromLTRB(12.0, 0, 6.0, 8.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
+                    backgroundColor: appColors.primaryColor,
                     minimumSize: const Size.fromHeight(43)),
-                child: const Text(
+                child: Text(
                   "Save",
                   style: TextStyle(
-                      color: buttonColor,
+                      color: appColors.buttonTextColor,
                       fontSize: 20,
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.bold),
@@ -209,8 +210,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               child: TextButton(
                   style: TextButton.styleFrom(
                       minimumSize: const Size.fromHeight(43)),
-                  child: const Text("Cancel",
-                      style: TextStyle(color: primaryColor, fontSize: 20)),
+                  child: Text("Cancel",
+                      style: TextStyle(
+                          color: appColors.primaryColor, fontSize: 20)),
                   onPressed: () {
                     Navigator.pop(context);
                   }),
@@ -230,7 +232,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   hintText: "Enter task name",
                   contentPadding: EdgeInsets.fromLTRB(12, 8, 12, 8),
                 ),
-                style: const TextStyle(fontSize: 20, color: white1),
+                style: TextStyle(fontSize: 20, color: appColors.secondaryColor),
                 controller: nameController,
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
@@ -243,7 +245,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               TextFormField(
                 controller: descriptionController,
                 keyboardType: TextInputType.multiline,
-                style: const TextStyle(fontSize: 18, color: white1),
+                style: TextStyle(fontSize: 18, color: appColors.secondaryColor),
                 decoration: const InputDecoration(
                     contentPadding: EdgeInsets.fromLTRB(12, 8, 12, 8)),
                 maxLines: 4,
@@ -259,11 +261,14 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 child: Row(
                   children: [
                     showExtra
-                        ? const Icon(Icons.keyboard_arrow_down, color: white1)
-                        : const Icon(Icons.keyboard_arrow_right, color: white1),
-                    const Text(
+                        ? Icon(Icons.keyboard_arrow_down,
+                            color: appColors.secondaryColor)
+                        : Icon(Icons.keyboard_arrow_right,
+                            color: appColors.secondaryColor),
+                    Text(
                       "Advanced",
-                      style: TextStyle(fontSize: 16, color: white1),
+                      style: TextStyle(
+                          fontSize: 16, color: appColors.secondaryColor),
                     ),
                   ],
                 ),
@@ -274,9 +279,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   child: Container(
                     height: 40,
                     decoration: BoxDecoration(
-                      color: tasksColor,
+                      color: appColors.taskBackgroundColor,
                       borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: white2),
+                      border: Border.all(color: appColors.borderColor),
                     ),
                     child: TabBar(
                       labelStyle: Theme.of(context)
@@ -325,9 +330,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             Container(
                               height: 35,
                               decoration: BoxDecoration(
-                                color: tasksColor,
+                                color: appColors.taskBackgroundColor,
                                 borderRadius: BorderRadius.circular(5),
-                                border: Border.all(color: white2),
+                                border:
+                                    Border.all(color: appColors.borderColor),
                               ),
                               child: TabBar(
                                 onTap: (index) {
@@ -363,9 +369,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             Container(
                               height: 22,
                               decoration: BoxDecoration(
-                                color: tasksColor,
+                                color: appColors.taskBackgroundColor,
                                 borderRadius: BorderRadius.circular(5),
-                                border: Border.all(color: white2),
+                                border:
+                                    Border.all(color: appColors.borderColor),
                               ),
                               child: TabBar(
                                 controller: startingTabController,
@@ -390,19 +397,19 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       : DefaultTextStyle(
                           style: TextStyle(
                               fontSize: 11,
-                              color: white2.withOpacity(0.7),
+                              color: appColors.borderColor.withOpacity(0.7),
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Nunito'),
                           child: Row(children: [
                             const Text("Repeats "),
                             Text(
                               reoccurrence.displayTitle,
-                              style: const TextStyle(color: white2),
+                              style: TextStyle(color: appColors.borderColor),
                             ),
                             const Text(' starting '),
-                            const Text(
+                            Text(
                               '8th of August, 2023',
-                              style: TextStyle(color: white2),
+                              style: TextStyle(color: appColors.borderColor),
                             ),
                             const Spacer(),
                             TextButton(
@@ -416,10 +423,11 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                                     });
                                   }
                                 },
-                                child: const Text(
+                                child: Text(
                                   'Modify',
                                   style: TextStyle(
-                                      color: primaryColor, fontSize: 11),
+                                      color: appColors.primaryColor,
+                                      fontSize: 11),
                                 ))
                           ]),
                         ),
@@ -430,9 +438,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   child: Container(
                     height: 30,
                     decoration: BoxDecoration(
-                      color: tasksColor,
+                      color: appColors.taskBackgroundColor,
                       borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: white2),
+                      border: Border.all(color: appColors.borderColor),
                     ),
                     child: TabBar(
                       onTap: (index) {
@@ -487,13 +495,13 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       : DefaultTextStyle(
                           style: TextStyle(
                               fontSize: 11,
-                              color: white2.withOpacity(0.7),
+                              color: appColors.borderColor.withOpacity(0.7),
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Nunito'),
                           child: Row(children: [
                             Text(
                                 '${hoursController.text} hours ${minutesController.text} minutes',
-                                style: const TextStyle(color: white2)),
+                                style: TextStyle(color: appColors.borderColor)),
                             const Text(' to complete'),
                             const Spacer(),
                             TextButton(
@@ -508,10 +516,11 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                                     });
                                   }
                                 },
-                                child: const Text(
+                                child: Text(
                                   'Modify',
                                   style: TextStyle(
-                                      color: primaryColor, fontSize: 11),
+                                      color: appColors.primaryColor,
+                                      fontSize: 11),
                                 ))
                           ]),
                         ),
@@ -546,8 +555,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   },
                   trailing: Checkbox(
                       value: isParent,
-                      activeColor: primaryColorLight,
-                      checkColor: tasksColor,
+                      activeColor: appColors.primaryColorLight,
+                      checkColor: appColors.taskBackgroundColor,
                       onChanged: (value) {
                         setState(() {
                           isParent = value!;

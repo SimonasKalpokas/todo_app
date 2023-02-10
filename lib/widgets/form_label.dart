@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/constants.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/color_provider.dart';
 
 class FormLabel extends StatelessWidget {
   final String text;
@@ -8,11 +10,12 @@ class FormLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     return Padding(
       padding: const EdgeInsets.only(top: 12.0),
       child: Text(
         text,
-        style: TextStyle(color: white2, fontSize: fontSize),
+        style: TextStyle(color: appColors.borderColor, fontSize: fontSize),
       ),
     );
   }

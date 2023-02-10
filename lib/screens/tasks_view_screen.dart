@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
 
+import '../providers/color_provider.dart';
 import '../providers/selection_provider.dart';
 import '../widgets/dialogs/category_settings_dialog.dart';
 import '../widgets/dialogs/choose_main_collection_dialog.dart';
@@ -30,6 +30,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
     final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
     final selectionProvider = Provider.of<SelectionProvider>(context);
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
     var doneTasks = firestoreService.getTasks(parentTask?.id, false);
     return Scaffold(
@@ -40,8 +41,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
         leading: parentTask == null
             ? null
             : IconButton(
-                icon: const Icon(Icons.keyboard_arrow_left,
-                    color: primaryColorLight),
+                icon: Icon(Icons.keyboard_arrow_left,
+                    color: appColors.primaryColorLight),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -60,9 +61,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 },
               );
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.settings,
-              color: primaryColorLight,
+              color: appColors.primaryColorLight,
             ),
           ),
           IconButton(
@@ -73,14 +74,14 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                       categories: Provider.of<Iterable<Category>>(context,
                           listen: false)));
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.category,
-              color: primaryColorLight,
+              color: appColors.primaryColorLight,
             ),
           ),
           parentTask != null
               ? IconButton(
-                  icon: const Icon(Icons.edit, color: primaryColorLight),
+                  icon: Icon(Icons.edit, color: appColors.primaryColorLight),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -111,13 +112,14 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                     Text(
                       "Completed",
                       style: TextStyle(
-                          fontSize: 18, color: white2.withOpacity(0.5)),
+                          fontSize: 18,
+                          color: appColors.borderColor.withOpacity(0.5)),
                     ),
                     showDone
                         ? Icon(Icons.keyboard_arrow_up,
-                            color: white2.withOpacity(0.5))
+                            color: appColors.borderColor.withOpacity(0.5))
                         : Icon(Icons.keyboard_arrow_down,
-                            color: white2.withOpacity(0.5)),
+                            color: appColors.borderColor.withOpacity(0.5)),
                   ],
                 ),
               ),
@@ -137,9 +139,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                           TaskFormScreen(parentId: parentTask?.id)),
                 );
               },
-              backgroundColor: headerFooterColor,
+              backgroundColor: appColors.headerFooterColor,
               tooltip: 'Add a task',
-              child: const Icon(Icons.add, color: primaryColor),
+              child: Icon(Icons.add, color: appColors.primaryColor),
             ),
       persistentFooterButtons: selectionProvider.state ==
               SelectionState.inactive

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/constants.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/color_provider.dart';
 import 'not_implemented_alert.dart';
 
 const pickerColors = [
@@ -30,6 +31,8 @@ class ColorPickerFormField extends FormField<Color> {
                 : AutovalidateMode.disabled,
             builder: (FormFieldState<Color> field) {
               final state = field as _ColorPickerFormFieldState;
+              final appColors =
+                  Provider.of<ColorProvider>(state.context).appColors;
               return InputDecorator(
                 decoration: InputDecoration(
                   enabledBorder: const OutlineInputBorder(
@@ -57,15 +60,15 @@ class ColorPickerFormField extends FormField<Color> {
                                         shape: BoxShape.circle,
                                         color: color,
                                         border: Border.all(
-                                            color: white2,
+                                            color: appColors.borderColor,
                                             width: 0.5,
                                             style: BorderStyle.solid),
                                       ),
                                       child: state.value == color
-                                          ? const Icon(
+                                          ? Icon(
                                               Icons.check,
                                               size: 15,
-                                              color: backgroundColor,
+                                              color: appColors.backgroundColor,
                                             )
                                           : null,
                                     ),

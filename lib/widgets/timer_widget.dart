@@ -7,6 +7,7 @@ import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/category.dart';
 
 import '../models/timed_task.dart';
+import '../providers/color_provider.dart';
 
 class TimerWidget extends StatefulWidget {
   final TimedTask timedTask;
@@ -70,6 +71,7 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     var category = widget.timedTask.categoryId != null
         ? Provider.of<Iterable<Category>>(context)
             .firstWhereOrNull((c) => c.id == widget.timedTask.categoryId)
@@ -86,14 +88,14 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
         widget.timedTask.executing
             ? IconButton(
                 icon: const Icon(Icons.pause),
-                color: categoryColor ?? white2,
+                color: categoryColor ?? appColors.borderColor,
                 onPressed: () {
                   widget.timedTask.stopExecution();
                 },
               )
             : IconButton(
                 icon: const Icon(Icons.play_arrow),
-                color: categoryColor ?? white2,
+                color: categoryColor ?? appColors.borderColor,
                 onPressed: () {
                   widget.timedTask.startExecution();
                 },
@@ -103,16 +105,18 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
           children: [
             Text(
               '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}',
-              style: const TextStyle(fontSize: fontSize * 8 / 9, color: white1),
+              style: TextStyle(
+                  fontSize: fontSize * 8 / 9, color: appColors.secondaryColor),
             ),
             Container(
                 height: 5,
                 width: 65,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
-                    color: tasksColor,
-                    border:
-                        Border.all(color: categoryColor ?? white2, width: 1)),
+                    color: appColors.taskBackgroundColor,
+                    border: Border.all(
+                        color: categoryColor ?? appColors.borderColor,
+                        width: 1)),
                 child: Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
@@ -125,7 +129,7 @@ class _TimerWidgetState extends State<TimerWidget> with WidgetsBindingObserver {
                         borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(5.0),
                             bottomLeft: Radius.circular(5.0)),
-                        color: categoryColor ?? white2,
+                        color: categoryColor ?? appColors.borderColor,
                       ),
                     ))),
           ],

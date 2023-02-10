@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../constants.dart';
 import '../../models/category.dart';
+import '../../providers/color_provider.dart';
 import '../../services/firestore_service.dart';
 
 class CategorySettingsDialog extends StatefulWidget {
@@ -27,17 +27,20 @@ class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     return AlertDialog(
         title: const Text('Category settings'),
         content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButton<Category?>(
               value: category,
-              dropdownColor: backgroundColor,
+              dropdownColor: appColors.backgroundColor,
               items: [
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: null,
-                  child: Text('None', style: TextStyle(color: white1)),
+                  child: Text('None',
+                      style: TextStyle(color: appColors.secondaryColor)),
                 ),
                 ...widget.categories.map((c) => DropdownMenuItem(
                       value: c,
@@ -57,7 +60,7 @@ class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
               autofocus: true,
               decoration: const InputDecoration(hintText: 'New category name'),
               controller: categoryNameController,
-              style: const TextStyle(color: white1),
+              style: TextStyle(color: appColors.secondaryColor),
             ),
           ],
         ),

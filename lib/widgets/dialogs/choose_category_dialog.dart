@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/constants.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/category.dart';
+import '../../providers/color_provider.dart';
 import 'category_create_dialog.dart';
 
 class ChooseCategoryDialog extends StatefulWidget {
@@ -25,12 +26,13 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     return AlertDialog(
       contentPadding: const EdgeInsets.only(top: 10),
-      backgroundColor: backgroundColor,
-      title: const Text(
+      backgroundColor: appColors.backgroundColor,
+      title: Text(
         'Select a category',
-        style: TextStyle(fontSize: 24, color: primaryColor),
+        style: TextStyle(fontSize: 24, color: appColors.primaryColor),
       ),
       content: SizedBox(
         height: MediaQuery.of(context).size.height,
@@ -46,7 +48,8 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
                       minLeadingWidth: 10,
                       horizontalTitleGap: 15,
                       title: Text(category.name,
-                          style: const TextStyle(fontSize: 14, color: white1)),
+                          style: TextStyle(
+                              fontSize: 14, color: appColors.secondaryColor)),
                       leading: SizedBox(
                         height: double.infinity,
                         child: CircleAvatar(
@@ -61,7 +64,7 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
                         });
                       },
                       trailing: this.category == category
-                          ? const Icon(Icons.check, color: white2)
+                          ? Icon(Icons.check, color: appColors.borderColor)
                           : null,
                     ))
                 .followedBy([
@@ -72,9 +75,11 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
                 horizontalTitleGap: 13,
                 title: Text('Add new..',
                     style: TextStyle(
-                        fontSize: 14, color: white1.withOpacity(0.75))),
-                leading:
-                    Icon(Icons.add, size: 15, color: white1.withOpacity(0.75)),
+                        fontSize: 14,
+                        color: appColors.secondaryColor.withOpacity(0.75))),
+                leading: Icon(Icons.add,
+                    size: 15,
+                    color: appColors.secondaryColor.withOpacity(0.75)),
                 onTap: () {
                   showDialog(
                     context: context,
@@ -95,8 +100,9 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
         Padding(
           padding: const EdgeInsets.only(bottom: 20, left: 40),
           child: TextButton(
-              child: const Text("Cancel",
-                  style: TextStyle(color: primaryColorLight, fontSize: 20)),
+              child: Text("Cancel",
+                  style: TextStyle(
+                      color: appColors.primaryColorLight, fontSize: 20)),
               onPressed: () {
                 Navigator.pop(context, category);
               }),

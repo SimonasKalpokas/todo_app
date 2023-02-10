@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_app/providers/color_provider.dart';
 
 import 'not_implemented_alert.dart';
 
@@ -17,6 +18,7 @@ class AddIconTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     return Row(
       children: [
         TextButton.icon(
@@ -25,9 +27,11 @@ class AddIconTextButton extends StatelessWidget {
                 notImplementedAlert(context);
               },
           style: const ButtonStyle(alignment: Alignment.centerLeft),
-          icon: Icon(iconData, color: white2.withOpacity(0.8), size: 25),
+          icon: Icon(iconData,
+              color: appColors.borderColor.withOpacity(0.8), size: 25),
           label: Text(label,
-              style: TextStyle(color: white2.withOpacity(0.8), fontSize: 14)),
+              style: TextStyle(
+                  color: appColors.borderColor.withOpacity(0.8), fontSize: 14)),
         ),
         const Spacer(),
         trailing ?? const SizedBox.shrink(),

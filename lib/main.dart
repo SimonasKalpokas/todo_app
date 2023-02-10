@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/category.dart';
+import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/providers/selection_provider.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
@@ -31,7 +31,6 @@ Future<void> initialiseDb() async {
   }
 }
 
-// TODO: add different lists of tasks
 // TODO: show most recent tasks on top
 Future<void> main() async {
   await initialiseDb();
@@ -44,6 +43,7 @@ Future<void> main() async {
   runApp(MultiProvider(
     providers: [
       Provider(create: (_) => firestoreService),
+      ChangeNotifierProvider(create: (_) => ColorProvider(prefs)),
       StreamProvider<Iterable<Category>>.value(
           value: firestoreService.getCategories(),
           initialData: initialCategories),
@@ -59,13 +59,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var appColors = Provider.of<ColorProvider>(context).appColors;
     return MaterialApp(
       title: 'ToDo App',
       theme: ThemeData(
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFFFD699),
+        fontFamily: 'Nunito',
+        primaryColor: appColors.primaryColor,
+        appBarTheme: AppBarTheme(
+          backgroundColor: appColors.headerFooterColor,
           titleTextStyle: TextStyle(
-            color: Colors.black,
+            color: appColors.primaryColor,
             fontSize: 28,
             fontWeight: FontWeight.bold,
             fontFamily: 'Nunito',
@@ -73,56 +76,10 @@ class MyApp extends StatelessWidget {
           toolbarHeight: 76,
           titleSpacing: 16,
         ),
-        inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: Colors.white,
-            enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFFFD699)),
-                borderRadius: BorderRadius.circular(5)),
-            focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFFFD699)),
-                borderRadius: BorderRadius.circular(5)),
-            contentPadding:
-                const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
-        scaffoldBackgroundColor: const Color(0xFFFFF9F1),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(fontWeight: FontWeight.bold),
-          labelLarge: TextStyle(fontWeight: FontWeight.bold),
-          labelMedium: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        tabBarTheme: const TabBarTheme(
-          indicator: BoxDecoration(color: Color(0xFFFFC36A)),
-          labelColor: Colors.black,
-          unselectedLabelColor: Color(0xFF737373),
-          labelStyle: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
-          unselectedLabelStyle: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
-        ),
-        checkboxTheme: CheckboxThemeData(
-          side: const BorderSide(color: Color(0xFFFFD699)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-        ),
-        fontFamily: 'Nunito',
-      ),
-      darkTheme: ThemeData(
-        fontFamily: 'Nunito',
-        primaryColor: primaryColor,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: headerFooterColor,
+        dialogBackgroundColor: appColors.backgroundColor,
+        dialogTheme: DialogTheme(
           titleTextStyle: TextStyle(
-            color: primaryColor,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Nunito',
-          ),
-          toolbarHeight: 76,
-          titleSpacing: 16,
-        ),
-        dialogBackgroundColor: backgroundColor,
-        dialogTheme: const DialogTheme(
-          titleTextStyle: TextStyle(
-            color: primaryColor,
+            color: appColors.primaryColor,
             fontSize: 28,
             fontWeight: FontWeight.bold,
             fontFamily: 'Nunito',
@@ -130,33 +87,33 @@ class MyApp extends StatelessWidget {
         ),
         inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: tasksColor,
-            hintStyle: const TextStyle(color: white2),
+            fillColor: appColors.taskBackgroundColor,
+            hintStyle: TextStyle(color: appColors.borderColor),
             enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: white2),
+                borderSide: BorderSide(color: appColors.borderColor),
                 borderRadius: BorderRadius.circular(5)),
             focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: white2),
+                borderSide: BorderSide(color: appColors.borderColor),
                 borderRadius: BorderRadius.circular(5)),
             contentPadding:
                 const EdgeInsets.only(left: 8.0, top: 10, bottom: 10)),
-        scaffoldBackgroundColor: backgroundColor,
+        scaffoldBackgroundColor: appColors.backgroundColor,
         textTheme: const TextTheme(
           bodyMedium: TextStyle(fontWeight: FontWeight.bold),
           labelLarge: TextStyle(fontWeight: FontWeight.bold),
           labelMedium: TextStyle(fontWeight: FontWeight.bold),
         ),
-        tabBarTheme: const TabBarTheme(
-          indicator: BoxDecoration(color: primaryColorLight),
+        tabBarTheme: TabBarTheme(
+          indicator: BoxDecoration(color: appColors.primaryColorLight),
           labelColor: Colors.black,
-          unselectedLabelColor: Color(0xFF737373),
-          labelStyle: TextStyle(
+          unselectedLabelColor: const Color(0xFF737373),
+          labelStyle: const TextStyle(
               fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
-          unselectedLabelStyle: TextStyle(
+          unselectedLabelStyle: const TextStyle(
               fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
         ),
         checkboxTheme: CheckboxThemeData(
-          side: const BorderSide(color: white2),
+          side: BorderSide(color: appColors.borderColor),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         ),
       ),

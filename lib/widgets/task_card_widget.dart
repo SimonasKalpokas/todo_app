@@ -7,6 +7,7 @@ import 'package:todo_app/widgets/timer_widget.dart';
 
 import '../models/base_task.dart';
 import '../models/category.dart';
+import '../providers/color_provider.dart';
 import '../screens/task_form_screen.dart';
 import '../screens/tasks_view_screen.dart';
 import '../services/firestore_service.dart';
@@ -26,6 +27,7 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
     var categories = Provider.of<Iterable<Category>>(context);
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     var category = widget.task.categoryId != null
         ? categories.firstWhere((c) => c.id == widget.task.categoryId)
         : null;
@@ -50,9 +52,11 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
               color: widget.task.isDone
-                  ? white2.withOpacity(0.4)
-                  : categoryColor ?? white2),
-          color: widget.task.isDone ? tasksColor.withOpacity(0.4) : tasksColor,
+                  ? appColors.borderColor.withOpacity(0.4)
+                  : categoryColor ?? appColors.borderColor),
+          color: widget.task.isDone
+              ? appColors.taskBackgroundColor.withOpacity(0.4)
+              : appColors.taskBackgroundColor,
         ),
         child: IntrinsicHeight(
           child: Row(
@@ -67,9 +71,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                   ),
                   color: widget.task.isDone
                       ? (category != null
-                          ? white2.withOpacity(0.4)
+                          ? appColors.borderColor.withOpacity(0.4)
                           : Colors.transparent)
-                      : categoryColor ?? tasksColor,
+                      : categoryColor ?? appColors.taskBackgroundColor,
                 ),
               ),
               Expanded(
@@ -96,7 +100,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                         style: TextStyle(
                                             fontSize: fontSize * 0.6,
                                             color: widget.task.isDone
-                                                ? white1.withOpacity(0.4)
+                                                ? appColors.secondaryColor
+                                                    .withOpacity(0.4)
                                                 : categoryColor),
                                       ),
                                     Text(
@@ -106,8 +111,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         color: widget.task.isDone
-                                            ? white1.withOpacity(0.4)
-                                            : white1,
+                                            ? appColors.secondaryColor
+                                                .withOpacity(0.4)
+                                            : appColors.secondaryColor,
                                       ),
                                     ),
                                   ],
@@ -119,7 +125,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                         if (widget.task.reoccurrence !=
                                 Reoccurrence.notRepeating &&
                             widget.task.isDone) // TODO: add time until refresh
-                          Icon(Icons.repeat, color: white2.withOpacity(0.75)),
+                          Icon(Icons.repeat,
+                              color: appColors.borderColor.withOpacity(0.75)),
                         if (widget.task is TimedTask && !widget.task.isDone)
                           Padding(
                             padding: const EdgeInsets.only(left: 10.0),
@@ -130,7 +137,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                             ? Padding(
                                 padding: const EdgeInsets.only(right: 10),
                                 child: Icon(Icons.folder,
-                                    color: categoryColor ?? white2))
+                                    color:
+                                        categoryColor ?? appColors.borderColor))
                             : Checkbox(
                                 onChanged: (bool? value) {
                                   firestoreService.updateTaskFields(
@@ -141,11 +149,13 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                   });
                                 },
                                 value: widget.task.isDone,
-                                side:
-                                    BorderSide(color: categoryColor ?? white2),
+                                side: BorderSide(
+                                    color:
+                                        categoryColor ?? appColors.borderColor),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5)),
-                                activeColor: white2.withOpacity(0.4),
+                                activeColor:
+                                    appColors.borderColor.withOpacity(0.4),
                               ),
                       ],
                     ),
@@ -164,7 +174,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                     height: 15,
                                   ),
                                   Container(
-                                    color: white2.withOpacity(0.4),
+                                    color:
+                                        appColors.borderColor.withOpacity(0.4),
                                     height: 1,
                                     width: 140,
                                   ),
@@ -174,7 +185,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                   if (widget.task.description.isNotEmpty)
                                     Text(widget.task.description,
                                         style: TextStyle(
-                                            color: white1.withOpacity(0.75))),
+                                            color: appColors.secondaryColor
+                                                .withOpacity(0.75))),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 10.0, horizontal: 0.0),
@@ -191,18 +203,20 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                                 widget.task.parentId,
                                                 widget.task.id);
                                           },
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.delete,
-                                            color: red,
+                                            color: appColors.red,
                                           ),
-                                          label: const Text(
+                                          label: Text(
                                             'Delete',
                                             style: TextStyle(
-                                                color: red, fontSize: 12),
+                                                color: appColors.red,
+                                                fontSize: 12),
                                           ),
                                         ),
                                         Container(
-                                          color: white2.withOpacity(0.4),
+                                          color: appColors.borderColor
+                                              .withOpacity(0.4),
                                           width: 1,
                                           height: 12,
                                         ),
@@ -220,17 +234,20 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                           },
                                           icon: Icon(
                                             Icons.edit,
-                                            color: categoryColor ?? white2,
+                                            color: categoryColor ??
+                                                appColors.borderColor,
                                           ),
                                           label: Text(
                                             'Edit',
                                             style: TextStyle(
-                                                color: categoryColor ?? white2,
+                                                color: categoryColor ??
+                                                    appColors.borderColor,
                                                 fontSize: 12),
                                           ),
                                         ),
                                         Container(
-                                          color: white2.withOpacity(0.4),
+                                          color: appColors.borderColor
+                                              .withOpacity(0.4),
                                           width: 1,
                                           height: 12,
                                         ),
@@ -245,12 +262,14 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                           },
                                           icon: Icon(
                                             Icons.done,
-                                            color: categoryColor ?? white2,
+                                            color: categoryColor ??
+                                                appColors.borderColor,
                                           ),
                                           label: Text(
                                             'Mark as complete',
                                             style: TextStyle(
-                                                color: categoryColor ?? white2,
+                                                color: categoryColor ??
+                                                    appColors.borderColor,
                                                 fontSize: 12),
                                           ),
                                         ),
