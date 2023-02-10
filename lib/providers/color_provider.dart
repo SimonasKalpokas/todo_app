@@ -27,6 +27,7 @@ const colorThemes = {
 };
 
 class ColorProvider with ChangeNotifier {
+  static const String defaultTheme = "dark";
   late String _theme;
   late AppColors _appColors;
   final SharedPreferences _prefs;
@@ -35,9 +36,9 @@ class ColorProvider with ChangeNotifier {
   AppColors get appColors => _appColors;
 
   ColorProvider(SharedPreferences prefs) : _prefs = prefs {
-    _theme = _prefs.getString("theme") ?? "light";
+    _theme = _prefs.getString("theme") ?? defaultTheme;
     if (!colorThemes.containsKey(_theme)) {
-      _theme = "light";
+      _theme = defaultTheme;
     }
     _appColors = colorThemes[_theme]!;
   }
@@ -45,7 +46,7 @@ class ColorProvider with ChangeNotifier {
   Future<void> setAppColors(String theme) async {
     _theme = theme;
     if (!colorThemes.containsKey(_theme)) {
-      _theme = "light";
+      _theme = defaultTheme;
     }
     await _prefs.setString("theme", _theme);
     _appColors = colorThemes[_theme]!;
