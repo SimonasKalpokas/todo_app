@@ -11,10 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/timed_task.dart';
+import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/providers/selection_provider.dart';
 
 import 'package:todo_app/screens/tasks_view_screen.dart';
@@ -87,6 +89,8 @@ void main() {
   testWidgets('Widget loading test', (WidgetTester tester) async {
     final mockFirestoreService = MockFirestoreService();
     var categories = await mockFirestoreService.getCategories().first;
+    SharedPreferences.setMockInitialValues({});
+    var prefs = await SharedPreferences.getInstance();
     // Build our app and trigger a frame.
     await tester.pumpWidget(MultiProvider(
       providers: [
@@ -97,6 +101,7 @@ void main() {
           create: (_) => mockFirestoreService,
         ),
         ChangeNotifierProvider(create: (_) => SelectionProvider()),
+        ChangeNotifierProvider(create: (_) => ColorProvider(prefs)),
       ],
       child: const MaterialApp(
           home: TasksViewScreen(

@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/timed_task.dart';
+import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:todo_app/widgets/timer_widget.dart';
 
@@ -44,9 +46,12 @@ void main() {
   testWidgets('Timer test', (WidgetTester tester) async {
     await withClock(Clock(() => dateTime.dateTime), () async {
       final mockFirestoreService = MockFirestoreService();
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
 
       await tester.pumpWidget(MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => ColorProvider(prefs)),
           Provider<FirestoreService>(
             create: (_) => mockFirestoreService,
           ),
