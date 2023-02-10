@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/constants.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
 
+import '../providers/color_provider.dart';
 import '../providers/selection_provider.dart';
+import '../widgets/dialogs/category_settings_dialog.dart';
+import '../widgets/dialogs/choose_main_collection_dialog.dart';
 import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatefulWidget {
@@ -28,6 +30,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
     final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
     final selectionProvider = Provider.of<SelectionProvider>(context);
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
     var doneTasks = firestoreService.getTasks(parentTask?.id, false);
     return Scaffold(
@@ -38,8 +41,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
         leading: parentTask == null
             ? null
             : IconButton(
-                icon:
-                    const Icon(Icons.keyboard_arrow_left, color: Colors.black),
+                icon: Icon(Icons.keyboard_arrow_left,
+                    color: appColors.primaryColorLight),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -58,9 +61,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 },
               );
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.settings,
-              color: Color(0xFF666666),
+              color: appColors.primaryColorLight,
             ),
           ),
           IconButton(
@@ -71,14 +74,14 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                       categories: Provider.of<Iterable<Category>>(context,
                           listen: false)));
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.category,
-              color: Color(0xFF666666),
+              color: appColors.primaryColorLight,
             ),
           ),
           parentTask != null
               ? IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
+                  icon: Icon(Icons.edit, color: appColors.primaryColorLight),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -106,15 +109,17 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 },
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       "Completed",
-                      style: TextStyle(fontSize: 18, color: Color(0xFF787878)),
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: appColors.borderColor.withOpacity(0.5)),
                     ),
                     showDone
-                        ? const Icon(Icons.keyboard_arrow_up,
-                            color: Color(0xFF787878))
-                        : const Icon(Icons.keyboard_arrow_down,
-                            color: Color(0xFF787878))
+                        ? Icon(Icons.keyboard_arrow_up,
+                            color: appColors.borderColor.withOpacity(0.5))
+                        : Icon(Icons.keyboard_arrow_down,
+                            color: appColors.borderColor.withOpacity(0.5)),
                   ],
                 ),
               ),
@@ -134,8 +139,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                           TaskFormScreen(parentId: parentTask?.id)),
                 );
               },
+              backgroundColor: appColors.headerFooterColor,
               tooltip: 'Add a task',
-              child: const Icon(Icons.add),
+              child: Icon(Icons.add, color: appColors.primaryColor),
             ),
       persistentFooterButtons: selectionProvider.state ==
               SelectionState.inactive
@@ -191,181 +197,6 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                   child: const Text("Move here"),
                 ),
             ],
-    );
-  }
-}
-
-class CategorySettingsDialog extends StatefulWidget {
-  final Iterable<Category> categories;
-
-  const CategorySettingsDialog({Key? key, required this.categories})
-      : super(key: key);
-
-  @override
-  State<CategorySettingsDialog> createState() => _CategorySettingsDialogState();
-}
-
-class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
-  final categoryNameController = TextEditingController();
-  Category? category;
-
-  @override
-  void dispose() {
-    categoryNameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-        title: const Text('Category settings'),
-        content: Column(
-          children: [
-            DropdownButton<Category?>(
-              value: category,
-              items: [
-                const DropdownMenuItem(
-                  value: null,
-                  child: Text('None'),
-                ),
-                ...widget.categories.map((c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(
-                        c.name,
-                        style: TextStyle(color: Color(c.colorValue)),
-                      ),
-                    ))
-              ],
-              onChanged: (value) {
-                setState(() {
-                  category = value;
-                });
-              },
-            ),
-            TextField(
-              autofocus: true,
-              decoration: const InputDecoration(hintText: 'New category name'),
-              controller: categoryNameController,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () {
-                if (category != null &&
-                    categoryNameController.text.isNotEmpty) {
-                  category!.name = categoryNameController.text;
-                  Provider.of<FirestoreService>(context, listen: false)
-                      .updateCategory(category!);
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('OK')),
-          TextButton(
-              onPressed: () {
-                if (category != null) {
-                  Provider.of<FirestoreService>(context, listen: false)
-                      .deleteCategory(category!);
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('Delete')),
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-        ]);
-  }
-}
-
-class ChooseMainCollectionDialog extends StatefulWidget {
-  const ChooseMainCollectionDialog({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  State<ChooseMainCollectionDialog> createState() =>
-      _ChooseMainCollectionDialogState();
-}
-
-class _ChooseMainCollectionDialogState
-    extends State<ChooseMainCollectionDialog> {
-  final mainCollectionController = TextEditingController();
-
-  @override
-  void dispose() {
-    mainCollectionController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-        title: const Text('Choose main collection'),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Main collection'),
-          controller: mainCollectionController,
-        ),
-        actions: [
-          TextButton(
-              onPressed: () async {
-                var res =
-                    await Provider.of<FirestoreService>(context, listen: false)
-                        .setMainCollection(mainCollectionController.text);
-
-                if (!mounted) {
-                  return;
-                }
-                Navigator.pop(context, res);
-              },
-              child: const Text('OK')),
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-        ]);
-  }
-}
-
-class DoneTasksListView extends StatefulWidget {
-  final Stream<Iterable<BaseTask>> tasks;
-  const DoneTasksListView({super.key, required this.tasks});
-
-  @override
-  State<DoneTasksListView> createState() => DoneTasksListViewState();
-}
-
-class DoneTasksListViewState extends State<DoneTasksListView> {
-  bool showDone = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 15.0, top: 8.0),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                showDone = !showDone;
-              });
-            },
-            child: Row(
-              children: [
-                const Text(
-                  "Completed",
-                  style:
-                      TextStyle(fontSize: fontSize, color: Color(0xFF787878)),
-                ),
-                showDone
-                    ? const Icon(Icons.keyboard_arrow_up,
-                        color: Color(0xFF787878))
-                    : const Icon(Icons.keyboard_arrow_down,
-                        color: Color(0xFF787878))
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

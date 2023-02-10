@@ -5,8 +5,14 @@ import 'package:todo_app/models/category.dart';
 import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/parent_task.dart';
 import 'package:todo_app/models/timed_task.dart';
+import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:collection/collection.dart';
+
+import '../widgets/add_icon_text_button.dart';
+import '../widgets/dialogs/choose_category_dialog.dart';
+import '../widgets/form_label.dart';
+import '../widgets/not_implemented_alert.dart';
 
 class TaskFormScreen extends StatelessWidget {
   final String? parentId;
@@ -121,6 +127,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     final categories = Provider.of<Iterable<Category>>(context);
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     return Scaffold(
       bottomNavigationBar: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -130,12 +137,12 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               padding: const EdgeInsets.fromLTRB(12.0, 0, 6.0, 8.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFC36A),
+                    backgroundColor: appColors.primaryColor,
                     minimumSize: const Size.fromHeight(43)),
-                child: const Text(
+                child: Text(
                   "Save",
                   style: TextStyle(
-                      color: Colors.black,
+                      color: appColors.buttonTextColor,
                       fontSize: 20,
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.bold),
@@ -203,8 +210,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               child: TextButton(
                   style: TextButton.styleFrom(
                       minimumSize: const Size.fromHeight(43)),
-                  child: const Text("Cancel",
-                      style: TextStyle(color: Color(0xFFFFC36A), fontSize: 20)),
+                  child: Text("Cancel",
+                      style: TextStyle(
+                          color: appColors.primaryColor, fontSize: 20)),
                   onPressed: () {
                     Navigator.pop(context);
                   }),
@@ -222,12 +230,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               TextFormField(
                 decoration: const InputDecoration(
                   hintText: "Enter task name",
-                  hintStyle: TextStyle(
-                    color: Color.fromARGB(255, 210, 210, 210),
-                  ),
                   contentPadding: EdgeInsets.fromLTRB(12, 8, 12, 8),
                 ),
-                style: const TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 20, color: appColors.secondaryColor),
                 controller: nameController,
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
@@ -240,7 +245,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
               TextFormField(
                 controller: descriptionController,
                 keyboardType: TextInputType.multiline,
-                style: const TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 18, color: appColors.secondaryColor),
                 decoration: const InputDecoration(
                     contentPadding: EdgeInsets.fromLTRB(12, 8, 12, 8)),
                 maxLines: 4,
@@ -255,15 +260,16 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                 },
                 child: Row(
                   children: [
-                    const Text(
-                      "Advanced",
-                      style: TextStyle(fontSize: 16, color: Color(0xFF787878)),
-                    ),
                     showExtra
-                        ? const Icon(Icons.keyboard_arrow_up,
-                            color: Color(0xFF787878))
-                        : const Icon(Icons.keyboard_arrow_down,
-                            color: Color(0xFF787878))
+                        ? Icon(Icons.keyboard_arrow_down,
+                            color: appColors.secondaryColor)
+                        : Icon(Icons.keyboard_arrow_right,
+                            color: appColors.secondaryColor),
+                    Text(
+                      "Advanced",
+                      style: TextStyle(
+                          fontSize: 16, color: appColors.secondaryColor),
+                    ),
                   ],
                 ),
               ),
@@ -273,9 +279,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   child: Container(
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: appColors.taskBackgroundColor,
                       borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: const Color(0xFFFFC36A)),
+                      border: Border.all(color: appColors.borderColor),
                     ),
                     child: TabBar(
                       labelStyle: Theme.of(context)
@@ -324,10 +330,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             Container(
                               height: 35,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: appColors.taskBackgroundColor,
                                 borderRadius: BorderRadius.circular(5),
                                 border:
-                                    Border.all(color: const Color(0xFFFFC36A)),
+                                    Border.all(color: appColors.borderColor),
                               ),
                               child: TabBar(
                                 onTap: (index) {
@@ -363,10 +369,10 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             Container(
                               height: 22,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: appColors.taskBackgroundColor,
                                 borderRadius: BorderRadius.circular(5),
                                 border:
-                                    Border.all(color: const Color(0xFFFFC36A)),
+                                    Border.all(color: appColors.borderColor),
                               ),
                               child: TabBar(
                                 controller: startingTabController,
@@ -389,21 +395,21 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           ],
                         )
                       : DefaultTextStyle(
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFFAAAAAA),
+                              color: appColors.borderColor.withOpacity(0.7),
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Nunito'),
                           child: Row(children: [
                             const Text("Repeats "),
                             Text(
                               reoccurrence.displayTitle,
-                              style: const TextStyle(color: Color(0xFF666666)),
+                              style: TextStyle(color: appColors.borderColor),
                             ),
                             const Text(' starting '),
-                            const Text(
+                            Text(
                               '8th of August, 2023',
-                              style: TextStyle(color: Color(0xFF666666)),
+                              style: TextStyle(color: appColors.borderColor),
                             ),
                             const Spacer(),
                             TextButton(
@@ -417,10 +423,11 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                                     });
                                   }
                                 },
-                                child: const Text(
+                                child: Text(
                                   'Modify',
                                   style: TextStyle(
-                                      color: Color(0xFFFFC36A), fontSize: 11),
+                                      color: appColors.primaryColor,
+                                      fontSize: 11),
                                 ))
                           ]),
                         ),
@@ -431,9 +438,9 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   child: Container(
                     height: 30,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: appColors.taskBackgroundColor,
                       borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: const Color(0xFFFFC36A)),
+                      border: Border.all(color: appColors.borderColor),
                     ),
                     child: TabBar(
                       onTap: (index) {
@@ -486,16 +493,15 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           const FormLabel(text: "Minutes"),
                         ])
                       : DefaultTextStyle(
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFFAAAAAA),
+                              color: appColors.borderColor.withOpacity(0.7),
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Nunito'),
                           child: Row(children: [
                             Text(
                                 '${hoursController.text} hours ${minutesController.text} minutes',
-                                style:
-                                    const TextStyle(color: Color(0xFF666666))),
+                                style: TextStyle(color: appColors.borderColor)),
                             const Text(' to complete'),
                             const Spacer(),
                             TextButton(
@@ -510,10 +516,11 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                                     });
                                   }
                                 },
-                                child: const Text(
+                                child: Text(
                                   'Modify',
                                   style: TextStyle(
-                                      color: Color(0xFFFFC36A), fontSize: 11),
+                                      color: appColors.primaryColor,
+                                      fontSize: 11),
                                 ))
                           ]),
                         ),
@@ -548,7 +555,8 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   },
                   trailing: Checkbox(
                       value: isParent,
-                      activeColor: const Color(0xFFFFD699),
+                      activeColor: appColors.primaryColorLight,
+                      checkColor: appColors.taskBackgroundColor,
                       onChanged: (value) {
                         setState(() {
                           isParent = value!;
@@ -561,380 +569,4 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       ),
     );
   }
-}
-
-class ChooseCategoryDialog extends StatefulWidget {
-  final Category? category;
-  final Iterable<Category> categories;
-
-  const ChooseCategoryDialog(
-      {super.key, required this.category, required this.categories});
-
-  @override
-  State<ChooseCategoryDialog> createState() => _ChooseCategoryDialogState();
-}
-
-class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
-  Category? category;
-  @override
-  void initState() {
-    category = widget.category;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      contentPadding: const EdgeInsets.only(top: 10),
-      backgroundColor: const Color(0xFFFFF9F1),
-      title: const Text(
-        'Select a category',
-        style: TextStyle(fontSize: 24),
-      ),
-      content: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: ListView(
-          children: ListTile.divideTiles(
-            context: context,
-            tiles: widget.categories
-                .map((category) => ListTile(
-                      minVerticalPadding: 0,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 15),
-                      minLeadingWidth: 10,
-                      horizontalTitleGap: 15,
-                      title: Text(category.name,
-                          style: const TextStyle(fontSize: 14)),
-                      leading: SizedBox(
-                        height: double.infinity,
-                        child: CircleAvatar(
-                          backgroundColor: Color(category.colorValue),
-                          maxRadius: 5,
-                        ),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          this.category = category;
-                          Navigator.pop(context, category);
-                        });
-                      },
-                      trailing: this.category == category
-                          ? const Icon(Icons.check)
-                          : null,
-                    ))
-                .followedBy([
-              ListTile(
-                minVerticalPadding: 0,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 13),
-                minLeadingWidth: 10,
-                horizontalTitleGap: 13,
-                title: const Text('Add new..',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF6E6E6E))),
-                leading: const Icon(Icons.add, size: 15),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => const CategoryCreateDialog(),
-                  ).then((value) {
-                    if (value != null) {
-                      Navigator.pop(context, value);
-                    }
-                  });
-                },
-              ),
-            ]),
-          ).toList(),
-        ),
-      ),
-      actionsAlignment: MainAxisAlignment.start,
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20, left: 40),
-          child: TextButton(
-              child: const Text("Cancel",
-                  style: TextStyle(color: Color(0xFFFFC36A), fontSize: 20)),
-              onPressed: () {
-                Navigator.pop(context, category);
-              }),
-        ),
-      ],
-    );
-  }
-}
-
-const pickerColors = [
-  Colors.blue,
-  Colors.red,
-  Colors.green,
-  Colors.yellow,
-  Colors.purple,
-  Colors.orange,
-  Colors.cyan,
-  Colors.lime,
-];
-
-class ColorPickerFormField extends FormField<Color> {
-  ColorPickerFormField({
-    super.key,
-    FormFieldSetter<Color>? onSaved,
-    FormFieldValidator<Color>? validator,
-    Color? initialValue,
-    bool autovalidate = false,
-  }) : super(
-            onSaved: onSaved,
-            validator: validator,
-            initialValue: initialValue,
-            autovalidateMode: autovalidate
-                ? AutovalidateMode.always
-                : AutovalidateMode.disabled,
-            builder: (FormFieldState<Color> field) {
-              final state = field as _ColorPickerFormFieldState;
-              return InputDecorator(
-                decoration: InputDecoration(
-                  enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFFF9F1))),
-                  focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFFF9F1))),
-                  fillColor: const Color(0xFFFFF9F1),
-                  errorText: state.errorText,
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: pickerColors
-                            .map((color) => Padding(
-                                  padding: const EdgeInsets.only(right: 10),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      state.didChange(color);
-                                    },
-                                    child: Container(
-                                      height: 26,
-                                      width: 26,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: color,
-                                        border: Border.all(
-                                            color: Colors.black,
-                                            width: 0.3,
-                                            style: BorderStyle.solid),
-                                      ),
-                                      child: state.value == color
-                                          ? const Icon(
-                                              Icons.check,
-                                              size: 15,
-                                              color: Colors.black,
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                ))
-                            .toList()),
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        style: TextButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                side: const BorderSide(
-                                    color: Colors.black, width: 0.25))),
-                        onPressed: () {
-                          notImplementedAlert(state.context);
-                        },
-                        icon: const Icon(Icons.palette),
-                        label: const Text('Custom color',
-                            style: TextStyle(fontSize: 12)),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            });
-
-  @override
-  FormFieldState<Color> createState() => _ColorPickerFormFieldState();
-}
-
-class _ColorPickerFormFieldState extends FormFieldState<Color> {
-  @override
-  ColorPickerFormField get widget => super.widget as ColorPickerFormField;
-
-  @override
-  void didChange(Color? value) {
-    super.didChange(value);
-    setState(() {});
-  }
-}
-
-class CategoryCreateDialog extends StatefulWidget {
-  const CategoryCreateDialog({super.key});
-
-  @override
-  State<CategoryCreateDialog> createState() => _CategoryCreateDialogState();
-}
-
-class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
-  final TextEditingController nameController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-    return AlertDialog(
-      backgroundColor: const Color(0xFFFFF9F1),
-      title: const Text(
-        'New category',
-        style: TextStyle(fontSize: 24),
-      ),
-      content: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const FormLabel(text: 'Name'),
-              TextFormField(
-                controller: nameController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              const FormLabel(text: 'Color'),
-              const SizedBox(height: 10),
-              ColorPickerFormField(
-                onSaved: (value) {
-                  color = value;
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a color';
-                  }
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-      actionsAlignment: MainAxisAlignment.spaceEvenly,
-      actions: [
-        Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12.0, 0, 6.0, 8.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFC36A),
-                      minimumSize: const Size.fromHeight(43)),
-                  child: const Text(
-                    "Save",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      final category =
-                          Category(color!.value, nameController.text);
-                      await firestoreService.addCategory(category);
-                      if (mounted) {
-                        Navigator.pop(context, category);
-                      }
-                    }
-                  },
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(6.0, 0, 12.0, 8.0),
-                child: TextButton(
-                    style: TextButton.styleFrom(
-                        minimumSize: const Size.fromHeight(43)),
-                    child: const Text("Cancel",
-                        style:
-                            TextStyle(color: Color(0xFFFFC36A), fontSize: 20)),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }),
-              ),
-            ),
-          ],
-        )
-      ],
-    );
-  }
-}
-
-class AddIconTextButton extends StatelessWidget {
-  final IconData iconData;
-  final String label;
-  final Widget? trailing;
-  final VoidCallback? onPressed;
-  const AddIconTextButton(
-      {super.key,
-      required this.iconData,
-      required this.label,
-      this.trailing,
-      this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        TextButton.icon(
-          onPressed: onPressed ??
-              () {
-                notImplementedAlert(context);
-              },
-          style: const ButtonStyle(alignment: Alignment.centerLeft),
-          icon: Icon(iconData, color: const Color(0xFF666666), size: 25),
-          label: Text(label,
-              style: const TextStyle(color: Color(0xFF666666), fontSize: 14)),
-        ),
-        const Spacer(),
-        trailing ?? const SizedBox.shrink(),
-      ],
-    );
-  }
-}
-
-class FormLabel extends StatelessWidget {
-  final String text;
-  final double fontSize;
-  const FormLabel({super.key, required this.text, this.fontSize = 16.0});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12.0),
-      child: Text(
-        text,
-        style: TextStyle(color: const Color(0xFF666666), fontSize: fontSize),
-      ),
-    );
-  }
-}
-
-void notImplementedAlert(BuildContext context) {
-  showDialog(
-      context: context,
-      builder: (context) =>
-          const AlertDialog(content: Text("oops not implemented")));
 }

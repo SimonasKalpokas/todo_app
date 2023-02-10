@@ -7,6 +7,7 @@ import 'package:todo_app/widgets/timer_widget.dart';
 
 import '../models/base_task.dart';
 import '../models/category.dart';
+import '../providers/color_provider.dart';
 import '../screens/task_form_screen.dart';
 import '../screens/tasks_view_screen.dart';
 import '../services/firestore_service.dart';
@@ -26,9 +27,12 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
     var categories = Provider.of<Iterable<Category>>(context);
+    final appColors = Provider.of<ColorProvider>(context).appColors;
     var category = widget.task.categoryId != null
         ? categories.firstWhere((c) => c.id == widget.task.categoryId)
         : null;
+    var categoryColor =
+        category?.colorValue != null ? Color(category!.colorValue) : null;
 
     return GestureDetector(
       onTap: () {
@@ -47,11 +51,12 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
-            color: widget.task.isDone
-                ? const Color(0xFFD7D7D7)
-                : Color(category?.colorValue ?? 0xFFFFD699),
-          ),
-          color: widget.task.isDone ? const Color(0xFFF6F6F6) : Colors.white,
+              color: widget.task.isDone
+                  ? appColors.borderColor.withOpacity(0.4)
+                  : categoryColor ?? appColors.borderColor),
+          color: widget.task.isDone
+              ? appColors.taskBackgroundColor.withOpacity(0.4)
+              : appColors.taskBackgroundColor,
         ),
         child: IntrinsicHeight(
           child: Row(
@@ -65,8 +70,10 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                     bottomLeft: Radius.circular(5),
                   ),
                   color: widget.task.isDone
-                      ? const Color(0xFFF6F6F6)
-                      : Color(category?.colorValue ?? 0xFFFFFFFF),
+                      ? (category != null
+                          ? appColors.borderColor.withOpacity(0.4)
+                          : Colors.transparent)
+                      : categoryColor ?? appColors.taskBackgroundColor,
                 ),
               ),
               Expanded(
@@ -92,9 +99,10 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                         category.name,
                                         style: TextStyle(
                                             fontSize: fontSize * 0.6,
-                                            color: Color(widget.task.isDone
-                                                ? 0xFFDBDBDB
-                                                : category.colorValue)),
+                                            color: widget.task.isDone
+                                                ? appColors.secondaryColor
+                                                    .withOpacity(0.4)
+                                                : categoryColor),
                                       ),
                                     Text(
                                       widget.task.name,
@@ -103,8 +111,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         color: widget.task.isDone
-                                            ? const Color(0xFFDBDBDB)
-                                            : Colors.black,
+                                            ? appColors.secondaryColor
+                                                .withOpacity(0.4)
+                                            : appColors.secondaryColor,
                                       ),
                                     ),
                                   ],
@@ -115,8 +124,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                         ),
                         if (widget.task.reoccurrence !=
                                 Reoccurrence.notRepeating &&
-                            widget.task.isDone)
-                          const Icon(Icons.repeat, color: Color(0xFF5F5F5F)),
+                            widget.task.isDone) // TODO: add time until refresh
+                          Icon(Icons.repeat,
+                              color: appColors.borderColor.withOpacity(0.75)),
                         if (widget.task is TimedTask && !widget.task.isDone)
                           Padding(
                             padding: const EdgeInsets.only(left: 10.0),
@@ -126,11 +136,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                         widget.task.type == TaskType.parent
                             ? Padding(
                                 padding: const EdgeInsets.only(right: 10),
-                                child: Icon(
-                                  Icons.folder,
-                                  color:
-                                      Color(category?.colorValue ?? 0xFF000000),
-                                ))
+                                child: Icon(Icons.folder,
+                                    color:
+                                        categoryColor ?? appColors.borderColor))
                             : Checkbox(
                                 onChanged: (bool? value) {
                                   firestoreService.updateTaskFields(
@@ -142,11 +150,12 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                 },
                                 value: widget.task.isDone,
                                 side: BorderSide(
-                                    color: Color(
-                                        category?.colorValue ?? 0xFFFFD699)),
+                                    color:
+                                        categoryColor ?? appColors.borderColor),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5)),
-                                activeColor: const Color(0xFFD9D9D9),
+                                activeColor:
+                                    appColors.borderColor.withOpacity(0.4),
                               ),
                       ],
                     ),
@@ -165,7 +174,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                     height: 15,
                                   ),
                                   Container(
-                                    color: const Color(0xFF7F7F7F),
+                                    color:
+                                        appColors.borderColor.withOpacity(0.4),
                                     height: 1,
                                     width: 140,
                                   ),
@@ -174,8 +184,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                   ),
                                   if (widget.task.description.isNotEmpty)
                                     Text(widget.task.description,
-                                        style: const TextStyle(
-                                            color: Color(0xFF898989))),
+                                        style: TextStyle(
+                                            color: appColors.secondaryColor
+                                                .withOpacity(0.75))),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 10.0, horizontal: 0.0),
@@ -192,19 +203,20 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                                 widget.task.parentId,
                                                 widget.task.id);
                                           },
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.delete,
-                                            color: Color(0xFFFF0000),
+                                            color: appColors.red,
                                           ),
-                                          label: const Text(
+                                          label: Text(
                                             'Delete',
                                             style: TextStyle(
-                                                color: Color(0xFFFF0000),
+                                                color: appColors.red,
                                                 fontSize: 12),
                                           ),
                                         ),
                                         Container(
-                                          color: const Color(0xFFD3D3D3),
+                                          color: appColors.borderColor
+                                              .withOpacity(0.4),
                                           width: 1,
                                           height: 12,
                                         ),
@@ -222,20 +234,20 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                           },
                                           icon: Icon(
                                             Icons.edit,
-                                            color: Color(category?.colorValue ??
-                                                0xFFFFAC30),
+                                            color: categoryColor ??
+                                                appColors.borderColor,
                                           ),
                                           label: Text(
                                             'Edit',
                                             style: TextStyle(
-                                                color: Color(
-                                                    category?.colorValue ??
-                                                        0xFFFFAC30),
+                                                color: categoryColor ??
+                                                    appColors.borderColor,
                                                 fontSize: 12),
                                           ),
                                         ),
                                         Container(
-                                          color: const Color(0xFFD3D3D3),
+                                          color: appColors.borderColor
+                                              .withOpacity(0.4),
                                           width: 1,
                                           height: 12,
                                         ),
@@ -250,15 +262,14 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                           },
                                           icon: Icon(
                                             Icons.done,
-                                            color: Color(category?.colorValue ??
-                                                0xFFFFAC30),
+                                            color: categoryColor ??
+                                                appColors.borderColor,
                                           ),
                                           label: Text(
                                             'Mark as complete',
                                             style: TextStyle(
-                                                color: Color(
-                                                    category?.colorValue ??
-                                                        0xFFFFAC30),
+                                                color: categoryColor ??
+                                                    appColors.borderColor,
                                                 fontSize: 12),
                                           ),
                                         ),
