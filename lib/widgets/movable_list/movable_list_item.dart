@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/base_task.dart';
 import '../../providers/selection_provider.dart';
 
-class MovableListItem extends StatefulWidget {
+class MovableListItem<T> extends StatefulWidget {
   final Widget child;
-  final SelectionItem selectionItem;
+  final SelectionItem<T> selectionItem;
+  final SelectionProvider<T> selectionProvider;
   const MovableListItem(
-      {super.key, required this.selectionItem, required this.child});
+      {super.key,
+      required this.selectionItem,
+      required this.selectionProvider,
+      required this.child});
 
   @override
   State<MovableListItem> createState() => _MovableListItemState();
@@ -17,12 +22,10 @@ class _MovableListItemState extends State<MovableListItem> {
   bool selected = false;
 
   void _onSelect() {
-    var selectionProvider =
-        Provider.of<SelectionProvider>(context, listen: false);
     if (selected) {
-      selectionProvider.deselect(widget.selectionItem);
+      widget.selectionProvider.deselect(widget.selectionItem);
     } else {
-      selectionProvider.select(widget.selectionItem);
+      widget.selectionProvider.select(widget.selectionItem);
     }
     setState(() {
       selected = !selected;
@@ -31,14 +34,13 @@ class _MovableListItemState extends State<MovableListItem> {
 
   @override
   Widget build(BuildContext context) {
-    var selectionProvider =
-        Provider.of<SelectionProvider>(context, listen: true);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onLongPress:
-          selectionProvider.state != SelectionState.moving ? _onSelect : null,
-      onTap: selectionProvider.isSelecting ? _onSelect : null,
-      child: !selectionProvider.isSelecting
+      onLongPress: widget.selectionProvider.state != SelectionState.moving
+          ? _onSelect
+          : null,
+      onTap: widget.selectionProvider.isSelecting ? _onSelect : null,
+      child: !widget.selectionProvider.isSelecting
           ? widget.child
           : SizedBox(
               child: Row(

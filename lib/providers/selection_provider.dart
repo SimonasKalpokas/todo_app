@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 
-class SelectionItem {
-  final String id;
-  final String? parentId;
+class SelectionItem<T> {
+  final T value;
 
-  const SelectionItem(this.id, {this.parentId});
+  const SelectionItem(this.value);
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SelectionItem && id == other.id && parentId == other.parentId;
+      other is SelectionItem && value == other.value;
 
   @override
-  int get hashCode => id.hashCode ^ parentId.hashCode;
+  int get hashCode => value.hashCode;
 }
 
 enum SelectionState {
@@ -21,21 +19,21 @@ enum SelectionState {
   moving,
 }
 
-class SelectionProvider extends ChangeNotifier {
-  final List<SelectionItem> _selectedItems = [];
+class SelectionProvider<T> extends ChangeNotifier {
+  final List<SelectionItem<T>> _selectedItems = [];
   SelectionState _state = SelectionState.inactive;
 
   bool get isSelecting => _state == SelectionState.selecting;
   SelectionState get state => _state;
 
-  List<SelectionItem> get selectedItems => _selectedItems;
+  List<SelectionItem<T>> get selectedItems => _selectedItems;
 
   void setStateMoving() {
     _state = SelectionState.moving;
     notifyListeners();
   }
 
-  void select(SelectionItem item) {
+  void select(SelectionItem<T> item) {
     _selectedItems.add(item);
     if (_selectedItems.length == 1) {
       _state = SelectionState.selecting;
@@ -43,7 +41,7 @@ class SelectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void deselect(SelectionItem item) {
+  void deselect(SelectionItem<T> item) {
     _selectedItems.remove(item);
     if (_selectedItems.isEmpty) {
       _state = SelectionState.inactive;
@@ -57,7 +55,7 @@ class SelectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleSelection(SelectionItem item) {
+  void toggleSelection(SelectionItem<T> item) {
     if (_selectedItems.contains(item)) {
       deselect(item);
     } else {

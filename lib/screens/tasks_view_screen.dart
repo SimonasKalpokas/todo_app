@@ -29,7 +29,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   Widget build(BuildContext context) {
     final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
-    final selectionProvider = Provider.of<SelectionProvider>(context);
+    final selectionProvider = Provider.of<SelectionProvider<BaseTask>>(context);
     final appColors = Provider.of<ColorProvider>(context).appColors;
     var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
     var doneTasks = firestoreService.getTasks(parentTask?.id, false);
@@ -158,7 +158,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 TextButton(
                   onPressed: () {
                     for (var item in selectionProvider.selectedItems) {
-                      firestoreService.deleteTask(item.parentId, item.id);
+                      firestoreService.deleteTask(
+                          item.value.parentId, item.value.id);
                     }
                     selectionProvider.clearSelection();
                   },
@@ -182,7 +183,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 TextButton(
                   onPressed: () async {
                     if (!await firestoreService.moveTasks(
-                        selectionProvider.selectedItems, parentTask?.id)) {
+                        selectionProvider.selectedItems
+                            .map((item) => item.value),
+                        parentTask?.id)) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -233,8 +236,9 @@ class TasksListView extends StatelessWidget {
                   vertical: 4.0,
                 ),
                 child: MovableListItem(
-                    selectionItem:
-                        SelectionItem(task.id, parentId: task.parentId),
+                    selectionItem: SelectionItem(task),
+                    selectionProvider:
+                        Provider.of<SelectionProvider<BaseTask>>(context),
                     child: TaskCardWidget(key: Key(task.id), task: task)),
               );
             },

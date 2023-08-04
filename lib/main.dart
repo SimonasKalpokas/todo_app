@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/providers/selection_provider.dart';
@@ -48,7 +49,7 @@ Future<void> main() async {
           value: firestoreService.getCategories(),
           initialData: initialCategories),
       Provider(create: (_) => FirestoreService(prefs)),
-      ChangeNotifierProvider(create: (_) => SelectionProvider())
+      ChangeNotifierProvider(create: (_) => SelectionProvider<BaseTask>())
     ],
     child: const MyApp(),
   ));

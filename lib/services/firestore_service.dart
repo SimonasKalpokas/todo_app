@@ -102,7 +102,7 @@ class FirestoreService {
   }
 
   Future<bool> moveTasks(
-      List<SelectionItem> tasksToMove, String? newParentId) async {
+      Iterable<BaseTask> tasksToMove, String? newParentId) async {
     if (!await canTasksBeMoved(
         newParentId, tasksToMove.map((e) => e.id).toList())) {
       return false;
