@@ -92,8 +92,9 @@ class FirestoreService {
     return _currentTasks(parentId).doc(taskId).update(fields);
   }
 
-  Future<void> deleteTask(String? parentId, String? taskId) {
-    return _currentTasks(parentId).doc(taskId).delete();
+  Future<void> deleteTask(String? parentId, String? taskId) async {
+    await tasks.doc(taskId).delete();
+    await _currentTasks(parentId).doc(taskId).delete();
   }
 
   Future<void> updateTask(BaseTask task) {
