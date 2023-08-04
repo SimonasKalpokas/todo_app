@@ -157,11 +157,43 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               if (selectionProvider.isSelecting)
                 TextButton(
                   onPressed: () {
-                    for (var item in selectionProvider.selectedItems) {
-                      firestoreService.deleteTask(
-                          item.value.parentId, item.value.id);
+                    deleteAndClearSelection() {
+                      for (var item in selectionProvider.selectedItems) {
+                        firestoreService.deleteTask(
+                            item.value.parentId, item.value.id);
+                      }
+                      selectionProvider.clearSelection();
                     }
-                    selectionProvider.clearSelection();
+
+                    if (selectionProvider.selectedItems
+                        .any((item) => item.value.type == TaskType.parent)) {
+                      showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Warning"),
+                          content: Text(
+                              "When deleting a parent task, all of its children will be deleted as well.",
+                              style:
+                                  TextStyle(color: appColors.secondaryColor)),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text("Ok")),
+                            TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text("Cancel")),
+                          ],
+                        ),
+                      ).then(
+                        (bool? value) {
+                          if (value ?? false) {
+                            deleteAndClearSelection();
+                          }
+                        },
+                      );
+                    } else {
+                      deleteAndClearSelection();
+                    }
                   },
                   child: const Text("Delete selected"),
                 ),
