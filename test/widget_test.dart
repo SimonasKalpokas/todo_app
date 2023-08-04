@@ -100,7 +100,7 @@ void main() {
         Provider<FirestoreService>(
           create: (_) => mockFirestoreService,
         ),
-        ChangeNotifierProvider(create: (_) => SelectionProvider()),
+        ChangeNotifierProvider(create: (_) => SelectionProvider<BaseTask>()),
         ChangeNotifierProvider(create: (_) => ColorProvider(prefs)),
       ],
       child: const MaterialApp(

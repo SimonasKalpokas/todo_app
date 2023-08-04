@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../models/base_task.dart';
 import '../../providers/selection_provider.dart';
 
 class MovableListItem<T> extends StatefulWidget {

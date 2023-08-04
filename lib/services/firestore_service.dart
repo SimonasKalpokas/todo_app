@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
 import 'package:todo_app/models/category.dart';
 
-import '../providers/selection_provider.dart';
-
 class FirestoreService {
   late CollectionReference<Map<String, dynamic>> tasks;
   final SharedPreferences _prefs;
