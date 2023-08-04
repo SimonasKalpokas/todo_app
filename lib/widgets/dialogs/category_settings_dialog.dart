@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -42,13 +43,15 @@ class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
                   child: Text('None',
                       style: TextStyle(color: appColors.secondaryColor)),
                 ),
-                ...widget.categories.map((c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(
-                        c.name,
-                        style: TextStyle(color: Color(c.colorValue)),
-                      ),
-                    ))
+                ...widget.categories
+                    .sorted((a, b) => a.name.compareTo(b.name))
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(
+                            c.name,
+                            style: TextStyle(color: Color(c.colorValue)),
+                          ),
+                        ))
               ],
               onChanged: (value) {
                 setState(() {
