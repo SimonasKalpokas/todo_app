@@ -46,7 +46,7 @@ class FirestoreService {
   }
 
   Future<void> addCategory(Category category) {
-    return categoriesCollection.add(category.toMap());
+    return categoriesCollection.doc(category.id).set(category.toMap());
   }
 
   Future<void> updateCategory(Category category) {
