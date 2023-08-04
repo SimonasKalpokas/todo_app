@@ -17,9 +17,4 @@ class ParentTask extends BaseTask {
   ParentTask(String? parentId, String name, String description,
       Reoccurrence reoccurrence)
       : super(TaskType.parent, parentId, name, description, reoccurrence);
-
-  @override
-  Status calculateCurrentStatus() {
-    return Status.undone;
-  }
 }

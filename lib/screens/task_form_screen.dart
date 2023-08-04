@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
@@ -62,6 +63,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var isTimed = false;
   var isParent = false;
   var reoccurrence = Reoccurrence.notRepeating;
+  DateTime? lastDoneOn;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
   Category? category;
@@ -74,6 +76,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       nameController.text = widget.task!.name;
       descriptionController.text = widget.task!.description;
       reoccurrence = widget.task!.reoccurrence;
+      lastDoneOn = widget.task!.lastDoneOn;
       isReoccurringTabController.index =
           reoccurrence == Reoccurrence.notRepeating ? 0 : 1;
       isReoccurring = reoccurrence != Reoccurrence.notRepeating;
@@ -156,6 +159,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     if (widget.task != null) {
                       widget.task!.name = nameController.text;
                       widget.task!.description = descriptionController.text;
+                      widget.task!.lastDoneOn = lastDoneOn;
                       widget.task!.reoccurrence = reoccurrence;
                       if (widget.task!.type == TaskType.timed) {
                         (widget.task! as TimedTask).totalTime = totalTime;
@@ -560,6 +564,25 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       onChanged: (value) {
                         setState(() {
                           isParent = value!;
+                        });
+                      }),
+                ),
+              if (showExtra && widget.task?.type == TaskType.parent)
+                AddIconTextButton(
+                  iconData: Icons.folder,
+                  label: "Mark parent task as completed",
+                  onPressed: () {
+                    setState(() {
+                      lastDoneOn = lastDoneOn == null ? clock.now() : null;
+                    });
+                  },
+                  trailing: Checkbox(
+                      value: lastDoneOn != null,
+                      activeColor: appColors.primaryColorLight,
+                      checkColor: appColors.taskBackgroundColor,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          lastDoneOn = value! ? clock.now() : null;
                         });
                       }),
                 ),
