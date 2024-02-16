@@ -160,7 +160,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                     deleteAndClearSelection() {
                       for (var item in selectionProvider.selectedItems) {
                         firestoreService.deleteTask(
-                            item.value.parentId, item.value.id);
+                            item.value.parentId, item.value.id, item.value.index);
                       }
                       selectionProvider.clearSelection();
                     }

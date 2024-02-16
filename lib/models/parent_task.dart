@@ -4,7 +4,7 @@ import 'package:todo_app/models/base_task.dart';
 class ParentTaskListenable extends ParentTask
     with BaseTaskListenable, ChangeNotifier {
   ParentTaskListenable(
-      super.parentId, super.name, super.description, super.reoccurrence);
+      super.parentId, super.name, super.description, super.reoccurrence, super.index);
   ParentTaskListenable.fromMap(super.map) : super.fromMap();
 
   @override
@@ -15,6 +15,6 @@ class ParentTask extends BaseTask {
   ParentTask.fromMap(super.map) : super.fromMap();
 
   ParentTask(String? parentId, String name, String description,
-      Reoccurrence reoccurrence)
-      : super(TaskType.parent, parentId, name, description, reoccurrence);
+      Reoccurrence reoccurrence, int index)
+      : super(TaskType.parent, parentId, name, description, reoccurrence, index);
 }
