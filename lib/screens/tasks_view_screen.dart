@@ -256,13 +256,24 @@ class TasksListView extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        return ListView(
+        return ReorderableListView(
+          onReorder: (oldIndex, newIndex) {
+            if (oldIndex < newIndex) {
+              newIndex -= 1;
+            }
+            final task = snapshot.data!.elementAt(oldIndex);
+            final firestoreService =
+                Provider.of<FirestoreService>(context, listen: false);
+            firestoreService.reorderTask(
+                task.parentId, task.id, oldIndex, newIndex);
+          },
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.map(
             (task) {
               return Padding(
+                key: Key(task.id),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 4.0,

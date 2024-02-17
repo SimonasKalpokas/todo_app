@@ -134,6 +134,27 @@ class FirestoreService {
     return true;
   }
 
+  Future<void> reorderTask(String? parentId, String id, int index, int index2) async {
+    var currentTasks = _currentTasks(parentId);
+    var snapshot = await currentTasks.get();
+    var task = (await currentTasks.doc(id).get()).data()!;
+    if (index < index2) {
+      for (var doc in snapshot.docs) {
+        if (doc['index'] > index && doc['index'] <= index2) {
+          await currentTasks.doc(doc.id).update({'index': doc['index'] - 1});
+        }
+      }
+    } else {
+      for (var doc in snapshot.docs) {
+        if (doc['index'] < index && doc['index'] >= index2) {
+          await currentTasks.doc(doc.id).update({'index': doc['index'] + 1});
+        }
+      }
+    }
+    task['index'] = index2;
+    await currentTasks.doc(id).set(task); 
+  }
+
   Future<bool> canTasksBeMoved(
       String? targetTaskId, List<String> currentTaskIds) async {
     while (targetTaskId != null) {
