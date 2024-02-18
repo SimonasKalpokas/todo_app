@@ -91,7 +91,7 @@ class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
                       final category =
                           Category(color!.value, nameController.text);
                       await firestoreService.addCategory(category);
-                      if (mounted) {
+                      if (context.mounted) {
                         Navigator.pop(context, category);
                       }
                     }
