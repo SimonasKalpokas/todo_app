@@ -218,7 +218,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                         selectionProvider.selectedItems
                             .map((item) => item.value),
                         parentTask?.id)) {
-                      if (mounted) {
+                      if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text("Cannot move selected tasks here"),

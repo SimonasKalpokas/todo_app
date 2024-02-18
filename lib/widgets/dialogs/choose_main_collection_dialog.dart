@@ -57,7 +57,7 @@ class _ChooseMainCollectionDialogState
                     await Provider.of<FirestoreService>(context, listen: false)
                         .setMainCollection(mainCollectionController.text);
 
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
                 Navigator.pop(context, res);
