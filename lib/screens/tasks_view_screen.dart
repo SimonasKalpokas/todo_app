@@ -282,7 +282,7 @@ class TasksListView extends StatelessWidget {
                     selectionItem: SelectionItem(task),
                     selectionProvider:
                         Provider.of<SelectionProvider<BaseTask>>(context),
-                    child: TaskCardWidget(key: Key(task.id), task: task)),
+                    child: TaskCardWidget(task: task)),
               );
             },
           ).toList(),
