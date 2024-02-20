@@ -29,3 +29,15 @@ git clone https://github.com/SimonasKalpokas1/todo_app.git
 cd todo_app
 flutter run
 ```
+
+## Debug setup on an android device on WSL
+
+A little outdated but still great tutorial [here](https://halimsamy.com/wsl-for-developers-connect-usb-devices).
+
+Required command **usbipd** can be installed with `winget install usbipd`.
+1. Run in Command Prompt/Powershell:
+    1. `usbpid list` to find needed device,
+    2. `usbipd attach --wsl --busid {BUSID}`.
+2. On wsl run `sudo adb start-server`.
+3. Allow access in the popup on the android device.
+4. Run `flutter devices` or `adb devices` to make sure the device is connected.
