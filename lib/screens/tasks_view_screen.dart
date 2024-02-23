@@ -256,6 +256,7 @@ class TasksListView extends StatelessWidget {
           );
         }
         return ReorderableListView(
+          buildDefaultDragHandles: false,
           onReorder: (oldIndex, newIndex) {
             if (oldIndex < newIndex) {
               newIndex -= 1;
@@ -269,10 +270,11 @@ class TasksListView extends StatelessWidget {
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          children: snapshot.data!.map(
-            (task) {
-              return Padding(
-                key: Key(task.id),
+          children: snapshot.data!.map((task) =>
+             ReorderableDragStartListener(
+              key: Key(task.id),
+              index: task.index,
+              child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 4.0,
@@ -282,8 +284,8 @@ class TasksListView extends StatelessWidget {
                     selectionProvider:
                         Provider.of<SelectionProvider<BaseTask>>(context),
                     child: TaskCardWidget(task: task)),
-              );
-            },
+              ),
+            )
           ).toList(),
         );
       },
