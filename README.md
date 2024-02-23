@@ -11,7 +11,7 @@ Demo: https://simonaskalpokas1.github.io/todo_app/
 - [ ] Amounted tasks
 - [x] Subtasks/folders/lists
 - [x] Main page
-- [ ] Moving/reordering tasks
+- [x] Moving/reordering tasks
 - [ ] Notifications
 - [x] Categories
 - [ ] Filtering system
