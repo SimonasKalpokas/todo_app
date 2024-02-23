@@ -36,7 +36,7 @@ A little outdated but still great tutorial [here](https://halimsamy.com/wsl-for-
 
 Required command **usbipd** can be installed with `winget install usbipd`.
 1. Run in Command Prompt/Powershell:
-    1. `usbpid list` to find needed device,
+    1. `usbipd list` to find needed device,
     2. `usbipd attach --wsl --busid {BUSID}`.
 2. On wsl run `sudo adb start-server`.
 3. Allow access in the popup on the android device.
