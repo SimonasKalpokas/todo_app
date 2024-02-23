@@ -64,6 +64,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ToDo App',
       theme: ThemeData(
+        canvasColor: Colors.transparent,
         fontFamily: 'Nunito',
         primaryColor: appColors.primaryColor,
         appBarTheme: AppBarTheme(
