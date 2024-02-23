@@ -16,7 +16,7 @@ import 'task_form_screen.dart';
 
 class TasksViewScreen extends StatefulWidget {
   final BaseTask? parentTask;
-  const TasksViewScreen({Key? key, required this.parentTask}) : super(key: key);
+  const TasksViewScreen({super.key, required this.parentTask});
 
   @override
   State<TasksViewScreen> createState() => _TasksViewScreenState();
@@ -240,8 +240,7 @@ class TasksListView extends StatelessWidget {
   final Stream<Iterable<BaseTask>> tasks;
   final bool visible;
 
-  const TasksListView({Key? key, required this.tasks, this.visible = true})
-      : super(key: key);
+  const TasksListView({super.key, required this.tasks, this.visible = true});
 
   @override
   Widget build(BuildContext context) {

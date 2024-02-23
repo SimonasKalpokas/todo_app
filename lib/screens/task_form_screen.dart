@@ -18,8 +18,7 @@ import '../widgets/not_implemented_alert.dart';
 class TaskFormScreen extends StatelessWidget {
   final String? parentId;
   final BaseTask? task;
-  const TaskFormScreen({Key? key, required this.parentId, this.task})
-      : super(key: key);
+  const TaskFormScreen({super.key, required this.parentId, this.task});
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +35,7 @@ class TaskFormScreen extends StatelessWidget {
 class TaskForm extends StatefulWidget {
   final String? parentId;
   final BaseTask? task;
-  const TaskForm({Key? key, required this.parentId, this.task})
-      : super(key: key);
+  const TaskForm({super.key, required this.parentId, this.task});
 
   @override
   State<TaskForm> createState() => _TaskFormState();

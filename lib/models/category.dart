@@ -6,10 +6,10 @@ class Category extends Entity {
 
   Category(this.colorValue, this.name) : super.create();
 
-  Category.fromMap(Map<String, dynamic> map)
+  Category.fromMap(super.map)
       : colorValue = map['colorValue'],
         name = map['name'],
-        super.fromMap(map);
+        super.fromMap();
 
   @override
   Map<String, dynamic> toMap() {

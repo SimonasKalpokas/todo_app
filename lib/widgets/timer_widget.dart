@@ -11,7 +11,7 @@ import '../providers/color_provider.dart';
 
 class TimerWidget extends StatefulWidget {
   final TimedTask timedTask;
-  const TimerWidget({Key? key, required this.timedTask}) : super(key: key);
+  const TimerWidget({super.key, required this.timedTask});
 
   @override
   State<TimerWidget> createState() => _TimerWidgetState();
