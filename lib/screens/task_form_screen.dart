@@ -203,7 +203,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                           break;
                       }
                       task.categoryId = category?.id;
-                      firestoreService.addTask(task);
+                      firestoreService.addTaskToTop(task);
                     }
                     Navigator.pop(context);
                   }

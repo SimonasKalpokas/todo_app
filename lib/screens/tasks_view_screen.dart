@@ -256,6 +256,7 @@ class TasksListView extends StatelessWidget {
           );
         }
         return ReorderableListView(
+          reverse: true,
           buildDefaultDragHandles: false,
           onReorder: (oldIndex, newIndex) {
             if (oldIndex < newIndex) {

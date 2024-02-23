@@ -55,18 +55,13 @@ class FirestoreService {
     return categoriesCollection.doc(category.id).delete();
   }
 
-  Future<void> addTask(BaseTask task) async {
+  Future<void> addTaskToTop(BaseTask task) async {
     if (task.type == TaskType.parent) {
       await tasks.doc(task.id).set({'parentId': task.parentId});
     }
     var currentTasks = _currentTasks(task.parentId);
-    // find currentTasks where index is greater than task.index and increment them
     var snapshot = await currentTasks.get();
-    for (var doc in snapshot.docs) {
-      if (doc['index'] >= task.index) {
-        await currentTasks.doc(doc.id).update({'index': doc['index'] + 1});
-      }
-    }
+    task.index = snapshot.size;
     await currentTasks.doc(task.id).set(task.toMap());
   }
 
@@ -124,8 +119,7 @@ class FirestoreService {
     for (var taskIds in tasksToMove) {
       var task = (await _currentTasks(taskIds.parentId).doc(taskIds.id).get()).data()!;
       task['parentId'] = newParentId;
-      task['index'] = 0;
-      await addTask(BaseTask.createTask(task));
+      await addTaskToTop(BaseTask.createTask(task));
       if (task['type'] == TaskType.parent.index) {
         await tasks.doc(taskIds.id).set({'parentId': newParentId});
       }
