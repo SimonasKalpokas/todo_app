@@ -73,14 +73,14 @@ class FirestoreService {
         .orderBy('index')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
-              var taskListenable =
-                  BaseTaskListenable.createTaskListenable(doc.data());
-              taskListenable.addListener(() {
-                _currentTasks(parentId).doc(doc.id).set(taskListenable.toMap());
-              });
-              taskListenable.refreshState();
-              return taskListenable;
-            }).where((task) => task.isDone == !undone));
+          var taskListenable =
+              BaseTaskListenable.createTaskListenable(doc.data());
+          taskListenable.addListener(() {
+            _currentTasks(parentId).doc(doc.id).set(taskListenable.toMap());
+          });
+          taskListenable.refreshState();
+          return taskListenable;
+        }).where((task) => task.isDone == !undone));
   }
 
   Future<void> moveTask(BaseTask task, String? newParentId) async {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
@@ -262,19 +263,20 @@ class TasksListView extends StatelessWidget {
             if (oldIndex < newIndex) {
               newIndex -= 1;
             }
-            final task = snapshot.data!.elementAt(oldIndex);
+            final oldTask = snapshot.data!.elementAt(oldIndex);
+            final newTask = snapshot.data!.elementAt(newIndex); 
             final firestoreService =
                 Provider.of<FirestoreService>(context, listen: false);
             firestoreService.reorderTask(
-                task.parentId, task.id, oldIndex, newIndex);
+                oldTask.parentId, oldTask.id, oldTask.index, newTask.index);
           },
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          children: snapshot.data!.map((task) =>
+          children: snapshot.data!.mapIndexed((index, task) =>
              ReorderableDragStartListener(
               key: Key(task.id),
-              index: task.index,
+              index: index,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
