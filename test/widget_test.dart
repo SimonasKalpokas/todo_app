@@ -120,7 +120,7 @@ void main() {
 
     await tester.tap(
         find.descendant(of: checkedTaskOne, matching: find.byType(Checkbox)));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
     expect(checkedTaskOne, findsNothing);
 
     await tester.tap(completed);
