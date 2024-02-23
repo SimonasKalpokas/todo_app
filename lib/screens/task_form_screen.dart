@@ -67,6 +67,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   Category? category;
   var showExtra = false;
   String? parentId;
+  int index = 0;
 
   @override
   void initState() {
@@ -74,6 +75,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       nameController.text = widget.task!.name;
       descriptionController.text = widget.task!.description;
       reoccurrence = widget.task!.reoccurrence;
+      index = widget.task!.index;
       lastDoneOn = widget.task!.lastDoneOn;
       isReoccurringTabController.index =
           reoccurrence == Reoccurrence.notRepeating ? 0 : 1;
@@ -177,6 +179,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
+                            index
                           );
                           break;
                         case TaskType.timed:
@@ -185,6 +188,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
+                            index,
                             totalTime,
                           );
                           break;
@@ -194,11 +198,12 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             nameController.text,
                             descriptionController.text,
                             reoccurrence,
+                            index,
                           );
                           break;
                       }
                       task.categoryId = category?.id;
-                      firestoreService.addTask(task);
+                      firestoreService.addTaskToTop(task);
                     }
                     Navigator.pop(context);
                   }

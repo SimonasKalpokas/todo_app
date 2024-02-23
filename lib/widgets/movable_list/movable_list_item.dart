@@ -34,7 +34,7 @@ class _MovableListItemState extends State<MovableListItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onLongPress: widget.selectionProvider.state != SelectionState.moving
+      onDoubleTap: widget.selectionProvider.state != SelectionState.moving
           ? _onSelect
           : null,
       onTap: widget.selectionProvider.isSelecting ? _onSelect : null,

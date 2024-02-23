@@ -35,16 +35,17 @@ class MockFirestoreService extends Mock implements FirestoreService {
     "description": "one desc",
     "type": TaskType.checked.index,
     "reoccurrence": Reoccurrence.daily.index,
+    "index": 0,
   });
 
   MockFirestoreService() {
     undoneStreamController.add([
       TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
-          Reoccurrence.notRepeating, const Duration(days: 1)),
+          Reoccurrence.notRepeating, 0, const Duration(days: 1)),
       one,
-      CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly),
+      CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly, 1),
       CheckedTaskListenable(
-          null, "Three", "three desc", Reoccurrence.notRepeating)
+          null, "Three", "three desc", Reoccurrence.notRepeating, 2)
     ]);
     doneStreamController.add(const Iterable.empty());
   }
@@ -73,10 +74,10 @@ class MockFirestoreService extends Mock implements FirestoreService {
       one.lastDoneOn = DateTime.parse(fields["lastDoneOn"]);
       undoneStreamController.add([
         TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
-            Reoccurrence.notRepeating, const Duration(days: 1)),
-        CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly),
+            Reoccurrence.notRepeating, 0, const Duration(days: 1)),
+        CheckedTaskListenable(null, "Two", "two desc", Reoccurrence.weekly, 1),
         CheckedTaskListenable(
-            null, "Three", "three desc", Reoccurrence.notRepeating)
+            null, "Three", "three desc", Reoccurrence.notRepeating, 2)
       ]);
       doneStreamController.add([one]);
     } else {
@@ -115,12 +116,11 @@ void main() {
     await tester.pump(Duration.zero);
     final checkedTaskOne = find.byKey(const Key("abc"));
     expect(checkedTaskOne, findsOneWidget);
-    expect(checkedTaskOne, findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
     await tester.tap(
         find.descendant(of: checkedTaskOne, matching: find.byType(Checkbox)));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
     expect(checkedTaskOne, findsNothing);
 
     await tester.tap(completed);

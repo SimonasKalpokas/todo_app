@@ -28,9 +28,10 @@ abstract class BaseTask extends Entity {
   DateTime? lastDoneOn;
   Reoccurrence reoccurrence;
   TaskType type;
+  int index;
 
   BaseTask(
-      this.type, this.parentId, this.name, this.description, this.reoccurrence)
+      this.type, this.parentId, this.name, this.description, this.reoccurrence, this.index)
       : super.create();
 
   factory BaseTask.createTask(Map<String, dynamic> map) {
@@ -61,6 +62,7 @@ abstract class BaseTask extends Entity {
       'reoccurrence': reoccurrence.index,
       'type': type.index,
       'categoryId': categoryId,
+      'index': index,
     });
     return map;
   }
@@ -75,6 +77,7 @@ abstract class BaseTask extends Entity {
         type = TaskType.values[map['type']],
         reoccurrence = Reoccurrence.values[map['reoccurrence']],
         categoryId = map['categoryId'],
+        index = map['index'],
         super.fromMap();
 }
 

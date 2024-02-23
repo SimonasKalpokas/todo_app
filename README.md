@@ -11,7 +11,7 @@ Demo: https://simonaskalpokas1.github.io/todo_app/
 - [ ] Amounted tasks
 - [x] Subtasks/folders/lists
 - [x] Main page
-- [ ] Moving/reordering tasks
+- [x] Moving/reordering tasks
 - [ ] Notifications
 - [x] Categories
 - [ ] Filtering system
@@ -37,7 +37,7 @@ A little outdated but still great tutorial [here](https://halimsamy.com/wsl-for-
 
 Required command **usbipd** can be installed with `winget install usbipd`.
 1. Run in Command Prompt/Powershell:
-    1. `usbpid list` to find needed device,
+    1. `usbipd list` to find needed device,
     2. `usbipd attach --wsl --busid {BUSID}`.
 2. On wsl run `sudo adb start-server`.
 3. Allow access in the popup on the android device.

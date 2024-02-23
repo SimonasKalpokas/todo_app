@@ -201,7 +201,8 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                           onPressed: () {
                                             firestoreService.deleteTask(
                                                 widget.task.parentId,
-                                                widget.task.id);
+                                                widget.task.id,
+                                                widget.task.index);
                                           },
                                           icon: Icon(
                                             Icons.delete,

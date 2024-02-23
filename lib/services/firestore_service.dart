@@ -55,11 +55,14 @@ class FirestoreService {
     return categoriesCollection.doc(category.id).delete();
   }
 
-  Future<void> addTask(BaseTask task) async {
+  Future<void> addTaskToTop(BaseTask task) async {
     if (task.type == TaskType.parent) {
       await tasks.doc(task.id).set({'parentId': task.parentId});
     }
-    await _currentTasks(task.parentId).doc(task.id).set(task.toMap());
+    var currentTasks = _currentTasks(task.parentId);
+    var snapshot = await currentTasks.get();
+    task.index = snapshot.size;
+    await currentTasks.doc(task.id).set(task.toMap());
   }
 
   // TODO: make filter parameters better
@@ -67,16 +70,17 @@ class FirestoreService {
   // which isn't very clear
   Stream<Iterable<BaseTask>> getTasks(String? parentId, bool undone) {
     return _currentTasks(parentId)
+        .orderBy('index')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
-              var taskListenable =
-                  BaseTaskListenable.createTaskListenable(doc.data());
-              taskListenable.addListener(() {
-                _currentTasks(parentId).doc(doc.id).set(taskListenable.toMap());
-              });
-              taskListenable.refreshState();
-              return taskListenable;
-            }).where((task) => task.isDone == !undone));
+          var taskListenable =
+              BaseTaskListenable.createTaskListenable(doc.data());
+          taskListenable.addListener(() {
+            _currentTasks(parentId).doc(doc.id).set(taskListenable.toMap());
+          });
+          taskListenable.refreshState();
+          return taskListenable;
+        }).where((task) => task.isDone == !undone));
   }
 
   Future<void> moveTask(BaseTask task, String? newParentId) async {
@@ -90,9 +94,16 @@ class FirestoreService {
     return _currentTasks(parentId).doc(taskId).update(fields);
   }
 
-  Future<void> deleteTask(String? parentId, String? taskId) async {
+  Future<void> deleteTask(String? parentId, String? taskId, int index) async {
     await tasks.doc(taskId).delete();
-    await _currentTasks(parentId).doc(taskId).delete();
+    var currentTasks = _currentTasks(parentId);
+    var snapshot = await currentTasks.get();
+    for (var doc in snapshot.docs) {
+      if (doc['index'] > index) {
+        await currentTasks.doc(doc.id).update({'index': doc['index'] - 1});
+      }
+    }
+    await currentTasks.doc(taskId).delete();
   }
 
   Future<void> updateTask(BaseTask task) {
@@ -106,16 +117,36 @@ class FirestoreService {
       return false;
     }
     for (var taskIds in tasksToMove) {
-      var task =
-          (await _currentTasks(taskIds.parentId).doc(taskIds.id).get()).data()!;
+      var task = (await _currentTasks(taskIds.parentId).doc(taskIds.id).get()).data()!;
       task['parentId'] = newParentId;
-      await _currentTasks(newParentId).doc(taskIds.id).set(task);
+      await addTaskToTop(BaseTask.createTask(task));
       if (task['type'] == TaskType.parent.index) {
         await tasks.doc(taskIds.id).set({'parentId': newParentId});
       }
-      await deleteTask(taskIds.parentId, taskIds.id);
+      await deleteTask(taskIds.parentId, taskIds.id, task['index']);
     }
     return true;
+  }
+
+  Future<void> reorderTask(String? parentId, String id, int index, int index2) async {
+    var currentTasks = _currentTasks(parentId);
+    var snapshot = await currentTasks.get();
+    var task = (await currentTasks.doc(id).get()).data()!;
+    if (index < index2) {
+      for (var doc in snapshot.docs) {
+        if (doc['index'] > index && doc['index'] <= index2) {
+          await currentTasks.doc(doc.id).update({'index': doc['index'] - 1});
+        }
+      }
+    } else {
+      for (var doc in snapshot.docs) {
+        if (doc['index'] < index && doc['index'] >= index2) {
+          await currentTasks.doc(doc.id).update({'index': doc['index'] + 1});
+        }
+      }
+    }
+    task['index'] = index2;
+    await currentTasks.doc(id).set(task); 
   }
 
   Future<bool> canTasksBeMoved(

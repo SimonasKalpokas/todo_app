@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/base_task.dart';
@@ -160,7 +161,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                     deleteAndClearSelection() {
                       for (var item in selectionProvider.selectedItems) {
                         firestoreService.deleteTask(
-                            item.value.parentId, item.value.id);
+                            item.value.parentId, item.value.id, item.value.index);
                       }
                       selectionProvider.clearSelection();
                     }
@@ -255,13 +256,28 @@ class TasksListView extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        return ListView(
+        return ReorderableListView(
+          reverse: true,
+          buildDefaultDragHandles: false,
+          onReorder: (oldIndex, newIndex) {
+            if (oldIndex < newIndex) {
+              newIndex -= 1;
+            }
+            final oldTask = snapshot.data!.elementAt(oldIndex);
+            final newTask = snapshot.data!.elementAt(newIndex); 
+            final firestoreService =
+                Provider.of<FirestoreService>(context, listen: false);
+            firestoreService.reorderTask(
+                oldTask.parentId, oldTask.id, oldTask.index, newTask.index);
+          },
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          children: snapshot.data!.map(
-            (task) {
-              return Padding(
+          children: snapshot.data!.mapIndexed((index, task) =>
+             ReorderableDragStartListener(
+              key: Key(task.id),
+              index: index,
+              child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 4.0,
@@ -270,9 +286,9 @@ class TasksListView extends StatelessWidget {
                     selectionItem: SelectionItem(task),
                     selectionProvider:
                         Provider.of<SelectionProvider<BaseTask>>(context),
-                    child: TaskCardWidget(key: Key(task.id), task: task)),
-              );
-            },
+                    child: TaskCardWidget(task: task)),
+              ),
+            )
           ).toList(),
         );
       },
