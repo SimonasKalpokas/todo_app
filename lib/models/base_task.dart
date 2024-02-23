@@ -67,7 +67,7 @@ abstract class BaseTask extends Entity {
     return map;
   }
 
-  BaseTask.fromMap(Map<String, dynamic> map)
+  BaseTask.fromMap(super.map)
       : name = map['name'],
         parentId = map['parentId'],
         description = map['description'],
@@ -78,7 +78,7 @@ abstract class BaseTask extends Entity {
         reoccurrence = Reoccurrence.values[map['reoccurrence']],
         categoryId = map['categoryId'],
         index = map['index'],
-        super.fromMap(map);
+        super.fromMap();
 }
 
 enum Status {

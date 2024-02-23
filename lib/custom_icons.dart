@@ -13,6 +13,8 @@
 ///
 ///
 ///
+library custom_icons;
+
 import 'package:flutter/widgets.dart';
 
 class CustomIcons {

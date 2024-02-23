@@ -9,10 +9,11 @@ Demo: https://simonaskalpokas1.github.io/todo_app/
 - [x] Timed tasks
 - [x] Repeating tasks
 - [ ] Amounted tasks
-- [ ] [Subtasks/folders/lists](https://todo-app-git-subtasks-simonaskalpokas1.vercel.app)
+- [x] Subtasks/folders/lists
 - [x] Main page
+- [ ] Moving/reordering tasks
 - [ ] Notifications
-- [ ] [Categories](https://todo-app-git-categories-simonaskalpokas1.vercel.app)
+- [x] Categories
 - [ ] Filtering system
 - [ ] [Nice UI](https://todo-app-git-ui-task-card-expand-simonaskalpokas1.vercel.app)
 - [ ] Different users

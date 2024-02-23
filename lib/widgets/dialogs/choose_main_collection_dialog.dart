@@ -7,8 +7,8 @@ import '../../services/firestore_service.dart';
 
 class ChooseMainCollectionDialog extends StatefulWidget {
   const ChooseMainCollectionDialog({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ChooseMainCollectionDialog> createState() =>

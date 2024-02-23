@@ -9,8 +9,7 @@ import '../../services/firestore_service.dart';
 class CategorySettingsDialog extends StatefulWidget {
   final Iterable<Category> categories;
 
-  const CategorySettingsDialog({Key? key, required this.categories})
-      : super(key: key);
+  const CategorySettingsDialog({super.key, required this.categories});
 
   @override
   State<CategorySettingsDialog> createState() => _CategorySettingsDialogState();

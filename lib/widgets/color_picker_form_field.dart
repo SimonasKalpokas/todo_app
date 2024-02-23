@@ -18,14 +18,11 @@ const pickerColors = [
 class ColorPickerFormField extends FormField<Color> {
   ColorPickerFormField({
     super.key,
-    FormFieldSetter<Color>? onSaved,
-    FormFieldValidator<Color>? validator,
-    Color? initialValue,
+    super.onSaved,
+    super.validator,
+    super.initialValue,
     bool autovalidate = false,
   }) : super(
-            onSaved: onSaved,
-            validator: validator,
-            initialValue: initialValue,
             autovalidateMode: autovalidate
                 ? AutovalidateMode.always
                 : AutovalidateMode.disabled,
