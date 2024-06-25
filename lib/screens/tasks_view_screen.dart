@@ -274,7 +274,7 @@ class TasksListView extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.mapIndexed((index, task) =>
-             ReorderableDragStartListener(
+             ReorderableDelayedDragStartListener(
               key: Key(task.id),
               index: index,
               child: Padding(
