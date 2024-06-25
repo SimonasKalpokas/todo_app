@@ -32,7 +32,6 @@ Future<void> initialiseDb() async {
   }
 }
 
-// TODO: show most recent tasks on top
 Future<void> main() async {
   await initialiseDb();
 
