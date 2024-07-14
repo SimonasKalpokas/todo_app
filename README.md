@@ -2,7 +2,7 @@
 
 An WIP android app for tasks using Flutter and Firebase.
 
-Demo: https://simonaskalpokas1.github.io/todo_app/
+Demo: https://simonaskalpokas.github.io/todo_app/
 
 ## Development Milestones
 - [x] Checked tasks
