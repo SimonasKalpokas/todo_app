@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/base_task.dart';
@@ -89,9 +90,20 @@ class FirestoreService {
     await _currentTasks(newParentId).doc(task.id).set(task.toMap());
   }
 
-  Future<void> updateTaskFields(
-      String? parentId, String? taskId, Map<String, dynamic> fields) {
-    return _currentTasks(parentId).doc(taskId).update(fields);
+  Future<void> toggleTaskCompletion(String? parentId, String? taskId, bool value) async {
+    var task = (await _currentTasks(parentId).doc(taskId).get()).data()!;
+    var now = clock.now().toIso8601String();
+
+    var reoccurrence = Reoccurrence.values[task['reoccurrence']];
+    if (reoccurrence != Reoccurrence.notRepeating) {
+      if (value) {
+        await _currentTasks(parentId).doc(taskId).collection('history').doc(now).set({});
+      } else {
+        await _currentTasks(parentId).doc(taskId).collection('history').doc(task['lastDoneOn']).delete();
+      }
+    }
+    task['lastDoneOn'] = value ? now : null;
+    await _currentTasks(parentId).doc(taskId).update(task);
   }
 
   Future<void> deleteTask(String? parentId, String? taskId, int index) async {

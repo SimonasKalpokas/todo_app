@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -68,10 +69,10 @@ class MockFirestoreService extends Mock implements FirestoreService {
   }
 
   @override
-  Future<void> updateTaskFields(
-      String? parentId, String? taskId, Map<String, dynamic> fields) async {
-    if (fields.length == 1 && fields["lastDoneOn"] != null) {
-      one.lastDoneOn = DateTime.parse(fields["lastDoneOn"]);
+  Future<void> toggleTaskCompletion(
+      String? parentId, String? taskId, bool value) async {
+    if (taskId == "abc") {
+      one.lastDoneOn = clock.now();
       undoneStreamController.add([
         TimedTaskListenable(null, 'TimedOne', 'timedOne desc',
             Reoccurrence.notRepeating, 0, const Duration(days: 1)),

@@ -1,4 +1,3 @@
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/constants.dart';
@@ -141,12 +140,10 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                         categoryColor ?? appColors.borderColor))
                             : Checkbox(
                                 onChanged: (bool? value) {
-                                  firestoreService.updateTaskFields(
-                                      widget.task.parentId, widget.task.id, {
-                                    'lastDoneOn': value!
-                                        ? clock.now().toIso8601String()
-                                        : null
-                                  });
+                                  firestoreService.toggleTaskCompletion(
+                                    widget.task.parentId,
+                                    widget.task.id,
+                                    value!);
                                 },
                                 value: widget.task.isDone,
                                 side: BorderSide(
@@ -254,12 +251,10 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                         ),
                                         TextButton.icon(
                                           onPressed: () {
-                                            firestoreService.updateTaskFields(
+                                            firestoreService.toggleTaskCompletion(
                                                 widget.task.parentId,
-                                                widget.task.id, {
-                                              'lastDoneOn':
-                                                  clock.now().toIso8601String()
-                                            });
+                                                widget.task.id, 
+                                                true);
                                           },
                                           icon: Icon(
                                             Icons.done,

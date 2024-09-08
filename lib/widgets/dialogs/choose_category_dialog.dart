@@ -85,7 +85,7 @@ class _ChooseCategoryDialogState extends State<ChooseCategoryDialog> {
                     context: context,
                     builder: (_) => const CategoryCreateDialog(),
                   ).then((value) {
-                    if (value != null) {
+                    if (value != null && context.mounted) {
                       Navigator.pop(context, value);
                     }
                   });
