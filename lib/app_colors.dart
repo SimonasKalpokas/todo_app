@@ -11,6 +11,7 @@ class AppColors {
   final Color headerFooterColor;
 
   final Color taskBackgroundColor;
+  final Color highlightedTaskBackgroundColor;
   final Color buttonTextColor;
 
   final Color red;
@@ -23,6 +24,7 @@ class AppColors {
     required this.backgroundColor,
     required this.headerFooterColor,
     required this.taskBackgroundColor,
+    required this.highlightedTaskBackgroundColor,
     required this.buttonTextColor,
     required this.red,
   });

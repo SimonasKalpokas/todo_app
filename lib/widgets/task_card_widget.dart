@@ -13,7 +13,9 @@ import '../services/firestore_service.dart';
 
 class TaskCardWidget extends StatefulWidget {
   final BaseTask task;
-  const TaskCardWidget({super.key, required this.task});
+  final bool highlighted;
+
+  const TaskCardWidget({super.key, required this.task, this.highlighted = false});
 
   @override
   State<TaskCardWidget> createState() => _TaskCardWidgetState();
@@ -53,9 +55,11 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
               color: widget.task.isDone
                   ? appColors.borderColor.withOpacity(0.4)
                   : categoryColor ?? appColors.borderColor),
-          color: widget.task.isDone
-              ? appColors.taskBackgroundColor.withOpacity(0.4)
-              : appColors.taskBackgroundColor,
+          color: widget.highlighted
+	      ? appColors.highlightedTaskBackgroundColor
+	      : widget.task.isDone
+                ? appColors.taskBackgroundColor.withOpacity(0.4)
+                : appColors.taskBackgroundColor,
         ),
         child: IntrinsicHeight(
           child: Row(

@@ -11,6 +11,7 @@ const colorThemes = {
       backgroundColor: Color(0xFF282828),
       headerFooterColor: Color(0xFF484848),
       taskBackgroundColor: Color(0xFF383838),
+      highlightedTaskBackgroundColor: Color(0xFF484848),
       buttonTextColor: Color(0xFF252525),
       red: Color(0xFFFF6D6D)),
   "light": AppColors(
@@ -21,6 +22,7 @@ const colorThemes = {
     backgroundColor: Color(0xFFFFF9F1),
     headerFooterColor: Color(0xFFFFD699),
     taskBackgroundColor: Color(0xFFFFFFFF),
+    highlightedTaskBackgroundColor: Color(0xFFFFF9F1),
     buttonTextColor: Color(0xFF000000),
     red: Color(0xFFFF0000),
   ),

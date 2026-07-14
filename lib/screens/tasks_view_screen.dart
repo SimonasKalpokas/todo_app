@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,10 @@ import '../widgets/dialogs/category_settings_dialog.dart';
 import '../widgets/dialogs/choose_main_collection_dialog.dart';
 import 'task_form_screen.dart';
 
+enum TaskListCommand {
+  highlightRandomTask,
+}
+
 class TasksViewScreen extends StatefulWidget {
   final BaseTask? parentTask;
   const TasksViewScreen({super.key, required this.parentTask});
@@ -25,6 +30,7 @@ class TasksViewScreen extends StatefulWidget {
 
 class _TasksViewScreenState extends State<TasksViewScreen> {
   var showDone = false;
+  final taskListCommandController = StreamController<TaskListCommand>();
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +55,15 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 },
               ),
         actions: [
+          IconButton(
+            onPressed: () {
+		taskListCommandController.add(TaskListCommand.highlightRandomTask);
+            },
+            icon: Icon(
+              Icons.view_in_ar_outlined,
+              color: appColors.primaryColorLight,
+            ),
+          ),
           IconButton(
             onPressed: () {
               showDialog<bool?>(
@@ -99,7 +114,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            TasksListView(tasks: undoneTasks),
+            TasksListView(tasks: undoneTasks, commands: taskListCommandController.stream),
             Padding(
               padding: const EdgeInsets.only(left: 15.0, top: 8.0),
               child: InkWell(
@@ -237,17 +252,49 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   }
 }
 
-class TasksListView extends StatelessWidget {
+class TasksListView extends StatefulWidget {
   final Stream<Iterable<BaseTask>> tasks;
+  final Stream<TaskListCommand>? commands;
   final bool visible;
 
-  const TasksListView({super.key, required this.tasks, this.visible = true});
+  const TasksListView({super.key, required this.tasks, this.commands = null, this.visible = true});
+
+  @override
+  State<TasksListView> createState() => _TasksListViewState();
+}
+
+class _TasksListViewState extends State<TasksListView> {
+  Stream<Iterable<BaseTask>> get tasks => widget.tasks;
+  bool get visible => widget.visible;
+
+
+  int? highlightedTaskIndex;
+  Iterable<BaseTask> _latestTasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.commands != null) {
+      widget.commands!.listen((command) {
+	if (command == TaskListCommand.highlightRandomTask) {
+	  if (_latestTasks.isNotEmpty) {
+	    setState(() {
+	      highlightedTaskIndex = Random().nextInt(_latestTasks.length);
+	    });
+	  }
+	}
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Iterable<BaseTask>>(
       stream: tasks,
       builder: (context, AsyncSnapshot<Iterable<BaseTask>> snapshot) {
+	_latestTasks = snapshot.data ?? [];
+
         if (!visible) {
           return const SizedBox();
         }
@@ -286,7 +333,7 @@ class TasksListView extends StatelessWidget {
                     selectionItem: SelectionItem(task),
                     selectionProvider:
                         Provider.of<SelectionProvider<BaseTask>>(context),
-                    child: TaskCardWidget(task: task)),
+                    child: TaskCardWidget(task: task, highlighted: index == highlightedTaskIndex)),
               ),
             )
           ).toList(),
