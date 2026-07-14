@@ -31,6 +31,7 @@ class _ChooseMainCollectionDialogState
     final appColors = colorProvider.appColors;
     return AlertDialog(
         title: const Text('Choose main collection'),
+	backgroundColor: appColors.backgroundColor,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

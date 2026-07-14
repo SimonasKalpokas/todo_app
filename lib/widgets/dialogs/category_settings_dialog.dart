@@ -30,6 +30,7 @@ class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
     final appColors = Provider.of<ColorProvider>(context).appColors;
     return AlertDialog(
         title: const Text('Category settings'),
+	backgroundColor: appColors.backgroundColor,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
