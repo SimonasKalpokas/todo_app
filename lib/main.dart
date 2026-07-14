@@ -78,7 +78,7 @@ class MyApp extends StatelessWidget {
           titleSpacing: 16,
         ),
         dialogBackgroundColor: appColors.backgroundColor,
-        dialogTheme: DialogTheme(
+        dialogTheme: DialogThemeData(
           titleTextStyle: TextStyle(
             color: appColors.primaryColor,
             fontSize: 28,
@@ -104,7 +104,7 @@ class MyApp extends StatelessWidget {
           labelLarge: TextStyle(fontWeight: FontWeight.bold),
           labelMedium: TextStyle(fontWeight: FontWeight.bold),
         ),
-        tabBarTheme: TabBarTheme(
+        tabBarTheme: TabBarThemeData(
           indicator: BoxDecoration(color: appColors.primaryColorLight),
           labelColor: Colors.black,
           unselectedLabelColor: const Color(0xFF737373),

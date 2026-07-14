@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "256435746073",
     "project_id": "todoapp-69903",
-    "storage_bucket": "todoapp-69903.appspot.com"
+    "storage_bucket": "todoapp-69903.firebasestorage.app"
   },
   "client": [
     {
@@ -12,12 +12,7 @@
           "package_name": "com.example.todo_app"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "256435746073-ohqsu79irh3l87naqo6j86vpfv7q1nqs.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyD5JXBMJJmSGhk06Nv02zs08Xt1W5KjaBA"
@@ -25,12 +20,7 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "256435746073-ohqsu79irh3l87naqo6j86vpfv7q1nqs.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
