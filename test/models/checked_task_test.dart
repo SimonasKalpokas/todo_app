@@ -1,13 +1,13 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:todo_app/models/base_task.dart';
-import 'package:todo_app/models/checked_task.dart';
+import 'package:todo_app/models/task.dart';
 
 void main() {
   group('CheckedTask', () {
     group('calculateCurrentStatus()', () {
       test('Reoccurance notRepeating', () {
-        var task = CheckedTask(null, "Test", "desc", Reoccurrence.notRepeating, 0);
+        var task = Task(TaskType.checked, null, "Test", "desc",
+            Reoccurrence.notRepeating, 0, null);
         withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
           expect(task.calculateCurrentStatus(), Status.undone);
 
@@ -26,7 +26,8 @@ void main() {
       });
 
       test('Reoccurrence daily', () {
-        var task = CheckedTask(null, "Test", "desc", Reoccurrence.daily, 0);
+        var task = Task(TaskType.checked, null, "Test", "desc",
+            Reoccurrence.daily, 0, null);
         withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
           expect(task.calculateCurrentStatus(), Status.undone);
 
@@ -41,7 +42,8 @@ void main() {
         });
       });
       test('Reoccurrence weekly', () {
-        var task = CheckedTask(null, "Test", "desc", Reoccurrence.weekly, 0);
+        var task = Task(TaskType.checked, null, "Test", "desc",
+            Reoccurrence.weekly, 0, null);
         // 2000-01-11 is Tuesday
         withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
           expect(task.calculateCurrentStatus(), Status.undone);

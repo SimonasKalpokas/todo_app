@@ -2,17 +2,22 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:grpc/grpc_or_grpcweb.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_app/models/base_task.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+import 'package:todo_app/generated/todo_server/task_service.pbgrpc.dart';
+import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/providers/selection_provider.dart';
+import 'package:todo_app/repositories/task_repository.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
 
 Future<void> initialiseDb() async {
-  WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
@@ -32,13 +37,46 @@ Future<void> initialiseDb() async {
   }
 }
 
+final migrations = SqliteMigrations()
+  ..add(SqliteMigration(
+    1,
+    (tx) async {
+      await tx.execute("""
+CREATE TABLE tasks (
+	id text PRIMARY KEY,
+	name text NOT NULL,
+	description text NOT NULL,
+	parent_id text references tasks(id),
+	last_done_on timestamp,
+	reoccurrence text NOT NULL,
+	type text NOT NULL,
+  done_until timestamp,
+	created_at timestamp NOT NULL
+);""");
+    },
+    downMigration: SqliteDownMigration(toVersion: 0)..add('DROP TABLE tasks;'),
+  ));
+
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final dir = await getApplicationSupportDirectory();
+  final db = SqliteDatabase(path: p.join(dir.path, 'todo.db'));
+  await migrations.migrate(db);
+
   await initialiseDb();
 
   var prefs = await SharedPreferences.getInstance();
   var firestoreService = FirestoreService(prefs);
 
   var initialCategories = await firestoreService.getCategories().first;
+
+  final channel = GrpcOrGrpcWebClientChannel.toSingleEndpoint(
+    host: 'localhost',
+    port: 9001,
+    transportSecure: true,
+  );
+  final taskServiceClient = TaskServiceClient(channel);
 
   runApp(MultiProvider(
     providers: [
@@ -47,8 +85,10 @@ Future<void> main() async {
       StreamProvider<Iterable<Category>>.value(
           value: firestoreService.getCategories(),
           initialData: initialCategories),
-      Provider(create: (_) => FirestoreService(prefs)),
-      ChangeNotifierProvider(create: (_) => SelectionProvider<BaseTask>())
+      Provider(
+          create: (_) =>
+              TaskRepository(client: taskServiceClient, database: db)),
+      ChangeNotifierProvider(create: (_) => SelectionProvider<Task>())
     ],
     child: const MyApp(),
   ));

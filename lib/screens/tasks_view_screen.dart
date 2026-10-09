@@ -4,8 +4,9 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
+import 'package:todo_app/repositories/task_repository.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
@@ -21,7 +22,7 @@ enum TaskListCommand {
 }
 
 class TasksViewScreen extends StatefulWidget {
-  final BaseTask? parentTask;
+  final Task? parentTask;
   const TasksViewScreen({super.key, required this.parentTask});
 
   @override
@@ -36,10 +37,11 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   Widget build(BuildContext context) {
     final parentTask = widget.parentTask;
     final firestoreService = Provider.of<FirestoreService>(context);
-    final selectionProvider = Provider.of<SelectionProvider<BaseTask>>(context);
+    final selectionProvider = Provider.of<SelectionProvider<Task>>(context);
+    final taskRepository = Provider.of<TaskRepository>(context);
     final appColors = Provider.of<ColorProvider>(context).appColors;
-    var undoneTasks = firestoreService.getTasks(parentTask?.id, true);
-    var doneTasks = firestoreService.getTasks(parentTask?.id, false);
+    var undoneTasks = taskRepository.watchUndoneTasks(parentTask?.id);
+    var doneTasks = taskRepository.watchDoneTasks(parentTask?.id);
     return Scaffold(
       appBar: AppBar(
         title: selectionProvider.isSelecting
@@ -57,7 +59,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
         actions: [
           IconButton(
             onPressed: () {
-		taskListCommandController.add(TaskListCommand.highlightRandomTask);
+              taskListCommandController
+                  .add(TaskListCommand.highlightRandomTask);
             },
             icon: Icon(
               Icons.view_in_ar_outlined,
@@ -114,7 +117,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            TasksListView(tasks: undoneTasks, commands: taskListCommandController.stream),
+            TasksListView(
+                tasks: undoneTasks, commands: taskListCommandController.stream),
             Padding(
               padding: const EdgeInsets.only(left: 15.0, top: 8.0),
               child: InkWell(
@@ -175,8 +179,8 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                   onPressed: () {
                     deleteAndClearSelection() {
                       for (var item in selectionProvider.selectedItems) {
-                        firestoreService.deleteTask(
-                            item.value.parentId, item.value.id, item.value.index);
+                        firestoreService.deleteTask(item.value.parentId,
+                            item.value.id, item.value.index);
                       }
                       selectionProvider.clearSelection();
                     }
@@ -253,23 +257,26 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
 }
 
 class TasksListView extends StatefulWidget {
-  final Stream<Iterable<BaseTask>> tasks;
+  final Stream<Iterable<Task>> tasks;
   final Stream<TaskListCommand>? commands;
   final bool visible;
 
-  const TasksListView({super.key, required this.tasks, this.commands = null, this.visible = true});
+  const TasksListView(
+      {super.key,
+      required this.tasks,
+      this.commands = null,
+      this.visible = true});
 
   @override
   State<TasksListView> createState() => _TasksListViewState();
 }
 
 class _TasksListViewState extends State<TasksListView> {
-  Stream<Iterable<BaseTask>> get tasks => widget.tasks;
+  Stream<Iterable<Task>> get tasks => widget.tasks;
   bool get visible => widget.visible;
 
-
   int? highlightedTaskIndex;
-  Iterable<BaseTask> _latestTasks = [];
+  Iterable<Task> _latestTasks = [];
 
   @override
   void initState() {
@@ -277,23 +284,23 @@ class _TasksListViewState extends State<TasksListView> {
 
     if (widget.commands != null) {
       widget.commands!.listen((command) {
-	if (command == TaskListCommand.highlightRandomTask) {
-	  if (_latestTasks.isNotEmpty) {
-	    setState(() {
-	      highlightedTaskIndex = Random().nextInt(_latestTasks.length);
-	    });
-	  }
-	}
+        if (command == TaskListCommand.highlightRandomTask) {
+          if (_latestTasks.isNotEmpty) {
+            setState(() {
+              highlightedTaskIndex = Random().nextInt(_latestTasks.length);
+            });
+          }
+        }
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Iterable<BaseTask>>(
+    return StreamBuilder<Iterable<Task>>(
       stream: tasks,
-      builder: (context, AsyncSnapshot<Iterable<BaseTask>> snapshot) {
-	_latestTasks = snapshot.data ?? [];
+      builder: (context, AsyncSnapshot<Iterable<Task>> snapshot) {
+        _latestTasks = snapshot.data ?? [];
 
         if (!visible) {
           return const SizedBox();
@@ -311,7 +318,7 @@ class _TasksListViewState extends State<TasksListView> {
               newIndex -= 1;
             }
             final oldTask = snapshot.data!.elementAt(oldIndex);
-            final newTask = snapshot.data!.elementAt(newIndex); 
+            final newTask = snapshot.data!.elementAt(newIndex);
             final firestoreService =
                 Provider.of<FirestoreService>(context, listen: false);
             firestoreService.reorderTask(
@@ -320,23 +327,25 @@ class _TasksListViewState extends State<TasksListView> {
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          children: snapshot.data!.mapIndexed((index, task) =>
-             ReorderableDelayedDragStartListener(
-              key: Key(task.id),
-              index: index,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 4.0,
-                ),
-                child: MovableListItem(
-                    selectionItem: SelectionItem(task),
-                    selectionProvider:
-                        Provider.of<SelectionProvider<BaseTask>>(context),
-                    child: TaskCardWidget(task: task, highlighted: index == highlightedTaskIndex)),
-              ),
-            )
-          ).toList(),
+          children: snapshot.data!
+              .mapIndexed((index, task) => ReorderableDelayedDragStartListener(
+                    key: Key(task.id),
+                    index: index,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 4.0,
+                      ),
+                      child: MovableListItem(
+                          selectionItem: SelectionItem(task),
+                          selectionProvider:
+                              Provider.of<SelectionProvider<Task>>(context),
+                          child: TaskCardWidget(
+                              task: task,
+                              highlighted: index == highlightedTaskIndex)),
+                    ),
+                  ))
+              .toList(),
         );
       },
     );

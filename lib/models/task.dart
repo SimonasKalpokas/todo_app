@@ -1,49 +1,20 @@
 import 'package:clock/clock.dart';
-import 'package:flutter/material.dart';
-import 'package:todo_app/models/checked_task.dart';
 import 'package:todo_app/models/entity.dart';
-import 'package:todo_app/models/parent_task.dart';
-import 'package:todo_app/models/timed_task.dart';
 
-abstract class BaseTaskListenable implements Listenable, BaseTask {
-  void refreshState();
-
-  factory BaseTaskListenable.createTaskListenable(Map<String, dynamic> map) {
-    switch (TaskType.values[map['type']]) {
-      case TaskType.checked:
-        return CheckedTaskListenable.fromMap(map);
-      case TaskType.timed:
-        return TimedTaskListenable.fromMap(map);
-      case TaskType.parent:
-        return ParentTaskListenable.fromMap(map);
-    }
-  }
-}
-
-abstract class BaseTask extends Entity {
+class Task extends Entity {
   String name;
   String? parentId;
   String description;
   String? categoryId;
   DateTime? lastDoneOn;
+  DateTime? doneUntil;
   Reoccurrence reoccurrence;
   TaskType type;
   int index;
 
-  BaseTask(
-      this.type, this.parentId, this.name, this.description, this.reoccurrence, this.index)
+  Task(this.type, this.parentId, this.name, this.description, this.reoccurrence,
+      this.index, this.categoryId)
       : super.create();
-
-  factory BaseTask.createTask(Map<String, dynamic> map) {
-    switch (TaskType.values[map['type']]) {
-      case TaskType.checked:
-        return CheckedTask.fromMap(map);
-      case TaskType.timed:
-        return TimedTask.fromMap(map);
-      case TaskType.parent:
-        return ParentTask.fromMap(map);
-    }
-  }
 
   // TODO: for weekly (also maybe for daily) add choice of first week day (time)
   Status calculateCurrentStatus() =>
@@ -67,17 +38,20 @@ abstract class BaseTask extends Entity {
     return map;
   }
 
-  BaseTask.fromMap(super.map)
+  Task.fromMap(super.map)
       : name = map['name'],
-        parentId = map['parentId'],
+        parentId = map['parent_id'],
         description = map['description'],
-        lastDoneOn = map['lastDoneOn'] == null
+        lastDoneOn = map['last_done_on'] == null
             ? null
-            : DateTime.parse(map['lastDoneOn']),
-        type = TaskType.values[map['type']],
-        reoccurrence = Reoccurrence.values[map['reoccurrence']],
-        categoryId = map['categoryId'],
-        index = map['index'],
+            : DateTime.parse(map['last_done_on']),
+        type = TaskType.values.byName(map['type']),
+        reoccurrence = Reoccurrence.values.byName(map["reoccurrence"]),
+        categoryId = map['category_id'],
+        index = 0,
+        doneUntil = map['done_until'] == null
+            ? null
+            : DateTime.parse(map['done_until']),
         super.fromMap();
 }
 
@@ -151,6 +125,15 @@ extension ReoccurrenceExtension on Reoccurrence {
         break;
     }
     return true;
+  }
+
+  DateTime calculateDoneUntil(DateTime doneOn) {
+    return switch (this) {
+      Reoccurrence.daily => DateTime(doneOn.year, doneOn.month, doneOn.day + 1),
+      Reoccurrence.weekly =>
+        DateTime(doneOn.year, doneOn.month, doneOn.day + 8 - doneOn.weekday),
+      Reoccurrence.notRepeating => DateTime(9999),
+    };
   }
 
   bool isActiveNow(DateTime? dateTime) {

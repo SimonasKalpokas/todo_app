@@ -13,7 +13,7 @@ class Entity {
 
   Entity.fromMap(Map<String, dynamic> map)
       : id = map['id'],
-        createdAt = DateTime.parse(map['createdAt']);
+        createdAt = DateTime.parse(map['created_at']);
 
   Map<String, dynamic> toMap() => {
         'id': id,

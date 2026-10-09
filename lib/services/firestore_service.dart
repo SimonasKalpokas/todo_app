@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
 
 class FirestoreService {
@@ -56,7 +56,7 @@ class FirestoreService {
     return categoriesCollection.doc(category.id).delete();
   }
 
-  Future<void> addTaskToTop(BaseTask task) async {
+  Future<void> addTaskToTop(Task task) async {
     if (task.type == TaskType.parent) {
       await tasks.doc(task.id).set({'parentId': task.parentId});
     }
@@ -69,37 +69,38 @@ class FirestoreService {
   // TODO: make filter parameters better
   // currently undone true means undone while undone false means done
   // which isn't very clear
-  Stream<Iterable<BaseTask>> getTasks(String? parentId, bool undone) {
-    return _currentTasks(parentId)
-        .orderBy('index')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-          var taskListenable =
-              BaseTaskListenable.createTaskListenable(doc.data());
-          taskListenable.addListener(() {
-            _currentTasks(parentId).doc(doc.id).set(taskListenable.toMap());
-          });
-          taskListenable.refreshState();
-          return taskListenable;
-        }).where((task) => task.isDone == !undone));
+  Stream<Iterable<Task>> getTasks(String? parentId, bool undone) {
+    return _currentTasks(parentId).orderBy('index').snapshots().map(
+        (snapshot) => snapshot.docs
+            .map((doc) => Task.fromMap(doc.data()))
+            .where((task) => task.isDone == !undone));
   }
 
-  Future<void> moveTask(BaseTask task, String? newParentId) async {
+  Future<void> moveTask(Task task, String? newParentId) async {
     await _currentTasks(task.parentId).doc(task.id).delete();
     task.parentId = newParentId;
     await _currentTasks(newParentId).doc(task.id).set(task.toMap());
   }
 
-  Future<void> toggleTaskCompletion(String? parentId, String? taskId, bool value) async {
+  Future<void> toggleTaskCompletion(
+      String? parentId, String? taskId, bool value) async {
     var task = (await _currentTasks(parentId).doc(taskId).get()).data()!;
     var now = clock.now().toIso8601String();
 
     var reoccurrence = Reoccurrence.values[task['reoccurrence']];
     if (reoccurrence != Reoccurrence.notRepeating) {
       if (value) {
-        await _currentTasks(parentId).doc(taskId).collection('history').doc(now).set({});
+        await _currentTasks(parentId)
+            .doc(taskId)
+            .collection('history')
+            .doc(now)
+            .set({});
       } else {
-        await _currentTasks(parentId).doc(taskId).collection('history').doc(task['lastDoneOn']).delete();
+        await _currentTasks(parentId)
+            .doc(taskId)
+            .collection('history')
+            .doc(task['lastDoneOn'])
+            .delete();
       }
     }
     task['lastDoneOn'] = value ? now : null;
@@ -118,20 +119,21 @@ class FirestoreService {
     await currentTasks.doc(taskId).delete();
   }
 
-  Future<void> updateTask(BaseTask task) {
+  Future<void> updateTask(Task task) {
     return _currentTasks(task.parentId).doc(task.id).set(task.toMap());
   }
 
   Future<bool> moveTasks(
-      Iterable<BaseTask> tasksToMove, String? newParentId) async {
+      Iterable<Task> tasksToMove, String? newParentId) async {
     if (!await canTasksBeMoved(
         newParentId, tasksToMove.map((e) => e.id).toList())) {
       return false;
     }
     for (var taskIds in tasksToMove) {
-      var task = (await _currentTasks(taskIds.parentId).doc(taskIds.id).get()).data()!;
+      var task =
+          (await _currentTasks(taskIds.parentId).doc(taskIds.id).get()).data()!;
       task['parentId'] = newParentId;
-      await addTaskToTop(BaseTask.createTask(task));
+      await addTaskToTop(Task.fromMap(task));
       if (task['type'] == TaskType.parent.index) {
         await tasks.doc(taskIds.id).set({'parentId': newParentId});
       }
@@ -140,7 +142,8 @@ class FirestoreService {
     return true;
   }
 
-  Future<void> reorderTask(String? parentId, String id, int index, int index2) async {
+  Future<void> reorderTask(
+      String? parentId, String id, int index, int index2) async {
     var currentTasks = _currentTasks(parentId);
     var snapshot = await currentTasks.get();
     var task = (await currentTasks.doc(id).get()).data()!;
@@ -158,7 +161,7 @@ class FirestoreService {
       }
     }
     task['index'] = index2;
-    await currentTasks.doc(id).set(task); 
+    await currentTasks.doc(id).set(task);
   }
 
   Future<bool> canTasksBeMoved(

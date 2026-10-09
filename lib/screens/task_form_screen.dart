@@ -1,15 +1,13 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/models/base_task.dart';
+import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
-import 'package:todo_app/models/checked_task.dart';
-import 'package:todo_app/models/parent_task.dart';
-import 'package:todo_app/models/timed_task.dart';
 import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/services/firestore_service.dart';
 import 'package:collection/collection.dart';
 
+import '../repositories/task_repository.dart';
 import '../widgets/add_icon_text_button.dart';
 import '../widgets/dialogs/choose_category_dialog.dart';
 import '../widgets/form_label.dart';
@@ -17,7 +15,7 @@ import '../widgets/not_implemented_alert.dart';
 
 class TaskFormScreen extends StatelessWidget {
   final String? parentId;
-  final BaseTask? task;
+  final Task? task;
   const TaskFormScreen({super.key, required this.parentId, this.task});
 
   @override
@@ -34,7 +32,7 @@ class TaskFormScreen extends StatelessWidget {
 
 class TaskForm extends StatefulWidget {
   final String? parentId;
-  final BaseTask? task;
+  final Task? task;
   const TaskForm({super.key, required this.parentId, this.task});
 
   @override
@@ -46,8 +44,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
 
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
-  final hoursController = TextEditingController(text: '0');
-  final minutesController = TextEditingController(text: '0');
 
   late final isReoccurringTabController = TabController(length: 2, vsync: this);
   late final reoccurrencePeriodTabController =
@@ -56,9 +52,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   late final typeTabController = TabController(length: 2, vsync: this);
 
   var isReoccurrenceOptionsExpanded = true;
-  var isTimedOptionsExpanded = true;
   var isReoccurring = false;
-  var isTimed = false;
   var isParent = false;
   var reoccurrence = Reoccurrence.notRepeating;
   DateTime? lastDoneOn;
@@ -71,36 +65,22 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    if (widget.task != null) {
-      nameController.text = widget.task!.name;
-      descriptionController.text = widget.task!.description;
-      reoccurrence = widget.task!.reoccurrence;
-      index = widget.task!.index;
-      lastDoneOn = widget.task!.lastDoneOn;
+    final task = widget.task;
+    if (task != null) {
+      nameController.text = task.name;
+      descriptionController.text = task.description;
+      reoccurrence = task.reoccurrence;
+      index = task.index;
+      lastDoneOn = task.lastDoneOn;
       isReoccurringTabController.index =
           reoccurrence == Reoccurrence.notRepeating ? 0 : 1;
       isReoccurring = reoccurrence != Reoccurrence.notRepeating;
       isReoccurrenceOptionsExpanded = !isReoccurring;
       reoccurrencePeriodTabController.index =
           reoccurrence == Reoccurrence.weekly ? 1 : 0;
-      isTimed = widget.task!.type == TaskType.timed;
-      isTimedOptionsExpanded = !isTimed;
-      hoursController.text = widget.task!.type == TaskType.timed
-          ? (widget.task as TimedTask).totalTime.inHours.toString()
-          : '0';
-      minutesController.text = widget.task!.type == TaskType.timed
-          ? (widget.task as TimedTask)
-              .totalTime
-              .inMinutes
-              .remainder(60)
-              .toString()
-          : '0';
 
       typeTabController.index = widget.task!.type.index % 2;
       type = widget.task!.type;
-      if (type == TaskType.timed) {
-        totalTime = (widget.task! as TimedTask).totalTime;
-      }
     }
     parentId = widget.parentId;
 
@@ -129,6 +109,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
+    final taskRepository = Provider.of<TaskRepository>(context);
     final categories = Provider.of<Iterable<Category>>(context);
     final appColors = Provider.of<ColorProvider>(context).appColors;
     return Scaffold(
@@ -150,62 +131,29 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.bold),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   var form = _formKey.currentState!;
                   if (form.validate()) {
-                    totalTime = Duration(
-                        hours: int.parse(hoursController.text),
-                        minutes: int.parse(minutesController.text));
-                    if (widget.task != null) {
-                      widget.task!.name = nameController.text;
-                      widget.task!.description = descriptionController.text;
-                      widget.task!.lastDoneOn = lastDoneOn;
-                      widget.task!.reoccurrence = reoccurrence;
-                      if (widget.task!.type == TaskType.timed) {
-                        (widget.task! as TimedTask).totalTime = totalTime;
-                      }
-                      widget.task!.categoryId = category?.id;
-                      firestoreService.updateTask(widget.task!);
-                    } else {
-                      BaseTask? task;
-                      switch (isParent
-                          ? TaskType.parent
-                          : isTimed
-                              ? TaskType.timed
-                              : TaskType.checked) {
-                        case TaskType.checked:
-                          task = CheckedTask(
-                            parentId,
-                            nameController.text,
-                            descriptionController.text,
-                            reoccurrence,
-                            index
-                          );
-                          break;
-                        case TaskType.timed:
-                          task = TimedTask(
-                            parentId,
-                            nameController.text,
-                            descriptionController.text,
-                            reoccurrence,
-                            index,
-                            totalTime,
-                          );
-                          break;
-                        case TaskType.parent:
-                          task = ParentTask(
-                            parentId,
-                            nameController.text,
-                            descriptionController.text,
-                            reoccurrence,
-                            index,
-                          );
-                          break;
-                      }
+                    final task = widget.task;
+                    if (task != null) {
+                      task.name = nameController.text;
+                      task.description = descriptionController.text;
+                      task.lastDoneOn = lastDoneOn;
+                      task.reoccurrence = reoccurrence;
                       task.categoryId = category?.id;
-                      firestoreService.addTaskToTop(task);
+                      firestoreService.updateTask(task);
+                    } else {
+                      final task = Task(
+                          isParent ? TaskType.parent : TaskType.checked,
+                          parentId,
+                          nameController.text,
+                          descriptionController.text,
+                          reoccurrence,
+                          index,
+                          category?.id);
+                      await taskRepository.createTask(task);
                     }
-                    Navigator.pop(context);
+                    if (context.mounted) Navigator.pop(context);
                   }
                 },
               ),
@@ -308,11 +256,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                             reoccurrence == Reoccurrence.notRepeating) {
                           setState(() {
                             reoccurrence = Reoccurrence.daily;
-                          });
-                        }
-                        if (isTimed && isTimedOptionsExpanded) {
-                          setState(() {
-                            isTimedOptionsExpanded = false;
                           });
                         }
                       },
@@ -424,11 +367,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                                   setState(() {
                                     isReoccurrenceOptionsExpanded = true;
                                   });
-                                  if (isTimed && isTimedOptionsExpanded) {
-                                    setState(() {
-                                      isTimedOptionsExpanded = false;
-                                    });
-                                  }
                                 },
                                 child: Text(
                                   'Modify',
@@ -451,9 +389,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     ),
                     child: TabBar(
                       onTap: (index) {
-                        setState(() {
-                          isTimed = index == 1;
-                        });
                         if (isReoccurring && isReoccurrenceOptionsExpanded) {
                           setState(() {
                             isReoccurrenceOptionsExpanded = false;
@@ -468,71 +403,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-              if (showExtra)
-                Visibility(
-                  visible: isTimed,
-                  child: isTimedOptionsExpanded
-                      ? Row(children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12.0),
-                            child: SizedBox(
-                              width: 40,
-                              height: 30,
-                              child: TextFormField(
-                                controller: hoursController,
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ),
-                          const FormLabel(text: "Hours"),
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(left: 8.0, top: 12.0),
-                            child: SizedBox(
-                              width: 40,
-                              height: 30,
-                              child: TextFormField(
-                                controller: minutesController,
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ),
-                          const FormLabel(text: "Minutes"),
-                        ])
-                      : DefaultTextStyle(
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: appColors.borderColor.withOpacity(0.7),
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Nunito'),
-                          child: Row(children: [
-                            Text(
-                                '${hoursController.text} hours ${minutesController.text} minutes',
-                                style: TextStyle(color: appColors.borderColor)),
-                            const Text(' to complete'),
-                            const Spacer(),
-                            TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    isTimedOptionsExpanded = true;
-                                  });
-                                  if (isReoccurring &&
-                                      isReoccurrenceOptionsExpanded) {
-                                    setState(() {
-                                      isReoccurrenceOptionsExpanded = false;
-                                    });
-                                  }
-                                },
-                                child: Text(
-                                  'Modify',
-                                  style: TextStyle(
-                                      color: appColors.primaryColor,
-                                      fontSize: 11),
-                                ))
-                          ]),
-                        ),
-                ),
-              if (showExtra) const SizedBox(height: 16),
               if (showExtra)
                 AddIconTextButton(
                   iconData: Icons.add,

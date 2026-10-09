@@ -1,10 +1,10 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/constants.dart';
-import 'package:todo_app/models/timed_task.dart';
-import 'package:todo_app/widgets/timer_widget.dart';
+import 'package:todo_app/repositories/task_repository.dart';
 
-import '../models/base_task.dart';
+import '../models/task.dart';
 import '../models/category.dart';
 import '../providers/color_provider.dart';
 import '../screens/task_form_screen.dart';
@@ -12,10 +12,11 @@ import '../screens/tasks_view_screen.dart';
 import '../services/firestore_service.dart';
 
 class TaskCardWidget extends StatefulWidget {
-  final BaseTask task;
+  final Task task;
   final bool highlighted;
 
-  const TaskCardWidget({super.key, required this.task, this.highlighted = false});
+  const TaskCardWidget(
+      {super.key, required this.task, this.highlighted = false});
 
   @override
   State<TaskCardWidget> createState() => _TaskCardWidgetState();
@@ -27,6 +28,7 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
   @override
   Widget build(BuildContext context) {
     var firestoreService = Provider.of<FirestoreService>(context);
+    var taskRepository = Provider.of<TaskRepository>(context);
     var categories = Provider.of<Iterable<Category>>(context);
     final appColors = Provider.of<ColorProvider>(context).appColors;
     var category = widget.task.categoryId != null
@@ -56,10 +58,10 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                   ? appColors.borderColor.withOpacity(0.4)
                   : categoryColor ?? appColors.borderColor),
           color: widget.highlighted
-	      ? appColors.highlightedTaskBackgroundColor
-	      : widget.task.isDone
-                ? appColors.taskBackgroundColor.withOpacity(0.4)
-                : appColors.taskBackgroundColor,
+              ? appColors.highlightedTaskBackgroundColor
+              : widget.task.isDone
+                  ? appColors.taskBackgroundColor.withOpacity(0.4)
+                  : appColors.taskBackgroundColor,
         ),
         child: IntrinsicHeight(
           child: Row(
@@ -130,12 +132,6 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                             widget.task.isDone) // TODO: add time until refresh
                           Icon(Icons.repeat,
                               color: appColors.borderColor.withOpacity(0.75)),
-                        if (widget.task is TimedTask && !widget.task.isDone)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 10.0),
-                            child: TimerWidget(
-                                timedTask: widget.task as TimedTask),
-                          ),
                         widget.task.type == TaskType.parent
                             ? Padding(
                                 padding: const EdgeInsets.only(right: 10),
@@ -143,11 +139,21 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                     color:
                                         categoryColor ?? appColors.borderColor))
                             : Checkbox(
-                                onChanged: (bool? value) {
-                                  firestoreService.toggleTaskCompletion(
-                                    widget.task.parentId,
+                                onChanged: (bool? value) async {
+                                  // TODO: move logic somewhere else
+                                  DateTime? newLastDoneOn;
+                                  DateTime? doneUntil;
+                                  if (value!) {
+                                    final now = clock.now();
+                                    newLastDoneOn = now;
+                                    doneUntil = widget.task.reoccurrence
+                                        .calculateDoneUntil(now);
+                                  }
+                                  await taskRepository.setTaskCompletion(
                                     widget.task.id,
-                                    value!);
+                                    newLastDoneOn,
+                                    doneUntil,
+                                  );
                                 },
                                 value: widget.task.isDone,
                                 side: BorderSide(
@@ -255,10 +261,11 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                         ),
                                         TextButton.icon(
                                           onPressed: () {
-                                            firestoreService.toggleTaskCompletion(
-                                                widget.task.parentId,
-                                                widget.task.id, 
-                                                true);
+                                            firestoreService
+                                                .toggleTaskCompletion(
+                                                    widget.task.parentId,
+                                                    widget.task.id,
+                                                    true);
                                           },
                                           icon: Icon(
                                             Icons.done,
