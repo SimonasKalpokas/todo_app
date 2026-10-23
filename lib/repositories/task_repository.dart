@@ -58,6 +58,13 @@ SET last_done_on = ?, done_until = ?
 WHERE id = ?
 ''', [lastDoneOn?.toIso8601String(), doneUntil?.toIso8601String(), taskId]);
   }
+
+  Future<void> deleteTask(String taskId) async {
+    await _database.execute('''
+DELETE FROM tasks
+WHERE id = ?
+''', [taskId]);
+  }
 }
 
 typedef CreateTaskInput = ({

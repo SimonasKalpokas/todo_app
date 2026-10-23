@@ -201,15 +201,14 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
+                                        // Delete button
                                         TextButton.icon(
                                           style: TextButton.styleFrom(
                                               padding: const EdgeInsets.only(
                                                   right: 8)),
-                                          onPressed: () {
-                                            firestoreService.deleteTask(
-                                                widget.task.parentId,
-                                                widget.task.id,
-                                                widget.task.index);
+                                          onPressed: () async {
+                                            await taskRepository
+                                                .deleteTask(widget.task.id);
                                           },
                                           icon: Icon(
                                             Icons.delete,
@@ -228,6 +227,7 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                           width: 1,
                                           height: 12,
                                         ),
+                                        // Edit button
                                         TextButton.icon(
                                           onPressed: () {
                                             Navigator.push(
@@ -259,13 +259,22 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                           width: 1,
                                           height: 12,
                                         ),
+                                        // Mark as complete button
                                         TextButton.icon(
-                                          onPressed: () {
-                                            firestoreService
-                                                .toggleTaskCompletion(
-                                                    widget.task.parentId,
-                                                    widget.task.id,
-                                                    true);
+                                          onPressed: () async {
+                                            // TODO: move logic somewhere else
+                                            DateTime? newLastDoneOn;
+                                            DateTime? doneUntil;
+                                            final now = clock.now();
+                                            newLastDoneOn = now;
+                                            doneUntil = widget.task.reoccurrence
+                                                .calculateDoneUntil(now);
+                                            await taskRepository
+                                                .setTaskCompletion(
+                                              widget.task.id,
+                                              newLastDoneOn,
+                                              doneUntil,
+                                            );
                                           },
                                           icon: Icon(
                                             Icons.done,

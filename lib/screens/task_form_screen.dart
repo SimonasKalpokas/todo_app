@@ -138,9 +138,11 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     if (task != null) {
                       task.name = nameController.text;
                       task.description = descriptionController.text;
+                      // TODO: fix this part to also update the new doneUntil field
                       task.lastDoneOn = lastDoneOn;
                       task.reoccurrence = reoccurrence;
                       task.categoryId = category?.id;
+                      // TODO: use the repository
                       firestoreService.updateTask(task);
                     } else {
                       final task = Task(
