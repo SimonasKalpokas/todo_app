@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:clock/clock.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/models/task.dart';
@@ -66,80 +65,8 @@ class FirestoreService {
     await currentTasks.doc(task.id).set(task.toMap());
   }
 
-  // TODO: make filter parameters better
-  // currently undone true means undone while undone false means done
-  // which isn't very clear
-  Stream<Iterable<Task>> getTasks(String? parentId, bool undone) {
-    return _currentTasks(parentId).orderBy('index').snapshots().map(
-        (snapshot) => snapshot.docs
-            .map((doc) => Task.fromMap(doc.data()))
-            .where((task) => task.isDone == !undone));
-  }
-
-  Future<void> moveTask(Task task, String? newParentId) async {
-    await _currentTasks(task.parentId).doc(task.id).delete();
-    task.parentId = newParentId;
-    await _currentTasks(newParentId).doc(task.id).set(task.toMap());
-  }
-
-  Future<void> toggleTaskCompletion(
-      String? parentId, String? taskId, bool value) async {
-    var task = (await _currentTasks(parentId).doc(taskId).get()).data()!;
-    var now = clock.now().toIso8601String();
-
-    var reoccurrence = Reoccurrence.values[task['reoccurrence']];
-    if (reoccurrence != Reoccurrence.notRepeating) {
-      if (value) {
-        await _currentTasks(parentId)
-            .doc(taskId)
-            .collection('history')
-            .doc(now)
-            .set({});
-      } else {
-        await _currentTasks(parentId)
-            .doc(taskId)
-            .collection('history')
-            .doc(task['lastDoneOn'])
-            .delete();
-      }
-    }
-    task['lastDoneOn'] = value ? now : null;
-    await _currentTasks(parentId).doc(taskId).update(task);
-  }
-
-  Future<void> deleteTask(String? parentId, String? taskId, int index) async {
-    await tasks.doc(taskId).delete();
-    var currentTasks = _currentTasks(parentId);
-    var snapshot = await currentTasks.get();
-    for (var doc in snapshot.docs) {
-      if (doc['index'] > index) {
-        await currentTasks.doc(doc.id).update({'index': doc['index'] - 1});
-      }
-    }
-    await currentTasks.doc(taskId).delete();
-  }
-
   Future<void> updateTask(Task task) {
     return _currentTasks(task.parentId).doc(task.id).set(task.toMap());
-  }
-
-  Future<bool> moveTasks(
-      Iterable<Task> tasksToMove, String? newParentId) async {
-    if (!await canTasksBeMoved(
-        newParentId, tasksToMove.map((e) => e.id).toList())) {
-      return false;
-    }
-    for (var taskIds in tasksToMove) {
-      var task =
-          (await _currentTasks(taskIds.parentId).doc(taskIds.id).get()).data()!;
-      task['parentId'] = newParentId;
-      await addTaskToTop(Task.fromMap(task));
-      if (task['type'] == TaskType.parent.index) {
-        await tasks.doc(taskIds.id).set({'parentId': newParentId});
-      }
-      await deleteTask(taskIds.parentId, taskIds.id, task['index']);
-    }
-    return true;
   }
 
   Future<void> reorderTask(

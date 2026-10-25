@@ -9,14 +9,17 @@ import '../models/category.dart';
 import '../providers/color_provider.dart';
 import '../screens/task_form_screen.dart';
 import '../screens/tasks_view_screen.dart';
-import '../services/firestore_service.dart';
 
 class TaskCardWidget extends StatefulWidget {
   final Task task;
+  final List<String> parentIds;
   final bool highlighted;
 
   const TaskCardWidget(
-      {super.key, required this.task, this.highlighted = false});
+      {super.key,
+      required this.task,
+      required this.parentIds,
+      this.highlighted = false});
 
   @override
   State<TaskCardWidget> createState() => _TaskCardWidgetState();
@@ -27,7 +30,6 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
 
   @override
   Widget build(BuildContext context) {
-    var firestoreService = Provider.of<FirestoreService>(context);
     var taskRepository = Provider.of<TaskRepository>(context);
     var categories = Provider.of<Iterable<Category>>(context);
     final appColors = Provider.of<ColorProvider>(context).appColors;
@@ -43,8 +45,10 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
             ? Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        TasksViewScreen(parentTask: widget.task)))
+                    builder: (context) => TasksViewScreen(
+                          parentTask: widget.task,
+                          parentIds: [...widget.parentIds, widget.task.id],
+                        )))
             : setState(() {
                 isExpanded = !isExpanded;
               });

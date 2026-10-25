@@ -160,6 +160,7 @@ class MyApp extends StatelessWidget {
       ),
       home: Builder(
         builder: (context) => const TasksViewScreen(
+          parentIds: [],
           parentTask: null,
         ),
       ),

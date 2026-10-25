@@ -80,6 +80,36 @@ WHERE id = ?
       task.id,
     ]);
   }
+
+  Future<bool> moveTasks(
+    Iterable<Task> tasksToMove,
+    List<String> parentIds,
+  ) async {
+    // TODO: move this check to a service
+    // Check that no circular dependencies happen.
+    final taskIds = tasksToMove.map((t) => t.id).toList();
+
+    if (taskIds.any(parentIds.contains)) {
+      return false;
+    }
+
+    if (taskIds.isEmpty) {
+      return true;
+    }
+
+    final placeholders = List.filled(taskIds.length, '?').join(', ');
+
+    await _database.execute(
+      '''
+      UPDATE tasks
+      SET parent_id = ?
+      WHERE id IN ($placeholders)
+      ''',
+      [parentIds.lastOrNull, ...taskIds],
+    );
+
+    return true;
+  }
 }
 
 typedef CreateTaskInput = ({

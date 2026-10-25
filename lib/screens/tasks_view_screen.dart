@@ -23,7 +23,9 @@ enum TaskListCommand {
 
 class TasksViewScreen extends StatefulWidget {
   final Task? parentTask;
-  const TasksViewScreen({super.key, required this.parentTask});
+  final List<String> parentIds;
+  const TasksViewScreen(
+      {super.key, required this.parentTask, required this.parentIds});
 
   @override
   State<TasksViewScreen> createState() => _TasksViewScreenState();
@@ -36,7 +38,6 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
   @override
   Widget build(BuildContext context) {
     final parentTask = widget.parentTask;
-    final firestoreService = Provider.of<FirestoreService>(context);
     final selectionProvider = Provider.of<SelectionProvider<Task>>(context);
     final taskRepository = Provider.of<TaskRepository>(context);
     final appColors = Provider.of<ColorProvider>(context).appColors;
@@ -118,7 +119,10 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
         child: Column(
           children: [
             TasksListView(
-                tasks: undoneTasks, commands: taskListCommandController.stream),
+              tasks: undoneTasks,
+              parentIds: widget.parentIds,
+              commands: taskListCommandController.stream,
+            ),
             Padding(
               padding: const EdgeInsets.only(left: 15.0, top: 8.0),
               child: InkWell(
@@ -144,7 +148,11 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                 ),
               ),
             ),
-            TasksListView(tasks: doneTasks, visible: showDone),
+            TasksListView(
+              tasks: doneTasks,
+              parentIds: widget.parentIds,
+              visible: showDone,
+            ),
           ],
         ),
       ),
@@ -179,8 +187,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                   onPressed: () {
                     deleteAndClearSelection() {
                       for (var item in selectionProvider.selectedItems) {
-                        firestoreService.deleteTask(item.value.parentId,
-                            item.value.id, item.value.index);
+                        taskRepository.deleteTask(item.value.id);
                       }
                       selectionProvider.clearSelection();
                     }
@@ -234,10 +241,14 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               if (selectionProvider.state == SelectionState.moving)
                 TextButton(
                   onPressed: () async {
-                    if (!await firestoreService.moveTasks(
-                        selectionProvider.selectedItems
-                            .map((item) => item.value),
-                        parentTask?.id)) {
+                    var parentIds = widget.parentIds;
+                    if (parentTask != null) {
+                      parentIds.add(parentTask.id);
+                    }
+                    if (!await taskRepository.moveTasks(
+                      selectionProvider.selectedItems.map((item) => item.value),
+                      parentIds,
+                    )) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -259,12 +270,14 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
 class TasksListView extends StatefulWidget {
   final Stream<Iterable<Task>> tasks;
   final Stream<TaskListCommand>? commands;
+  final List<String> parentIds;
   final bool visible;
 
   const TasksListView(
       {super.key,
       required this.tasks,
-      this.commands = null,
+      required this.parentIds,
+      this.commands,
       this.visible = true});
 
   @override
@@ -342,6 +355,7 @@ class _TasksListViewState extends State<TasksListView> {
                               Provider.of<SelectionProvider<Task>>(context),
                           child: TaskCardWidget(
                               task: task,
+                              parentIds: widget.parentIds,
                               highlighted: index == highlightedTaskIndex)),
                     ),
                   ))
