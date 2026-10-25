@@ -65,6 +65,21 @@ DELETE FROM tasks
 WHERE id = ?
 ''', [taskId]);
   }
+
+  Future<void> updateTask(Task task) async {
+    await _database.execute('''
+UPDATE tasks
+SET name = ?, description = ?, last_done_on = ?, done_until = ?, reoccurrence = ?
+WHERE id = ?
+''', [
+      task.name,
+      task.description,
+      task.lastDoneOn?.toIso8601String(),
+      task.doneUntil?.toIso8601String(),
+      task.reoccurrence.name,
+      task.id,
+    ]);
+  }
 }
 
 typedef CreateTaskInput = ({

@@ -56,6 +56,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   var isParent = false;
   var reoccurrence = Reoccurrence.notRepeating;
   DateTime? lastDoneOn;
+  DateTime? doneUntil;
   var type = TaskType.checked;
   var totalTime = const Duration(hours: 1);
   Category? category;
@@ -72,6 +73,7 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       reoccurrence = task.reoccurrence;
       index = task.index;
       lastDoneOn = task.lastDoneOn;
+      doneUntil = task.doneUntil;
       isReoccurringTabController.index =
           reoccurrence == Reoccurrence.notRepeating ? 0 : 1;
       isReoccurring = reoccurrence != Reoccurrence.notRepeating;
@@ -138,11 +140,11 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                     if (task != null) {
                       task.name = nameController.text;
                       task.description = descriptionController.text;
-                      // TODO: fix this part to also update the new doneUntil field
                       task.lastDoneOn = lastDoneOn;
+                      task.doneUntil = doneUntil;
                       task.reoccurrence = reoccurrence;
                       task.categoryId = category?.id;
-                      // TODO: use the repository
+                      await taskRepository.updateTask(task);
                       firestoreService.updateTask(task);
                     } else {
                       final task = Task(
@@ -447,8 +449,17 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   iconData: Icons.folder,
                   label: "Mark parent task as completed",
                   onPressed: () {
+                    // TODO: move logic somewhere else
+                    DateTime? newLastDoneOn;
+                    DateTime? newDoneUntil;
+                    if (lastDoneOn == null) {
+                      final now = clock.now();
+                      newLastDoneOn = now;
+                      newDoneUntil = reoccurrence.calculateDoneUntil(now);
+                    }
                     setState(() {
-                      lastDoneOn = lastDoneOn == null ? clock.now() : null;
+                      lastDoneOn = newLastDoneOn;
+                      doneUntil = newDoneUntil;
                     });
                   },
                   trailing: Checkbox(
@@ -456,8 +467,17 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       activeColor: appColors.primaryColorLight,
                       checkColor: appColors.taskBackgroundColor,
                       onChanged: (bool? value) {
+                        // TODO: move logic somewhere else
+                        DateTime? newLastDoneOn;
+                        DateTime? newDoneUntil;
+                        if (value!) {
+                          final now = clock.now();
+                          newLastDoneOn = now;
+                          newDoneUntil = reoccurrence.calculateDoneUntil(now);
+                        }
                         setState(() {
-                          lastDoneOn = value! ? clock.now() : null;
+                          lastDoneOn = newLastDoneOn;
+                          doneUntil = newDoneUntil;
                         });
                       }),
                 ),
