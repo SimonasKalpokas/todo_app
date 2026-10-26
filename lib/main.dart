@@ -13,6 +13,7 @@ import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/providers/color_provider.dart';
 import 'package:todo_app/providers/selection_provider.dart';
+import 'package:todo_app/repositories/category_repository.dart';
 import 'package:todo_app/repositories/task_repository.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
 import 'package:todo_app/services/firestore_service.dart';
@@ -41,20 +42,32 @@ final migrations = SqliteMigrations()
   ..add(SqliteMigration(
     1,
     (tx) async {
-      await tx.execute("""
-CREATE TABLE tasks (
-	id text PRIMARY KEY,
-	name text NOT NULL,
-	description text NOT NULL,
-	parent_id text references tasks(id),
-	last_done_on timestamp,
-	reoccurrence text NOT NULL,
-	type text NOT NULL,
-  done_until timestamp,
-	created_at timestamp NOT NULL
-);""");
+      await tx.executeMultiple(
+        """
+        CREATE TABLE tasks (
+          id text PRIMARY KEY,
+          name text NOT NULL,
+          description text NOT NULL,
+          parent_id text references tasks(id),
+          last_done_on timestamp,
+          reoccurrence text NOT NULL,
+          type text NOT NULL,
+          done_until timestamp,
+          category_id text,
+          created_at timestamp NOT NULL
+        );
+        CREATE TABLE categories (
+          id text PRIMARY KEY,
+          name text NOT NULL,
+          color_value int NOT NULL,
+          created_at timestamp NOT NULL
+        );
+        """,
+      );
     },
-    downMigration: SqliteDownMigration(toVersion: 0)..add('DROP TABLE tasks;'),
+    downMigration: SqliteDownMigration(toVersion: 0)
+      ..add('DROP TABLE tasks;')
+      ..add('DROP TABLE categories;'),
   ));
 
 Future<void> main() async {
@@ -62,14 +75,16 @@ Future<void> main() async {
 
   final dir = await getApplicationSupportDirectory();
   final db = SqliteDatabase(path: p.join(dir.path, 'todo.db'));
+
+  // await SqliteMigrations().migrate(db);
   await migrations.migrate(db);
 
   await initialiseDb();
 
   var prefs = await SharedPreferences.getInstance();
   var firestoreService = FirestoreService(prefs);
-
-  var initialCategories = await firestoreService.getCategories().first;
+  var categoryRepository = CategoryRepository(database: db);
+  var initialCategories = await categoryRepository.watchCategories().first;
 
   final channel = GrpcOrGrpcWebClientChannel.toSingleEndpoint(
     host: 'localhost',
@@ -81,10 +96,12 @@ Future<void> main() async {
   runApp(MultiProvider(
     providers: [
       Provider(create: (_) => firestoreService),
+      Provider(create: (_) => CategoryRepository(database: db)),
       ChangeNotifierProvider(create: (_) => ColorProvider(prefs)),
       StreamProvider<Iterable<Category>>.value(
-          value: firestoreService.getCategories(),
-          initialData: initialCategories),
+        value: categoryRepository.watchCategories(),
+        initialData: initialCategories,
+      ),
       Provider(
           create: (_) =>
               TaskRepository(client: taskServiceClient, database: db)),

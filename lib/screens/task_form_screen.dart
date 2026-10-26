@@ -145,7 +145,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                       task.reoccurrence = reoccurrence;
                       task.categoryId = category?.id;
                       await taskRepository.updateTask(task);
-                      firestoreService.updateTask(task);
                     } else {
                       final task = Task(
                           isParent ? TaskType.parent : TaskType.checked,

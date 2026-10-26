@@ -7,7 +7,7 @@ class Category extends Entity {
   Category(this.colorValue, this.name) : super.create();
 
   Category.fromMap(super.map)
-      : colorValue = map['colorValue'],
+      : colorValue = map['color_value'],
         name = map['name'],
         super.fromMap();
 

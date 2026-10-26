@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/repositories/category_repository.dart';
 
 import '../../models/category.dart';
 import '../../providers/color_provider.dart';
-import '../../services/firestore_service.dart';
 import '../color_picker_form_field.dart';
 import '../form_label.dart';
 
@@ -22,7 +22,7 @@ class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
   @override
   Widget build(BuildContext context) {
     final appColors = Provider.of<ColorProvider>(context).appColors;
-    final firestoreService = Provider.of<FirestoreService>(context);
+    final categoryRepository = Provider.of<CategoryRepository>(context);
     return AlertDialog(
       backgroundColor: appColors.backgroundColor,
       title: Text(
@@ -89,8 +89,8 @@ class _CategoryCreateDialogState extends State<CategoryCreateDialog> {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
                       final category =
-                          Category(color!.value, nameController.text);
-                      await firestoreService.addCategory(category);
+                          Category(color!.toARGB32(), nameController.text);
+                      await categoryRepository.createCategory(category);
                       if (context.mounted) {
                         Navigator.pop(context, category);
                       }

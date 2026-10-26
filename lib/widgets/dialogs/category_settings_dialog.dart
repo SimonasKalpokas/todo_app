@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/repositories/category_repository.dart';
 
 import '../../models/category.dart';
 import '../../providers/color_provider.dart';
-import '../../services/firestore_service.dart';
 
 class CategorySettingsDialog extends StatefulWidget {
   final Iterable<Category> categories;
@@ -30,7 +30,7 @@ class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
     final appColors = Provider.of<ColorProvider>(context).appColors;
     return AlertDialog(
         title: const Text('Category settings'),
-	backgroundColor: appColors.backgroundColor,
+        backgroundColor: appColors.backgroundColor,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -69,23 +69,23 @@ class _CategorySettingsDialogState extends State<CategorySettingsDialog> {
         ),
         actions: [
           TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (category != null &&
                     categoryNameController.text.isNotEmpty) {
                   category!.name = categoryNameController.text;
-                  Provider.of<FirestoreService>(context, listen: false)
+                  await Provider.of<CategoryRepository>(context, listen: false)
                       .updateCategory(category!);
                 }
-                Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               },
               child: const Text('OK')),
           TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (category != null) {
-                  Provider.of<FirestoreService>(context, listen: false)
+                  await Provider.of<CategoryRepository>(context, listen: false)
                       .deleteCategory(category!);
                 }
-                Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               },
               child: const Text('Delete')),
           TextButton(

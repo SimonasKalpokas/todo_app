@@ -15,8 +15,8 @@ class TaskRepository {
 
   Future<void> createTask(Task task) async {
     await _database.execute('''
-INSERT INTO tasks(id, name, description, reoccurrence, type, parent_id, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?)
+INSERT INTO tasks(id, name, description, reoccurrence, type, parent_id, category_id, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ''', [
       task.id,
       task.name,
@@ -24,6 +24,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
       task.reoccurrence.name,
       task.type.name,
       task.parentId,
+      task.categoryId,
       task.createdAt.toIso8601String(),
     ]);
   }
@@ -69,7 +70,7 @@ WHERE id = ?
   Future<void> updateTask(Task task) async {
     await _database.execute('''
 UPDATE tasks
-SET name = ?, description = ?, last_done_on = ?, done_until = ?, reoccurrence = ?
+SET name = ?, description = ?, last_done_on = ?, done_until = ?, reoccurrence = ?, category_id = ?
 WHERE id = ?
 ''', [
       task.name,
@@ -77,6 +78,7 @@ WHERE id = ?
       task.lastDoneOn?.toIso8601String(),
       task.doneUntil?.toIso8601String(),
       task.reoccurrence.name,
+      task.categoryId,
       task.id,
     ]);
   }
