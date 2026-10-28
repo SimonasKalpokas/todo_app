@@ -10,10 +10,10 @@ class Task extends Entity {
   DateTime? doneUntil;
   Reoccurrence reoccurrence;
   TaskType type;
-  int index;
+  String orderIndex;
 
   Task(this.type, this.parentId, this.name, this.description, this.reoccurrence,
-      this.index, this.categoryId)
+      this.orderIndex, this.categoryId)
       : super.create();
 
   // TODO: for weekly (also maybe for daily) add choice of first week day (time)
@@ -33,7 +33,7 @@ class Task extends Entity {
       'reoccurrence': reoccurrence.index,
       'type': type.index,
       'categoryId': categoryId,
-      'index': index,
+      'order_index': orderIndex,
     });
     return map;
   }
@@ -48,7 +48,7 @@ class Task extends Entity {
         type = TaskType.values.byName(map['type']),
         reoccurrence = Reoccurrence.values.byName(map["reoccurrence"]),
         categoryId = map['category_id'],
-        index = 0,
+        orderIndex = map['order_index'],
         doneUntil = map['done_until'] == null
             ? null
             : DateTime.parse(map['done_until']),

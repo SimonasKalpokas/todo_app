@@ -13,8 +13,7 @@ class Entity {
 
   Entity.fromMap(Map<String, dynamic> map)
       : id = map['id'],
-        // TODO: remove map['createdAt'] when fully migrated to sqlite
-        createdAt = DateTime.parse(map['createdAt'] ?? map['created_at']);
+        createdAt = DateTime.parse(map['created_at']);
 
   Map<String, dynamic> toMap() => {
         'id': id,

@@ -7,7 +7,7 @@ void main() {
     group('calculateCurrentStatus()', () {
       test('Reoccurance notRepeating', () {
         var task = Task(TaskType.checked, null, "Test", "desc",
-            Reoccurrence.notRepeating, 0, null);
+            Reoccurrence.notRepeating, "", null);
         withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
           expect(task.calculateCurrentStatus(), Status.undone);
 
@@ -27,7 +27,7 @@ void main() {
 
       test('Reoccurrence daily', () {
         var task = Task(TaskType.checked, null, "Test", "desc",
-            Reoccurrence.daily, 0, null);
+            Reoccurrence.daily, "", null);
         withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
           expect(task.calculateCurrentStatus(), Status.undone);
 
@@ -43,7 +43,7 @@ void main() {
       });
       test('Reoccurrence weekly', () {
         var task = Task(TaskType.checked, null, "Test", "desc",
-            Reoccurrence.weekly, 0, null);
+            Reoccurrence.weekly, "", null);
         // 2000-01-11 is Tuesday
         withClock(Clock.fixed(DateTime(2000, 1, 11, 13, 20)), () {
           expect(task.calculateCurrentStatus(), Status.undone);

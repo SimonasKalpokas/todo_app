@@ -8,6 +8,7 @@ import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/repositories/task_repository.dart';
 import 'package:todo_app/services/firestore_service.dart';
+import 'package:todo_app/utilities/fractional_indexing.dart';
 import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';
 
@@ -107,7 +108,9 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskFormScreen(
-                            parentId: parentTask.parentId, task: parentTask),
+                            parentId: parentTask.parentId,
+                            topOrderIndex: null,
+                            task: parentTask),
                       ),
                     );
                   },
@@ -159,13 +162,18 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
       floatingActionButton: selectionProvider.isSelecting
           ? Container()
           : FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          TaskFormScreen(parentId: parentTask?.id)),
-                );
+              onPressed: () async {
+                final tasks =
+                    await taskRepository.watchUndoneTasks(parentTask?.id).first;
+                final topIndex = tasks.firstOrNull?.orderIndex;
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => TaskFormScreen(
+                            parentId: parentTask?.id, topOrderIndex: topIndex)),
+                  );
+                }
               },
               backgroundColor: appColors.headerFooterColor,
               tooltip: 'Add a task',
@@ -289,13 +297,15 @@ class _TasksListViewState extends State<TasksListView> {
   bool get visible => widget.visible;
 
   int? highlightedTaskIndex;
-  Iterable<Task> _latestTasks = [];
+  List<Task> _latestTasks = [];
+  Iterable<Task>? _lastSnapshotData;
 
   @override
   void initState() {
     super.initState();
 
     if (widget.commands != null) {
+      // TODO: add cancellation for the listener on dispose
       widget.commands!.listen((command) {
         if (command == TaskListCommand.highlightRandomTask) {
           if (_latestTasks.isNotEmpty) {
@@ -313,7 +323,10 @@ class _TasksListViewState extends State<TasksListView> {
     return StreamBuilder<Iterable<Task>>(
       stream: tasks,
       builder: (context, AsyncSnapshot<Iterable<Task>> snapshot) {
-        _latestTasks = snapshot.data ?? [];
+        if (!identical(_lastSnapshotData, snapshot.data)) {
+          _lastSnapshotData = snapshot.data;
+          _latestTasks = snapshot.data?.toList() ?? [];
+        }
 
         if (!visible) {
           return const SizedBox();
@@ -326,21 +339,36 @@ class _TasksListViewState extends State<TasksListView> {
         return ReorderableListView(
           reverse: true,
           buildDefaultDragHandles: false,
-          onReorder: (oldIndex, newIndex) {
-            if (oldIndex < newIndex) {
-              newIndex -= 1;
+          onReorderItem: (oldIndex, newIndex) async {
+            final task = _latestTasks[oldIndex];
+            setState(() {
+              _latestTasks.removeAt(oldIndex);
+              _latestTasks.insert(newIndex, task);
+
+              final leftOrderIndex = newIndex - 1 >= 0
+                  ? _latestTasks[newIndex - 1].orderIndex
+                  : null;
+              final rightOrderIndex = newIndex + 1 < _latestTasks.length
+                  ? _latestTasks[newIndex + 1].orderIndex
+                  : null;
+              task.orderIndex = indexBetween(leftOrderIndex, rightOrderIndex);
+            });
+
+            final taskRepository =
+                Provider.of<TaskRepository>(context, listen: false);
+            try {
+              await taskRepository.updateTaskOrderIndex(task);
+            } catch (e) {
+              // Forcing state reset
+              setState(() {
+                _lastSnapshotData = null;
+              });
             }
-            final oldTask = snapshot.data!.elementAt(oldIndex);
-            final newTask = snapshot.data!.elementAt(newIndex);
-            final firestoreService =
-                Provider.of<FirestoreService>(context, listen: false);
-            firestoreService.reorderTask(
-                oldTask.parentId, oldTask.id, oldTask.index, newTask.index);
           },
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          children: snapshot.data!
+          children: _latestTasks
               .mapIndexed((index, task) => ReorderableDelayedDragStartListener(
                     key: Key(task.id),
                     index: index,

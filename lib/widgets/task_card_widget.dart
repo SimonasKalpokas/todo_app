@@ -239,9 +239,11 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                               MaterialPageRoute(
                                                   builder: (context) =>
                                                       TaskFormScreen(
-                                                          parentId: widget
-                                                              .task.parentId,
-                                                          task: widget.task)),
+                                                        parentId: widget
+                                                            .task.parentId,
+                                                        task: widget.task,
+                                                        topOrderIndex: null,
+                                                      )),
                                             );
                                           },
                                           icon: Icon(

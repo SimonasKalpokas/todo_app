@@ -15,8 +15,8 @@ class TaskRepository {
 
   Future<void> createTask(Task task) async {
     await _database.execute('''
-INSERT INTO tasks(id, name, description, reoccurrence, type, parent_id, category_id, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO tasks(id, name, description, reoccurrence, type, parent_id, category_id, order_index, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ''', [
       task.id,
       task.name,
@@ -25,6 +25,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       task.type.name,
       task.parentId,
       task.categoryId,
+      task.orderIndex,
       task.createdAt.toIso8601String(),
     ]);
   }
@@ -33,6 +34,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     final stream = _database.watch('''
 SELECT * FROM tasks
 WHERE parent_id IS ? AND (done_until is NULL || done_until < ?)
+ORDER BY order_index
 ''', parameters: [
       parentId,
       clock.now().toIso8601String(),
@@ -44,6 +46,7 @@ WHERE parent_id IS ? AND (done_until is NULL || done_until < ?)
     final stream = _database.watch('''
 SELECT * FROM tasks
 WHERE parent_id IS ? AND done_until > ?
+ORDER BY order_index
 ''', parameters: [
       parentId,
       clock.now().toIso8601String(),
@@ -101,6 +104,7 @@ WHERE id = ?
 
     final placeholders = List.filled(taskIds.length, '?').join(', ');
 
+    // TODO: update orderIndexes here as well
     await _database.execute(
       '''
       UPDATE tasks
@@ -111,6 +115,17 @@ WHERE id = ?
     );
 
     return true;
+  }
+
+  Future<void> updateTaskOrderIndex(Task task) async {
+    await _database.execute(
+      '''
+      UPDATE tasks
+      SET order_index = ?
+      WHERE id = ?
+      ''',
+      [task.orderIndex, task.id],
+    );
   }
 }
 

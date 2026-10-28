@@ -54,6 +54,7 @@ final migrations = SqliteMigrations()
           type text NOT NULL,
           done_until timestamp,
           category_id text,
+          order_index text NOT NULL,
           created_at timestamp NOT NULL
         );
         CREATE TABLE categories (

@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/providers/color_provider.dart';
-import 'package:todo_app/services/firestore_service.dart';
 import 'package:collection/collection.dart';
+import 'package:todo_app/utilities/fractional_indexing.dart';
 
 import '../repositories/task_repository.dart';
 import '../widgets/add_icon_text_button.dart';
@@ -16,7 +16,12 @@ import '../widgets/not_implemented_alert.dart';
 class TaskFormScreen extends StatelessWidget {
   final String? parentId;
   final Task? task;
-  const TaskFormScreen({super.key, required this.parentId, this.task});
+  final String? topOrderIndex;
+  const TaskFormScreen(
+      {super.key,
+      required this.parentId,
+      required this.topOrderIndex,
+      this.task});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +30,11 @@ class TaskFormScreen extends StatelessWidget {
         title: Text(task != null ? "Edit task" : "New task"),
         automaticallyImplyLeading: false,
       ),
-      body: TaskForm(parentId: parentId, task: task),
+      body: TaskForm(
+        parentId: parentId,
+        topOrderIndex: topOrderIndex,
+        task: task,
+      ),
     );
   }
 }
@@ -33,7 +42,12 @@ class TaskFormScreen extends StatelessWidget {
 class TaskForm extends StatefulWidget {
   final String? parentId;
   final Task? task;
-  const TaskForm({super.key, required this.parentId, this.task});
+  final String? topOrderIndex;
+  const TaskForm(
+      {super.key,
+      required this.parentId,
+      required this.topOrderIndex,
+      this.task});
 
   @override
   State<TaskForm> createState() => _TaskFormState();
@@ -62,7 +76,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
   Category? category;
   var showExtra = false;
   String? parentId;
-  int index = 0;
 
   @override
   void initState() {
@@ -71,7 +84,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
       nameController.text = task.name;
       descriptionController.text = task.description;
       reoccurrence = task.reoccurrence;
-      index = task.index;
       lastDoneOn = task.lastDoneOn;
       doneUntil = task.doneUntil;
       isReoccurringTabController.index =
@@ -110,7 +122,6 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
     final taskRepository = Provider.of<TaskRepository>(context);
     final categories = Provider.of<Iterable<Category>>(context);
     final appColors = Provider.of<ColorProvider>(context).appColors;
@@ -138,21 +149,25 @@ class _TaskFormState extends State<TaskForm> with TickerProviderStateMixin {
                   if (form.validate()) {
                     final task = widget.task;
                     if (task != null) {
-                      task.name = nameController.text;
-                      task.description = descriptionController.text;
-                      task.lastDoneOn = lastDoneOn;
-                      task.doneUntil = doneUntil;
-                      task.reoccurrence = reoccurrence;
-                      task.categoryId = category?.id;
+                      setState(() {
+                        task.name = nameController.text;
+                        task.description = descriptionController.text;
+                        task.lastDoneOn = lastDoneOn;
+                        task.doneUntil = doneUntil;
+                        task.reoccurrence = reoccurrence;
+                        task.categoryId = category?.id;
+                      });
                       await taskRepository.updateTask(task);
                     } else {
+                      final orderIndex =
+                          indexBetween(null, widget.topOrderIndex);
                       final task = Task(
                           isParent ? TaskType.parent : TaskType.checked,
                           parentId,
                           nameController.text,
                           descriptionController.text,
                           reoccurrence,
-                          index,
+                          orderIndex,
                           category?.id);
                       await taskRepository.createTask(task);
                     }
