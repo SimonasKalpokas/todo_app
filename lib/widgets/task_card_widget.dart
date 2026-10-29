@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/constants.dart';
 import 'package:todo_app/repositories/task_repository.dart';
+import 'package:todo_app/utilities/fractional_indexing.dart';
 
 import '../models/task.dart';
 import '../models/category.dart';
@@ -147,16 +148,31 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                   // TODO: move logic somewhere else
                                   DateTime? newLastDoneOn;
                                   DateTime? doneUntil;
+                                  String? topOrderIndex;
                                   if (value!) {
                                     final now = clock.now();
                                     newLastDoneOn = now;
                                     doneUntil = widget.task.reoccurrence
                                         .calculateDoneUntil(now);
+                                    final tasks = await taskRepository
+                                        .watchDoneTasks(widget.task.parentId)
+                                        .first;
+                                    topOrderIndex =
+                                        tasks.firstOrNull?.orderIndex;
+                                  } else {
+                                    final tasks = await taskRepository
+                                        .watchUndoneTasks(widget.task.parentId)
+                                        .first;
+                                    topOrderIndex =
+                                        tasks.firstOrNull?.orderIndex;
                                   }
+                                  final newOrderIndex =
+                                      indexBetween(null, topOrderIndex);
                                   await taskRepository.setTaskCompletion(
                                     widget.task.id,
                                     newLastDoneOn,
                                     doneUntil,
+                                    newOrderIndex,
                                   );
                                 },
                                 value: widget.task.isDone,
@@ -275,11 +291,20 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                                             newLastDoneOn = now;
                                             doneUntil = widget.task.reoccurrence
                                                 .calculateDoneUntil(now);
+                                            final tasks = await taskRepository
+                                                .watchUndoneTasks(
+                                                    widget.task.parentId)
+                                                .first;
+                                            final topOrderIndex =
+                                                tasks.firstOrNull?.orderIndex;
+                                            final newOrderIndex = indexBetween(
+                                                null, topOrderIndex);
                                             await taskRepository
                                                 .setTaskCompletion(
                                               widget.task.id,
                                               newLastDoneOn,
                                               doneUntil,
+                                              newOrderIndex,
                                             );
                                           },
                                           icon: Icon(

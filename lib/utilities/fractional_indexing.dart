@@ -22,6 +22,9 @@ void _fill(List<String> out, int n, String? left, String? right) {
   _fill(out, rightCount, middle, right);
 }
 
+// TODO: add hugRight functionality
+// Most of the time new values are inserted on the left
+// Add a check to return values closer to right if left == null
 String indexBetween(String? left, String? right) {
   if ((left != null &&
           (left.isEmpty || left.codeUnitAt(left.length - 1) == _minVal)) ||

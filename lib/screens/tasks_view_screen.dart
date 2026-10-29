@@ -165,13 +165,14 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
               onPressed: () async {
                 final tasks =
                     await taskRepository.watchUndoneTasks(parentTask?.id).first;
-                final topIndex = tasks.firstOrNull?.orderIndex;
+                final topOrderIndex = tasks.firstOrNull?.orderIndex;
                 if (context.mounted) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => TaskFormScreen(
-                            parentId: parentTask?.id, topOrderIndex: topIndex)),
+                            parentId: parentTask?.id,
+                            topOrderIndex: topOrderIndex)),
                   );
                 }
               },
@@ -253,9 +254,22 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                     if (parentTask != null) {
                       parentIds.add(parentTask.id);
                     }
+                    final undoneTasks = await taskRepository
+                        .watchUndoneTasks(parentTask?.id)
+                        .first;
+                    final topUndoneOrderIndex =
+                        undoneTasks.firstOrNull?.orderIndex;
+                    final doneTasks = await taskRepository
+                        .watchDoneTasks(parentTask?.id)
+                        .first;
+                    final topDoneOrderIndex = doneTasks.firstOrNull?.orderIndex;
                     if (!await taskRepository.moveTasks(
-                      selectionProvider.selectedItems.map((item) => item.value),
+                      selectionProvider.selectedItems
+                          .map((item) => item.value)
+                          .toList(),
                       parentIds,
+                      topUndoneOrderIndex,
+                      topDoneOrderIndex,
                     )) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(

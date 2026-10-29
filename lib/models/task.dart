@@ -20,7 +20,12 @@ class Task extends Entity {
   Status calculateCurrentStatus() =>
       reoccurrence.isActiveNow(lastDoneOn) ? Status.done : Status.undone;
 
-  bool get isDone => calculateCurrentStatus() == Status.done;
+  bool get isDone {
+    if (doneUntil == null) {
+      return false;
+    }
+    return doneUntil!.isAfter(clock.now());
+  }
 
   @override
   Map<String, dynamic> toMap() {
