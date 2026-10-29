@@ -38,7 +38,7 @@ class TaskRepository {
     final stream = _database.watch(
       '''
       SELECT * FROM tasks
-      WHERE parent_id IS ? AND (done_until is NULL || done_until < ?)
+      WHERE parent_id IS ? AND (done_until is NULL OR done_until < ?)
       ORDER BY order_index DESC
       ''',
       parameters: [
@@ -89,9 +89,9 @@ class TaskRepository {
     await _database.execute(
       '''
       DELETE FROM tasks
-      WHERE id = ?
+      WHERE id = ? OR parent_id = ?
       ''',
-      [taskId],
+      [taskId, taskId],
     );
   }
 

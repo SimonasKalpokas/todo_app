@@ -207,6 +207,7 @@ class _TasksViewScreenState extends State<TasksViewScreen> {
                         context: context,
                         builder: (context) => AlertDialog(
                           title: const Text("Warning"),
+                          backgroundColor: appColors.backgroundColor,
                           content: Text(
                               "When deleting a parent task, all of its children will be deleted as well.",
                               style:
