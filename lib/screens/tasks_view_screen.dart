@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:todo_app/models/task.dart';
 import 'package:todo_app/models/category.dart';
 import 'package:todo_app/repositories/task_repository.dart';
-import 'package:todo_app/services/firestore_service.dart';
 import 'package:todo_app/utilities/fractional_indexing.dart';
 import 'package:todo_app/widgets/movable_list/movable_list_item.dart';
 import 'package:todo_app/widgets/task_card_widget.dart';

@@ -16,7 +16,6 @@ import 'package:todo_app/providers/selection_provider.dart';
 import 'package:todo_app/repositories/category_repository.dart';
 import 'package:todo_app/repositories/task_repository.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
-import 'package:todo_app/services/firestore_service.dart';
 
 Future<void> initialiseDb() async {
   if (kIsWeb) {
@@ -83,7 +82,6 @@ Future<void> main() async {
   await initialiseDb();
 
   var prefs = await SharedPreferences.getInstance();
-  var firestoreService = FirestoreService(prefs);
   var categoryRepository = CategoryRepository(database: db);
   var initialCategories = await categoryRepository.watchCategories().first;
 
@@ -96,7 +94,6 @@ Future<void> main() async {
 
   runApp(MultiProvider(
     providers: [
-      Provider(create: (_) => firestoreService),
       Provider(create: (_) => CategoryRepository(database: db)),
       ChangeNotifierProvider(create: (_) => ColorProvider(prefs)),
       StreamProvider<Iterable<Category>>.value(

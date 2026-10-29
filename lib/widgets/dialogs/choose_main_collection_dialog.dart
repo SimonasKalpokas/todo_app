@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:todo_app/widgets/form_label.dart';
 
 import '../../providers/color_provider.dart';
-import '../../services/firestore_service.dart';
 
 class ChooseMainCollectionDialog extends StatefulWidget {
   const ChooseMainCollectionDialog({
@@ -31,7 +30,7 @@ class _ChooseMainCollectionDialogState
     final appColors = colorProvider.appColors;
     return AlertDialog(
         title: const Text('Choose main collection'),
-	backgroundColor: appColors.backgroundColor,
+        backgroundColor: appColors.backgroundColor,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -54,14 +53,12 @@ class _ChooseMainCollectionDialogState
         actions: [
           TextButton(
               onPressed: () async {
-                var res =
-                    await Provider.of<FirestoreService>(context, listen: false)
-                        .setMainCollection(mainCollectionController.text);
+                // TODO: implement collection switching
 
                 if (!context.mounted) {
                   return;
                 }
-                Navigator.pop(context, res);
+                Navigator.pop(context, false);
               },
               child: const Text('OK')),
           TextButton(
