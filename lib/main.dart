@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -16,26 +15,6 @@ import 'package:todo_app/providers/selection_provider.dart';
 import 'package:todo_app/repositories/category_repository.dart';
 import 'package:todo_app/repositories/task_repository.dart';
 import 'package:todo_app/screens/tasks_view_screen.dart';
-
-Future<void> initialiseDb() async {
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: "AIzaSyAUgahltvdx26ZtuRmJqlbfZpkKleQAf2U",
-        authDomain: "todoapp-69903.firebaseapp.com",
-        projectId: "todoapp-69903",
-        storageBucket: "todoapp-69903.appspot.com",
-        messagingSenderId: "256435746073",
-        appId: "1:256435746073:web:b292cfcd1e54ca86928188",
-        measurementId: "G-BHH0MLZ0SW",
-      ),
-    );
-  } else if (defaultTargetPlatform == TargetPlatform.android) {
-    await Firebase.initializeApp();
-  } else {
-    throw UnimplementedError("Platform not supported");
-  }
-}
 
 final migrations = SqliteMigrations()
   ..add(SqliteMigration(
@@ -70,19 +49,34 @@ final migrations = SqliteMigrations()
       ..add('DROP TABLE categories;'),
   ));
 
+Future<SqliteDatabase> initialiseDb() async {
+  SqliteDatabase database;
+  if (kIsWeb) {
+    database = SqliteDatabase(
+        path: 'todo.db',
+        options: SqliteOptions(
+            webSqliteOptions: WebSqliteOptions(
+                wasmUri:
+                    'https://cdn.jsdelivr.net/npm/@powersync/dart-wasm-bundles@latest/dist/sqlite3.wasm',
+                workerUri: 'db_worker.js')));
+  } else if (defaultTargetPlatform == TargetPlatform.android) {
+    final dir = await getApplicationSupportDirectory();
+    database = SqliteDatabase(path: p.join(dir.path, 'todo.db'));
+  } else {
+    throw UnimplementedError("Platform not supported");
+  }
+
+  await migrations.migrate(database);
+  return database;
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final dir = await getApplicationSupportDirectory();
-  final db = SqliteDatabase(path: p.join(dir.path, 'todo.db'));
-
-  // await SqliteMigrations().migrate(db);
-  await migrations.migrate(db);
-
-  await initialiseDb();
+  final database = await initialiseDb();
 
   var prefs = await SharedPreferences.getInstance();
-  var categoryRepository = CategoryRepository(database: db);
+  var categoryRepository = CategoryRepository(database: database);
   var initialCategories = await categoryRepository.watchCategories().first;
 
   final channel = GrpcOrGrpcWebClientChannel.toSingleEndpoint(
@@ -94,7 +88,7 @@ Future<void> main() async {
 
   runApp(MultiProvider(
     providers: [
-      Provider(create: (_) => CategoryRepository(database: db)),
+      Provider(create: (_) => CategoryRepository(database: database)),
       ChangeNotifierProvider(create: (_) => ColorProvider(prefs)),
       StreamProvider<Iterable<Category>>.value(
         value: categoryRepository.watchCategories(),
@@ -102,7 +96,7 @@ Future<void> main() async {
       ),
       Provider(
           create: (_) =>
-              TaskRepository(client: taskServiceClient, database: db)),
+              TaskRepository(client: taskServiceClient, database: database)),
       ChangeNotifierProvider(create: (_) => SelectionProvider<Task>())
     ],
     child: const MyApp(),
