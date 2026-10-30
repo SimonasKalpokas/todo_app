@@ -351,7 +351,6 @@ class _TasksListViewState extends State<TasksListView> {
           );
         }
         return ReorderableListView(
-          reverse: true,
           buildDefaultDragHandles: false,
           onReorderItem: (oldIndex, newIndex) async {
             final task = _latestTasks[oldIndex];

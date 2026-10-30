@@ -39,7 +39,7 @@ class TaskRepository {
       '''
       SELECT * FROM tasks
       WHERE parent_id IS ? AND (done_until is NULL OR done_until < ?)
-      ORDER BY order_index DESC
+      ORDER BY order_index ASC
       ''',
       parameters: [
         parentId,
@@ -54,7 +54,7 @@ class TaskRepository {
       '''
       SELECT * FROM tasks
       WHERE parent_id IS ? AND done_until > ?
-      ORDER BY order_index DESC
+      ORDER BY order_index ASC
       ''',
       parameters: [
         parentId,
